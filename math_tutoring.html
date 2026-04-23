@@ -436,68 +436,70 @@ table.t tr.tot td{
   <p>
     Το βίντεο είναι το πιο πολύτιμο περιεχόμενο της πλατφόρμας, άρα η προστασία του είναι
     ξεχωριστή απόφαση. Προτείνουμε <strong>τρεις επιλογές</strong>. Η <u>τιμή ανάπτυξης μένει
-    ίδια (€4.500)</u> — αλλάζει μόνο το μηνιαίο λειτουργικό κόστος και το επίπεδο προστασίας.
+    στο €4.000–€4.500</u> — αλλάζει μόνο το μηνιαίο λειτουργικό κόστος και το επίπεδο προστασίας.
   </p>
 
   <!-- VIDEO OPTION 1 -->
   <div class="option-card">
-    <div class="option-label">Επιλογή 1 — Βασική</div>
-    <div class="option-name">Self-hosted HLS + Signed URLs + Watermark</div>
+    <div class="option-label">Επιλογή 1 — Βασική (ενσωματωμένη)</div>
+    <div class="option-name">Supabase Storage + Signed URLs + Watermark</div>
     <div class="option-desc">
-      Βίντεο σε Cloudflare R2, σερβίρονται με HLS και signed tokens που λήγουν. Κάθε stream
-      έχει ορατό υδατογράφημα με email/ID του θεατή. Χωρίς DRM — αρκετό για να σταματήσει τον
-      μέσο χρήστη, όχι έναν αποφασισμένο πειρατή με εργαλεία.
+      Τα βίντεο αποθηκεύονται στο ίδιο Supabase που ήδη τρέχει την πλατφόρμα. Signed URLs
+      με χρονικό όριο λήξης, Row Level Security που ελέγχει αυτόματα αν ο χρήστης έχει
+      ενεργή συνδρομή στη σωστή τάξη/tier, και ορατό υδατογράφημα με email χρήστη στον player.
     </div>
     <ul class="inc-list">
-      <li>Μηνιαίο κόστος infrastructure: <strong>~€5–10/μήνα</strong> (R2 storage, zero egress)</li>
+      <li><strong>€0 επιπλέον στην αρχή</strong> — χρησιμοποιεί τα 100 GB storage &amp; 250 GB bandwidth που περιλαμβάνονται στο Supabase Pro που ήδη πληρώνετε</li>
       <li>Signed URLs που λήγουν σε λεπτά</li>
+      <li>Row Level Security — πρόσβαση μόνο σε συνδρομητές της σωστής τάξης/tier</li>
       <li>Ορατό υδατογράφημα (email χρήστη) — κάθε διαρροή είναι ιχνηλατήσιμη</li>
-      <li>Ιδανικό για: ξεκίνημα, χαμηλός όγκος, αποδεκτό ρίσκο</li>
+      <li>Στο scale: ~$0,09/GB bandwidth overage πάνω από τα 250 GB/μήνα</li>
+      <li>Ιδανικό για: ξεκίνημα, 50–150 συνδρομητές, απλούστερο stack</li>
     </ul>
   </div>
 
-  <!-- VIDEO OPTION 2 (RECOMMENDED) -->
-  <div class="option-card recommended">
-    <div class="rec-tag">Προτείνεται</div>
+  <!-- VIDEO OPTION 2 -->
+  <div class="option-card">
     <div class="option-label">Επιλογή 2 — Ισορροπημένη</div>
     <div class="option-name">Bunny Stream + Token Auth + Watermark</div>
     <div class="option-desc">
       Επαγγελματικό video hosting με EU PoPs (γρήγορο σε ελληνικούς χρήστες), AES-128
-      encryption, token authentication, burned-in υδατογράφημα. Καλύτερη ισορροπία
-      προστασίας/κόστους για τον όγκο σας.
+      encryption, token authentication, burned-in υδατογράφημα.
     </div>
     <ul class="inc-list">
       <li>Μηνιαίο κόστος: <strong>~€15–40/μήνα</strong> (κλιμακώνεται με τον όγκο — €0.01/GB EU delivery)</li>
       <li>AES-128 encrypted HLS, token auth, domain lock, geo-lock</li>
       <li>Υδατογράφημα burned-in στο encoding</li>
-      <li>Ιδανικό για: 50–300 συνδρομητές, σοβαρή προστασία χωρίς υπερβολή στο κόστος</li>
     </ul>
   </div>
 
-  <!-- VIDEO OPTION 3 -->
-  <div class="option-card">
+  <!-- VIDEO OPTION 3 (RECOMMENDED) -->
+  <div class="option-card recommended">
+    <div class="rec-tag">Προτείνεται</div>
     <div class="option-label">Επιλογή 3 — Μέγιστη προστασία</div>
     <div class="option-name">VdoCipher Multi-DRM + Dynamic Watermark</div>
     <div class="option-desc">
       Η ισχυρότερη διαθέσιμη προστασία για paid content: multi-DRM (Widevine, FairPlay,
       PlayReady), screen recording blocking σε κινητά σε επίπεδο hardware, δυναμικό υδατογράφημα
-      ταυτότητας χρήστη σε κάθε playback.
+      ταυτότητας χρήστη σε κάθε playback. Αφού η ασφάλεια περιεχομένου είναι από τα βασικά
+      ζητούμενα, αυτή είναι η επιλογή που προτείνουμε.
     </div>
     <ul class="inc-list">
       <li>Μηνιαίο κόστος: <strong>€91/μήνα (Starter)</strong> — 175 GB bandwidth + 150 GB storage</li>
       <li>Multi-DRM: Widevine + FairPlay + PlayReady</li>
       <li>Block screen recording σε iOS/Android/Safari</li>
       <li>Δυναμικό watermark ανά playback, όχι burned-in</li>
-      <li>Ιδανικό για: υψηλής αξίας περιεχόμενο εξετάσεων, πανελλαδικές, υψηλό ρίσκο πειρατείας</li>
+      <li>Ιδανικό για: υψηλής αξίας περιεχόμενο, σοβαρή δέσμευση στην προστασία δουλειάς</li>
     </ul>
   </div>
 
   <div class="callout callout-yellow">
     <p>
-      <strong>Τίμια διευκρίνιση:</strong> καμία τεχνολογία δεν κάνει το βίντεο 100% αντιγραφής-προφ
-      — η εξωτερική κάμερα ή HDMI capture είναι φυσικός περιορισμός. Αυτό που προσφέρουν όλες
-      οι επιλογές: <u>μπλοκάρουν τις εύκολες μεθόδους λήψης</u> και <u>υδατογραφούν κάθε βίντεο
-      με την ταυτότητα του θεατή</u>, ώστε κάθε διαρροή να είναι ιχνηλατήσιμη.
+      <strong>Τίμια διευκρίνιση:</strong> καμία τεχνολογία δεν κάνει το βίντεο απολύτως
+      αδύνατο να αντιγραφεί — η εξωτερική κάμερα ή το HDMI capture είναι φυσικός περιορισμός.
+      Αυτό που προσφέρουν όλες οι επιλογές: <u>μπλοκάρουν τις εύκολες μεθόδους λήψης</u> και
+      <u>υδατογραφούν κάθε βίντεο με την ταυτότητα του θεατή</u>, ώστε κάθε διαρροή να είναι
+      ιχνηλατήσιμη.
     </p>
   </div>
 
@@ -573,19 +575,19 @@ table.t tr.tot td{
     </thead>
     <tbody>
       <tr>
-        <td>Επιλογή 1 — Self-hosted (R2)</td>
-        <td>~€5–10/μήνα</td>
-        <td>Κλιμακώνεται με storage</td>
-      </tr>
-      <tr class="hl">
-        <td><strong>Επιλογή 2 — Bunny Stream</strong></td>
-        <td><strong>~€15–40/μήνα</strong></td>
-        <td>Κλιμακώνεται με bandwidth</td>
+        <td>Επιλογή 1 — Supabase Storage</td>
+        <td>€0 επιπλέον</td>
+        <td>Εντός του Supabase Pro plan</td>
       </tr>
       <tr>
-        <td>Επιλογή 3 — VdoCipher Starter</td>
-        <td>$99/μήνα (~€91) σταθερό</td>
-        <td>Starter plan</td>
+        <td>Επιλογή 2 — Bunny Stream</td>
+        <td>~€15–40/μήνα</td>
+        <td>Κλιμακώνεται με bandwidth</td>
+      </tr>
+      <tr class="hl">
+        <td><strong>Επιλογή 3 — VdoCipher Starter</strong></td>
+        <td><strong>$99/μήνα (~€91) σταθερό</strong></td>
+        <td>Starter plan — προτεινόμενη</td>
       </tr>
     </tbody>
   </table>
@@ -599,9 +601,10 @@ table.t tr.tot td{
 
   <div class="callout callout-dark">
     <p>
-      <strong>Συνολική εκτίμηση</strong> με την προτεινόμενη Επιλογή 2 (Bunny):
-      <strong>~€57–€101/μήνα</strong> σε πάγια &amp; βίντεο. Οι προμήθειες Stripe είναι ποσοστιαίες
-      επί των εσόδων — αυξάνονται μόνο όταν αυξάνονται και τα έσοδά σας.
+      <strong>Συνολική εκτίμηση</strong>: με την προτεινόμενη Επιλογή 3 (VdoCipher)
+      ~<strong>€133–€152/μήνα</strong> σε πάγια &amp; βίντεο. Με Επιλογή 2 (Bunny) ~€57–€101/μήνα,
+      με Επιλογή 1 (Supabase) ~€42–€61/μήνα. Οι προμήθειες Stripe είναι ποσοστιαίες επί των
+      εσόδων — αυξάνονται μόνο όταν αυξάνονται και τα έσοδά σας.
     </p>
   </div>
 
@@ -639,8 +642,9 @@ table.t tr.tot td{
     <li>
       <div class="step-n">2</div>
       <div class="step-text">
-        <strong>Design (Figma):</strong> Σχεδιάζουμε την πλατφόρμα οπτικά πριν γράψουμε κώδικα —
-        homepage, admin panel, πλατφόρμα μαθητή, forum. Εσείς εγκρίνετε το design πριν προχωρήσουμε.
+        <strong>Design:</strong> Σχεδιάζουμε την πλατφόρμα απευθείας σε κώδικα — homepage,
+        admin panel, πλατφόρμα μαθητή, forum. Εσείς βλέπετε live preview και εγκρίνετε
+        το design πριν προχωρήσουμε στην πλήρη ανάπτυξη.
       </div>
     </li>
     <li>
@@ -669,18 +673,11 @@ table.t tr.tot td{
 
   <h3>Τεχνολογία</h3>
   <p>
-    Δεν χρησιμοποιούμε WordPress. Κατασκευάζουμε custom σε <strong>Next.js 15 + TypeScript +
+    Δεν χρησιμοποιούμε WordPress. Κατασκευάζουμε custom σε <strong>Next.js 16 + TypeScript +
     Tailwind</strong> στο frontend, <strong>Supabase</strong> (PostgreSQL με Row Level Security) για
     βάση &amp; auth, <strong>Stripe</strong> για συνδρομές &amp; ΦΠΑ, <strong>Resend</strong> για emails,
-    hosting σε <strong>Vercel</strong>. Κανένα εξωτερικό CMS — ένα login για εσάς, μία πηγή αλήθειας.
+    hosting σε <strong>Vercel</strong>.
   </p>
-
-  <div class="callout callout-green">
-    <p>
-      Το αποτέλεσμα: γρηγορότερη πλατφόρμα, χωρίς plugin crashes, χωρίς ενημερώσεις-που-σπάνε-το-site,
-      και μικρότερο λειτουργικό κόστος μακροπρόθεσμα από ό,τι μια WordPress εναλλακτική.
-    </p>
-  </div>
 
   <div class="doc-footer">
     <span>© 2026 Devox &mdash; devox.gr</span>
@@ -726,9 +723,9 @@ table.t tr.tot td{
         <td>Supabase, Vercel, Resend, domain</td>
       </tr>
       <tr class="hl">
-        <td>Μηνιαίο βίντεο (Bunny — προτείνεται)</td>
-        <td>~€15–€40 / μήνα</td>
-        <td>Κλιμακώνεται με όγκο</td>
+        <td>Μηνιαίο βίντεο (VdoCipher — προτείνεται)</td>
+        <td>~€91 / μήνα</td>
+        <td>Μέγιστη προστασία, σταθερή τιμή</td>
       </tr>
       <tr>
         <td>Stripe fees</td>
@@ -737,7 +734,7 @@ table.t tr.tot td{
       </tr>
       <tr class="tot">
         <td colspan="2"><strong>Συνολικό μηνιαίο λειτουργικό</strong></td>
-        <td><strong>~€57–€101 / μήνα</strong></td>
+        <td><strong>~€133–€152 / μήνα</strong></td>
       </tr>
     </tbody>
   </table>
@@ -765,25 +762,7 @@ table.t tr.tot td{
     <p>Η έκδοση νόμιμου παραστατικού γίνεται εντός 5 εργάσιμων ημερών από κάθε κατάθεση.</p>
   </div>
 
-  <h3>Ισχύς προσφοράς &amp; Επόμενα βήματα</h3>
-  <p>Η παρούσα προσφορά ισχύει για <strong>30 ημέρες</strong>.</p>
-
-  <ul class="steps mb8" style="margin-top:3mm">
-    <li>
-      <div class="step-n">1</div>
-      <div class="step-text">Επιβεβαίωση προσφοράς &amp; επιλογή τεχνολογίας βίντεο</div>
-    </li>
-    <li>
-      <div class="step-n">2</div>
-      <div class="step-text">Kickoff call &amp; συλλογή brand assets</div>
-    </li>
-    <li>
-      <div class="step-n">3</div>
-      <div class="step-text">Υπογραφή, προκαταβολή και έναρξη design</div>
-    </li>
-  </ul>
-
-  <div>
+  <div style="margin-top:8mm">
     <p style="margin:0;font-size:10pt;color:#374151">Για την Devox,</p>
     <p style="margin:2mm 0 0;font-weight:700;color:#0f172a;font-size:11pt">
       Οδυσσέας Στάβερης &amp; Γιώργος Σπύρου
