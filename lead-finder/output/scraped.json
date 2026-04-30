@@ -1,0 +1,121 @@
+{
+  "Paros": {
+    "scraped_at": "2026-04-30T21:38:47",
+    "village_count": 16,
+    "leads_count": 162,
+    "scraped_villages": 16,
+    "status": "done"
+  },
+  "Mykonos": {
+    "scraped_at": "2026-04-30T21:38:47",
+    "village_count": 16,
+    "leads_count": 126,
+    "scraped_villages": 16,
+    "status": "done"
+  },
+  "Santorini": {
+    "scraped_at": "2026-04-30T21:38:47",
+    "village_count": 17,
+    "leads_count": 175,
+    "scraped_villages": 17,
+    "status": "done"
+  },
+  "Ios": {
+    "scraped_at": "2026-04-30T21:38:47",
+    "village_count": 15,
+    "leads_count": 31,
+    "scraped_villages": 6,
+    "status": "partial"
+  },
+  "Lefkada": {
+    "scraped_at": "2026-04-30T22:49:14",
+    "village_count": 12,
+    "scraped_villages": 12,
+    "leads_count": 84,
+    "status": "done"
+  },
+  "Zakynthos": {
+    "scraped_at": "2026-04-30T22:49:14",
+    "village_count": 16,
+    "scraped_villages": 16,
+    "leads_count": 136,
+    "status": "done"
+  },
+  "Ithaca": {
+    "scraped_at": "2026-04-30T22:49:14",
+    "village_count": 6,
+    "scraped_villages": 6,
+    "leads_count": 36,
+    "status": "done"
+  },
+  "Corfu": {
+    "scraped_at": "2026-04-30T22:49:14",
+    "village_count": 21,
+    "scraped_villages": 21,
+    "leads_count": 239,
+    "status": "done"
+  },
+  "Paxi": {
+    "scraped_at": "2026-04-30T23:48:04",
+    "village_count": 4,
+    "scraped_villages": 4,
+    "leads_count": 40,
+    "status": "done"
+  },
+  "Antiparos": {
+    "scraped_at": "2026-04-30T23:49:50",
+    "village_count": 1,
+    "scraped_villages": 1,
+    "leads_count": 9,
+    "status": "done"
+  },
+  "Kefalonia": {
+    "scraped_at": "2026-05-01T00:06:06",
+    "village_count": 15,
+    "scraped_villages": 15,
+    "leads_count": 108,
+    "status": "done"
+  },
+  "Varkiza": {
+    "scraped_at": "2026-05-01T00:40:08",
+    "village_count": 1,
+    "scraped_villages": 1,
+    "leads_count": 8,
+    "status": "done"
+  },
+  "Vouliagmeni": {
+    "scraped_at": "2026-05-01T00:40:39",
+    "village_count": 1,
+    "scraped_villages": 1,
+    "leads_count": 8,
+    "status": "done"
+  },
+  "Lagonisi": {
+    "scraped_at": "2026-05-01T00:40:56",
+    "village_count": 1,
+    "scraped_villages": 1,
+    "leads_count": 11,
+    "status": "done"
+  },
+  "Palaia Fokaia": {
+    "scraped_at": "2026-05-01T00:42:28",
+    "village_count": 1,
+    "scraped_villages": 1,
+    "leads_count": 10,
+    "status": "done"
+  },
+  "Anavyssos": {
+    "scraped_at": "2026-05-01T00:42:31",
+    "village_count": 1,
+    "scraped_villages": 1,
+    "leads_count": 13,
+    "status": "done"
+  },
+  "Saronida": {
+    "scraped_at": "2026-05-01T00:43:06",
+    "village_count": 1,
+    "scraped_villages": 1,
+    "leads_count": 6,
+    "status": "done"
+  }
+}

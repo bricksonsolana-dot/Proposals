@@ -1,30 +1,29 @@
-# Cold Call Guide — Website Sales
-**Purpose:** Sell a professional website to each business below.
-**Your pitch angle:** No website = lost money, lost credibility, lost customers. A website = more bookings, more trust, more revenue — on autopilot.
+# Οδηγός Cold Call — Πωλήσεις Ιστοσελίδων
+**Σκοπός:** Πούληση επαγγελματικής ιστοσελίδας σε κάθε επιχείρηση παρακάτω.
+**Η οπτική της παρουσίασής σου:** Χωρίς ιστοσελίδα = χαμένα χρήματα, χαμένη αξιοπιστία, χαμένοι πελάτες. Με ιστοσελίδα = περισσότερες κρατήσεις, περισσότερη εμπιστοσύνη, περισσότερα έσοδα — αυτόματα.
 
 ---
 
-## HOW TO OPEN EVERY CALL
+## ΠΩΣ ΝΑ ΞΕΚΙΝΑΣ ΚΑΘΕ ΚΛΗΣΗ
 
-> "Hi, I'm calling because I came across [Business Name] and I noticed you don't have a website — or your online presence is very limited. I build websites for businesses in Greece and I wanted to share something with you quickly, because I think it's costing you real money right now. Do you have 2 minutes?"
-
----
+> «Γεια σας, σας καλώ γιατί έπεσα πάνω στην επιχείρησή σας [Όνομα Επιχείρησης] και παρατήρησα ότι δεν έχετε ιστοσελίδα — ή ότι η online παρουσία σας είναι πολύ περιορισμένη. Φτιάχνω ιστοσελίδες για επιχειρήσεις στην Ελλάδα και ήθελα να σας πω κάτι σύντομα, γιατί νομίζω ότι αυτή τη στιγμή σας κοστίζει πραγματικά χρήματα. Έχετε 2 λεπτά;»
 
 ---
 
-# CATEGORY 1 — VACATION VILLAS & HOLIDAY RENTALS
-**Clients:**
+---
+
+# ΚΑΤΗΓΟΡΙΑ 1 — ΒΙΛΕΣ ΔΙΑΚΟΠΩΝ & ΕΝΟΙΚΙΑΖΟΜΕΝΑ ΕΞΟΧΙΚΑ
+**Πελάτες:**
 - K2 Project Varkiza Seaside Residence — 6932749195
-- Jasmine Villa — 6975107788
-- Terra Home — 6937727250
-- Blue Oliva House — 6907550775
-- Althea Holiday Studio — 6932434537
-- Art Blue Residence Athens — 6982146081
-- Pool House — 2291022000
-- Villa Apex — 6932272665
-- L D House Lagonisi — 6949345108
-- CasaMare Lagonisi Athens Riviera — 6980625707
-- Nataly Gardens with Pool — 2110154251
+- Jasmine Villa — 6975107788 /NO
+- Terra Home — 6937727250 /NO
+- Blue Oliva House — 6907550775 /Potentially Yes
+- Althea Holiday Studio — 6932534537 /Prolly No
+- Art Blue Residence Athens — 6982146081 /didnt answer
+- Villa Apex — 6932272665 /didnt answer 
+- L D House Lagonisi — 6949345108 /didnt answer
+- CasaMare Lagonisi Athens Riviera — 6980625707 casamare10a@gmail.com /MALLON YES
+- Nataly Gardens with Pool — 2110154251 
 - Sia Mare Suites — 6995763058
 - Bombooo Vacation House — 6944648076
 - Villa Raf — 6944368062
@@ -35,332 +34,332 @@
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **They are paying 15–20% commission on EVERY booking** to Airbnb/Booking.com. On a €1,500/week villa, that's €225–€300 gone per booking. A website pays for itself after just 5–10 direct bookings.
+1. **Πληρώνουν 15–20% προμήθεια σε ΚΑΘΕ κράτηση** στην Airbnb/Booking.com. Σε μια βίλα €1.500/εβδομάδα, αυτό είναι €225–€300 χαμένα ανά κράτηση. Μια ιστοσελίδα αποπληρώνεται μετά από μόλις 5–10 απευθείας κρατήσεις.
 
-2. **They have zero brand identity.** On Airbnb they are listing #4,271. They are invisible. A website makes them a brand — with a name, a story, and a face. Guests trust brands, not listings.
+2. **Δεν έχουν καθόλου ταυτότητα brand.** Στην Airbnb είναι η αγγελία #4.271. Είναι αόρατοι. Μια ιστοσελίδα τους μετατρέπει σε brand — με όνομα, ιστορία και πρόσωπο. Οι επισκέπτες εμπιστεύονται brands, όχι αγγελίες.
 
-3. **They cannot build repeat customers.** Airbnb owns the guest relationship — not them. They cannot email past guests with offers, discounts, or new availability. A website with a contact form and newsletter fixes this.
+3. **Δεν μπορούν να χτίσουν επαναλαμβανόμενους πελάτες.** Η Airbnb κατέχει τη σχέση με τον επισκέπτη — όχι αυτοί. Δεν μπορούν να στείλουν email σε προηγούμενους επισκέπτες με προσφορές, εκπτώσεις ή νέα διαθεσιμότητα. Μια ιστοσελίδα με φόρμα επικοινωνίας και newsletter το λύνει αυτό.
 
-4. **They are invisible to Google.** When someone searches "villa Lagonisi Athens riviera" or "vacation house Varkiza" — they don't appear. Their competitors who have websites do. Every day without a website is a day someone else takes that booking.
+4. **Είναι αόρατοι στο Google.** Όταν κάποιος ψάχνει «βίλα Λαγονήσι Αθηναϊκή Ριβιέρα» ή «εξοχικό σπίτι Βάρκιζα» — δεν εμφανίζονται. Οι ανταγωνιστές τους που έχουν ιστοσελίδες, εμφανίζονται. Κάθε μέρα χωρίς ιστοσελίδα είναι μια μέρα που κάποιος άλλος παίρνει την κράτηση.
 
-5. **They look untrustworthy to high-paying guests.** Luxury travelers research properties before booking. No website = no professionalism = they book the competitor instead.
+5. **Δείχνουν αναξιόπιστοι σε επισκέπτες υψηλού προϋπολογισμού.** Οι luxury ταξιδιώτες ψάχνουν τα ακίνητα πριν κάνουν κράτηση. Καμία ιστοσελίδα = καμία επαγγελματικότητα = κλείνουν τον ανταγωνιστή.
 
-6. **They cannot control their own pricing and availability.** With a website + direct booking calendar, they set their own rules. No platform fees, no algorithm changes, no sudden policy shifts.
+6. **Δεν μπορούν να ελέγξουν τις τιμές και τη διαθεσιμότητά τους.** Με ιστοσελίδα + ημερολόγιο απευθείας κρατήσεων, βάζουν τους δικούς τους κανόνες. Καμία προμήθεια πλατφόρμας, κανένας αλγόριθμος, καμία ξαφνική αλλαγή πολιτικής.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Direct booking calendar** — guests book and pay directly, zero commission
-- **Professional photo gallery** — full showcase of the property, pool, views, rooms
-- **Google SEO** — appear when people search for villas in their area
-- **Testimonials & reviews page** — build trust before the guest even picks up the phone
-- **Contact form** — capture leads, send special offers to past guests
-- **House rules, check-in info, local area guide** — reduces back-and-forth messages
-- **Social media links** — connects Instagram/Facebook to a professional hub
-- **Long-term: their own brand** — not renting space on Airbnb's platform forever
+- **Ημερολόγιο απευθείας κρατήσεων** — οι επισκέπτες κλείνουν και πληρώνουν απευθείας, μηδενική προμήθεια
+- **Επαγγελματική φωτογραφική γκαλερί** — πλήρης παρουσίαση του ακινήτου, πισίνας, θέας, δωματίων
+- **SEO Google** — εμφάνιση όταν κάποιος ψάχνει βίλες στην περιοχή τους
+- **Σελίδα μαρτυριών & κριτικών** — χτίζει εμπιστοσύνη πριν καν τηλεφωνήσει ο επισκέπτης
+- **Φόρμα επικοινωνίας** — συγκεντρώνει leads, αποστολή ειδικών προσφορών σε προηγούμενους επισκέπτες
+- **Κανόνες σπιτιού, οδηγίες check-in, οδηγός περιοχής** — μειώνει τα μηνύματα πέρα-δώθε
+- **Σύνδεσμοι social media** — συνδέει Instagram/Facebook με ένα επαγγελματικό κέντρο
+- **Μακροπρόθεσμα: το δικό τους brand** — δεν νοικιάζουν χώρο στην Airbnb για πάντα
 
-### COLD CALL PITCH — VILLAS
+### COLD CALL PITCH — ΒΙΛΕΣ
 
-> "Every booking you take through Airbnb, you're paying them 15–20%. With your own website and a booking button, those guests pay you directly — 100%. The website costs a one-time fee. After 5 or 6 direct bookings you've already made back the money. And you keep making it back forever. I can show you exactly how it would look for [Villa Name] — can I send you a quick mockup?"
-
----
+> «Σε κάθε κράτηση που δέχεστε μέσω Airbnb, πληρώνετε 15–20%. Με τη δική σας ιστοσελίδα και ένα κουμπί κράτησης, αυτοί οι επισκέπτες σας πληρώνουν απευθείας — 100%. Η ιστοσελίδα έχει εφάπαξ κόστος. Μετά από 5 ή 6 απευθείας κρατήσεις έχετε ήδη βγάλει τα λεφτά σας πίσω. Και συνεχίζετε να τα βγάζετε για πάντα. Μπορώ να σας δείξω ακριβώς πώς θα έδειχνε για την [Όνομα Βίλας] — να σας στείλω ένα γρήγορο mockup;»
 
 ---
 
-# CATEGORY 2 — HOTEL & SUITES
-**Clients:**
+---
+
+# ΚΑΤΗΓΟΡΙΑ 2 — ΞΕΝΟΔΟΧΕΙΟ & SUITES
+**Πελάτες:**
 - Casa di Luce — 2291078784
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **Booking.com and Expedia take up to 25% commission.** For a hotel, this is enormous. A full week at a hotel can lose hundreds of euros per booking to the platform. Direct bookings through a website cost nothing.
+1. **Booking.com και Expedia παίρνουν έως 25% προμήθεια.** Για ξενοδοχείο, αυτό είναι τεράστιο. Μία πλήρης εβδομάδα σε ξενοδοχείο μπορεί να χάσει εκατοντάδες ευρώ ανά κράτηση στην πλατφόρμα. Οι απευθείας κρατήσεις μέσω ιστοσελίδας δεν κοστίζουν τίποτα.
 
-2. **They have no control over their reputation online.** Without a website, their only public face is a third-party platform profile which they cannot fully customize. A bad review on Booking.com with no official response page looks catastrophic.
+2. **Δεν έχουν κανέναν έλεγχο πάνω στη φήμη τους online.** Χωρίς ιστοσελίδα, το μόνο δημόσιο πρόσωπό τους είναι ένα προφίλ σε πλατφόρμα τρίτου, το οποίο δεν μπορούν να προσαρμόσουν πλήρως. Μια κακή κριτική στην Booking.com χωρίς επίσημη σελίδα απάντησης μοιάζει καταστροφική.
 
-3. **Corporate and group bookings go elsewhere.** Business travelers and group organizers always look for an official website before booking. No website = they move on immediately.
+3. **Εταιρικές κρατήσεις και κρατήσεις γκρουπ πηγαίνουν αλλού.** Επαγγελματίες ταξιδιώτες και διοργανωτές γκρουπ ψάχνουν πάντα μια επίσημη ιστοσελίδα πριν κάνουν κράτηση. Καμία ιστοσελίδα = συνεχίζουν αλλού άμεσα.
 
-4. **They cannot upsell services.** A website lets them promote breakfast packages, spa services, local excursions, airport transfers — all extra revenue that platforms hide.
+4. **Δεν μπορούν να κάνουν upsell υπηρεσιών.** Μια ιστοσελίδα τους επιτρέπει να προωθούν πακέτα πρωινού, υπηρεσίες spa, τοπικές εκδρομές, μεταφορές αεροδρομίου — όλα έξτρα έσοδα που οι πλατφόρμες κρύβουν.
 
-5. **They are completely dependent on one platform.** If Booking.com changes its algorithm or suspends their account, the business has no fallback. A website is their own permanent home online.
+5. **Είναι εντελώς εξαρτημένοι από μία πλατφόρμα.** Αν η Booking.com αλλάξει αλγόριθμο ή αναστείλει τον λογαριασμό τους, η επιχείρηση δεν έχει εναλλακτική. Η ιστοσελίδα είναι το δικό τους μόνιμο σπίτι online.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Direct booking engine** — save 20–25% commission on every room sold
-- **Full hotel story & brand** — photos, history, team, atmosphere
-- **Services & packages page** — upsell breakfast, transfers, local tours
-- **Corporate/group inquiry form** — capture high-value bookings platforms miss
-- **Google Hotel search visibility** — appear directly in Google's hotel results
-- **FAQ & policies page** — reduce front desk calls
+- **Σύστημα απευθείας κρατήσεων** — εξοικονομεί 20–25% προμήθεια σε κάθε δωμάτιο που πουλιέται
+- **Πλήρη ιστορία & brand του ξενοδοχείου** — φωτογραφίες, ιστορία, ομάδα, ατμόσφαιρα
+- **Σελίδα υπηρεσιών & πακέτων** — upsell πρωινού, μεταφορών, τοπικών ξεναγήσεων
+- **Φόρμα εταιρικής/ομαδικής αναζήτησης** — συλλαμβάνει κρατήσεις υψηλής αξίας που χάνονται από τις πλατφόρμες
+- **Ορατότητα στο Google Hotel search** — εμφάνιση απευθείας στα αποτελέσματα ξενοδοχείων του Google
+- **Σελίδα FAQ & πολιτικών** — μειώνει τις κλήσεις στην ρεσεψιόν
 
-### COLD CALL PITCH — HOTEL
+### COLD CALL PITCH — ΞΕΝΟΔΟΧΕΙΟ
 
-> "Hotels that rely only on Booking.com are paying rent to someone else's platform forever. One direct booking system on your own website and that 20% commission stays in your pocket. I've built these for smaller hotels in Greece and the ROI is usually within the first month. Can I put together a quick example for Casa di Luce?"
-
----
+> «Τα ξενοδοχεία που βασίζονται μόνο στην Booking.com πληρώνουν ενοίκιο σε ξένη πλατφόρμα για πάντα. Ένα σύστημα απευθείας κρατήσεων στη δική σας ιστοσελίδα και αυτή η προμήθεια 20% μένει στην τσέπη σας. Έχω φτιάξει τέτοια συστήματα για μικρότερα ξενοδοχεία στην Ελλάδα και η απόδοση επένδυσης είναι συνήθως μέσα στον πρώτο μήνα. Να σας ετοιμάσω ένα γρήγορο παράδειγμα για το Casa di Luce;»
 
 ---
 
-# CATEGORY 3 — HOLIDAY APARTMENTS
-**Clients:**
+---
+
+# ΚΑΤΗΓΟΡΙΑ 3 — ΔΙΑΜΕΡΙΣΜΑΤΑ ΔΙΑΚΟΠΩΝ
+**Πελάτες:**
 - Marina's Apartments Greece — 447507355908
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **Same commission problem as villas** — Airbnb/Booking.com take a cut of every stay. An apartments complex with multiple units loses thousands per season to platforms.
+1. **Ίδιο πρόβλημα προμήθειας με τις βίλες** — Airbnb/Booking.com παίρνουν ένα κομμάτι από κάθε διαμονή. Ένα συγκρότημα διαμερισμάτων με πολλές μονάδες χάνει χιλιάδες ανά σεζόν στις πλατφόρμες.
 
-2. **They cannot market multiple units professionally.** On a listing platform, each apartment is a separate listing — messy and hard to manage. A website shows the full complex, all units, with a single professional presentation.
+2. **Δεν μπορούν να προωθήσουν επαγγελματικά πολλαπλές μονάδες.** Σε μια πλατφόρμα αγγελιών, κάθε διαμέρισμα είναι ξεχωριστή αγγελία — μπερδεμένο και δύσκολο να διαχειριστεί. Μια ιστοσελίδα δείχνει όλο το συγκρότημα, όλες τις μονάδες, με μία ενιαία επαγγελματική παρουσίαση.
 
-3. **Long-stay and corporate renters need a website.** Guests looking for a month-long rental or a furnished apartment for work do not browse Airbnb — they Google and they expect a professional website with contact details.
+3. **Μακρόχρονοι και εταιρικοί ενοικιαστές χρειάζονται ιστοσελίδα.** Άτομα που ψάχνουν ενοικίαση ενός μήνα ή επιπλωμένο διαμέρισμα για δουλειά δεν περιηγούνται στην Airbnb — ψάχνουν στο Google και περιμένουν επαγγελματική ιστοσελίδα με στοιχεία επικοινωνίας.
 
-4. **They look like a hobby, not a business.** A proper website with pricing, availability, and photos signals that this is a real, reliable operation worth trusting.
+4. **Φαίνεται σαν χόμπι, όχι σαν επιχείρηση.** Μια σωστή ιστοσελίδα με τιμές, διαθεσιμότητα και φωτογραφίες δείχνει ότι αυτή είναι μια αληθινή, αξιόπιστη επιχείρηση που αξίζει εμπιστοσύνη.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Overview of all apartments in one place** — clean, browsable, professional
-- **Direct inquiry form** — ideal for long-stay bookings (monthly, corporate)
-- **Google SEO** — appear for "apartments Greece [area]" searches
-- **No commission on direct bookings**
-- **Contact details front and center** — phone, WhatsApp, email
+- **Επισκόπηση όλων των διαμερισμάτων σε ένα μέρος** — καθαρή, εύκολη πλοήγηση, επαγγελματική
+- **Φόρμα απευθείας αναζήτησης** — ιδανική για μακρόχρονες κρατήσεις (μηνιαίες, εταιρικές)
+- **SEO Google** — εμφάνιση για αναζητήσεις «διαμερίσματα Ελλάδα [περιοχή]»
+- **Καμία προμήθεια σε απευθείας κρατήσεις**
+- **Στοιχεία επικοινωνίας στο επίκεντρο** — τηλέφωνο, WhatsApp, email
 
-### COLD CALL PITCH — APARTMENTS
+### COLD CALL PITCH — ΔΙΑΜΕΡΙΣΜΑΤΑ
 
-> "Anyone searching for apartments for a longer stay — a month, a few weeks — goes to Google first, not Airbnb. If you don't have a website, you're invisible to that entire group of tenants. A simple, clean website with your apartments, photos, and a contact form would start pulling in inquiries immediately."
-
----
+> «Όποιος ψάχνει διαμερίσματα για μεγαλύτερη παραμονή — έναν μήνα, λίγες εβδομάδες — πάει πρώτα στο Google, όχι στην Airbnb. Αν δεν έχετε ιστοσελίδα, είστε αόρατοι σε ολόκληρη αυτή την ομάδα ενοικιαστών. Μια απλή, καθαρή ιστοσελίδα με τα διαμερίσματά σας, φωτογραφίες και φόρμα επικοινωνίας θα άρχιζε να φέρνει ερωτήματα αμέσως.»
 
 ---
 
-# CATEGORY 4 — MARINE / BOAT SERVICES
-**Clients:**
-- Spanos Marine — 6940152855 (boat storage, possibly mechanics)
+---
+
+# ΚΑΤΗΓΟΡΙΑ 4 — ΝΑΥΤΙΛΙΑΚΕΣ ΥΠΗΡΕΣΙΕΣ / ΣΚΑΦΗ
+**Πελάτες:**
+- Spanos Marine — 6940152855 (φύλαξη σκαφών, πιθανώς μηχανικός)
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **Boat owners Google everything.** When someone buys a boat or moves to the Athens area, the first thing they search is "boat storage near me" or "yacht storage Attica." No website = Spanos Marine doesn't exist in that search.
+1. **Οι ιδιοκτήτες σκαφών ψάχνουν τα πάντα στο Google.** Όταν κάποιος αγοράζει σκάφος ή μετακομίζει στην περιοχή της Αθήνας, το πρώτο πράγμα που ψάχνει είναι «φύλαξη σκάφους κοντά μου» ή «yacht storage Αττική». Καμία ιστοσελίδα = το Spanos Marine δεν υπάρχει σε αυτή την αναζήτηση.
 
-2. **There is no way to see what they offer.** Do they have dry storage? Wet berths? Crane service? Mechanics? Without a website, a potential customer has no idea — and they'll call someone who does have that information readily available.
+2. **Δεν υπάρχει τρόπος να δει κανείς τι προσφέρουν.** Έχουν στεγνή φύλαξη; Υγρές θέσεις; Υπηρεσία γερανού; Μηχανικούς; Χωρίς ιστοσελίδα, ένας πιθανός πελάτης δεν έχει ιδέα — και θα τηλεφωνήσει σε κάποιον που έχει αυτές τις πληροφορίες έτοιμες.
 
-3. **They are losing corporate clients.** Yacht owners, sailing clubs, and charter companies want to vet a marina business professionally before committing. No website = no deal.
+3. **Χάνουν εταιρικούς πελάτες.** Ιδιοκτήτες γιοτ, ιστιοπλοϊκοί όμιλοι και εταιρείες charter θέλουν να αξιολογήσουν επαγγελματικά μια επιχείρηση μαρίνας πριν δεσμευτούν. Καμία ιστοσελίδα = καμία συμφωνία.
 
-4. **Word of mouth has a ceiling.** Right now they can only grow as far as their existing network reaches. A website opens them up to the entire Attica region and beyond.
+4. **Το word of mouth έχει όριο.** Αυτή τη στιγμή μπορούν να μεγαλώσουν μόνο όσο φτάνει το υπάρχον δίκτυό τους. Μια ιστοσελίδα τους ανοίγει σε ολόκληρη την περιφέρεια Αττικής και πέρα.
 
-5. **Seasonal inquiries are being missed.** At the start of every sailing season, boat owners look for storage and servicing. Without a website to capture this spike, they lose bookings to competitors.
+5. **Εποχιακά ερωτήματα χάνονται.** Στην αρχή κάθε ιστιοπλοϊκής σεζόν, οι ιδιοκτήτες σκαφών ψάχνουν για φύλαξη και service. Χωρίς ιστοσελίδα να συλλάβει αυτή την κορύφωση, χάνουν κρατήσεις στους ανταγωνιστές.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Services page** — storage options, crane lift, mechanical repairs, pricing overview
-- **Facility photo gallery** — show the marina, the equipment, the space
-- **Location & contact** — Google Maps embed, phone, WhatsApp
-- **Google SEO** — rank for "boat storage Athens," "yacht storage Attica," "marine mechanics Greece"
-- **Online inquiry form** — boat owners submit details (boat size, type, duration) before calling
-- **Trust signals** — years in business, certifications, client testimonials
+- **Σελίδα υπηρεσιών** — επιλογές φύλαξης, ανύψωση γερανού, μηχανολογικές επισκευές, επισκόπηση τιμών
+- **Φωτογραφική γκαλερί εγκαταστάσεων** — δείξτε τη μαρίνα, τον εξοπλισμό, τον χώρο
+- **Τοποθεσία & επικοινωνία** — ενσωμάτωση Google Maps, τηλέφωνο, WhatsApp
+- **SEO Google** — κατάταξη για «φύλαξη σκάφους Αθήνα», «yacht storage Αττική», «μηχανικός σκαφών Ελλάδα»
+- **Online φόρμα ερωτήματος** — οι ιδιοκτήτες σκαφών υποβάλλουν στοιχεία (μέγεθος σκάφους, τύπος, διάρκεια) πριν τηλεφωνήσουν
+- **Σήματα εμπιστοσύνης** — χρόνια στον χώρο, πιστοποιήσεις, μαρτυρίες πελατών
 
 ### COLD CALL PITCH — SPANOS MARINE
 
-> "Every spring, hundreds of boat owners in Attica search online for storage and mechanical services. Right now, if someone Googles 'boat storage Athens' your name doesn't come up. Your competitors who have websites are taking those calls. A single-page website with your services and location would start changing that immediately — and it's a one-time investment."
+> «Κάθε άνοιξη, εκατοντάδες ιδιοκτήτες σκαφών στην Αττική ψάχνουν online για φύλαξη και μηχανολογικές υπηρεσίες. Αυτή τη στιγμή, αν κάποιος ψάξει στο Google "φύλαξη σκάφους Αθήνα" το όνομά σας δεν εμφανίζεται. Οι ανταγωνιστές σας που έχουν ιστοσελίδες παίρνουν αυτές τις κλήσεις. Μια ιστοσελίδα μιας σελίδας με τις υπηρεσίες σας και την τοποθεσία θα άρχιζε να το αλλάζει αμέσως — και είναι μια εφάπαξ επένδυση.»
 
 ---
 
 ---
 
-# CATEGORY 5 — MEDICAL / FAMILY DOCTOR
-**Clients:**
-- Mixahl Dandoulakhs (General Family Medicine) — 6971765119
+# ΚΑΤΗΓΟΡΙΑ 5 — ΙΑΤΡΙΚΕΣ ΥΠΗΡΕΣΙΕΣ / ΟΙΚΟΓΕΝΕΙΑΚΟΣ ΓΙΑΤΡΟΣ
+**Πελάτες:**
+- Μιχάλης Δανδουλάκης (Γενική Οικογενειακή Ιατρική) — 6971765119
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **Patients search for doctors online first.** The majority of people looking for a new family doctor Google "[specialty] [area]" before asking anyone. Without a website, Dr. Dandoulakhs is invisible to new patients.
+1. **Οι ασθενείς ψάχνουν γιατρούς πρώτα online.** Η πλειοψηφία των ανθρώπων που ψάχνουν νέο οικογενειακό γιατρό κάνουν Google «[ειδικότητα] [περιοχή]» πριν ρωτήσουν κανέναν. Χωρίς ιστοσελίδα, ο Δρ. Δανδουλάκης είναι αόρατος σε νέους ασθενείς.
 
-2. **No online appointment booking.** Patients — especially younger ones — prefer to book appointments online rather than call. If a competitor doctor has online booking and this practice doesn't, patients choose the one with less friction.
+2. **Καμία online κράτηση ραντεβού.** Οι ασθενείς — ειδικά οι νεότεροι — προτιμούν να κλείνουν ραντεβού online αντί να τηλεφωνούν. Αν ένας ανταγωνιστής γιατρός έχει online κρατήσεις και αυτός όχι, οι ασθενείς διαλέγουν αυτόν με τη λιγότερη δυσκολία.
 
-3. **Zero information visible to patients.** What insurance does the practice accept? What are the hours? Is there a waiting list? Does the doctor speak English? Patients need to know this before they call, and if they can't find it, they move on.
+3. **Καμία πληροφορία ορατή στους ασθενείς.** Ποιες ασφάλειες δέχεται το ιατρείο; Ποιες είναι οι ώρες; Υπάρχει λίστα αναμονής; Μιλάει αγγλικά ο γιατρός; Οι ασθενείς πρέπει να ξέρουν αυτά πριν τηλεφωνήσουν, και αν δεν τα βρουν, πάνε αλλού.
 
-4. **Referrals are being missed.** Specialists and pharmacies in the area may refer patients online. Without a web presence, those digital referrals never land.
+4. **Χάνονται παραπομπές.** Ειδικοί και φαρμακεία στην περιοχή μπορεί να παραπέμπουν ασθενείς online. Χωρίς web παρουσία, αυτές οι ψηφιακές παραπομπές δεν φτάνουν ποτέ.
 
-5. **Trust and credibility.** A professional website with a doctor's qualifications, specializations, and a photo builds patient trust before the first appointment. No website = uncertainty = patients pick someone else.
+5. **Εμπιστοσύνη και αξιοπιστία.** Μια επαγγελματική ιστοσελίδα με τα προσόντα του γιατρού, τις εξειδικεύσεις και μια φωτογραφία χτίζει εμπιστοσύνη ασθενών πριν το πρώτο ραντεβού. Καμία ιστοσελίδα = αβεβαιότητα = οι ασθενείς διαλέγουν κάποιον άλλον.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Online appointment request form** — reduce phone load, attract new patients 24/7
-- **About the doctor** — qualifications, experience, approach, photo
-- **Services list** — what's covered, what insurance is accepted
-- **Opening hours & location** — Google Maps, address, parking info
-- **FAQ page** — common patient questions answered upfront
-- **Google SEO** — rank for "γενικός ιατρός [area]" and "family doctor Athens"
-- **Patient trust** — a professional online presence is table stakes in medicine today
+- **Φόρμα online αίτησης ραντεβού** — μειώνει τον τηλεφωνικό φόρτο, προσελκύει νέους ασθενείς 24/7
+- **Σχετικά με τον γιατρό** — προσόντα, εμπειρία, προσέγγιση, φωτογραφία
+- **Λίστα υπηρεσιών** — τι καλύπτεται, ποιες ασφάλειες γίνονται δεκτές
+- **Ώρες λειτουργίας & τοποθεσία** — Google Maps, διεύθυνση, πληροφορίες parking
+- **Σελίδα FAQ** — συχνές ερωτήσεις ασθενών απαντημένες εκ των προτέρων
+- **SEO Google** — κατάταξη για «γενικός ιατρός [περιοχή]» και «οικογενειακός γιατρός Αθήνα»
+- **Εμπιστοσύνη ασθενούς** — μια επαγγελματική online παρουσία είναι αυτονόητη στην ιατρική σήμερα
 
-### COLD CALL PITCH — DOCTOR
+### COLD CALL PITCH — ΓΙΑΤΡΟΣ
 
-> "Most people today choose a new doctor the same way they choose a restaurant — they look online first. If you don't appear in that search, those patients go to whoever does. A clean, professional website with your qualifications, services, and a way to book an appointment would start bringing in new patients immediately. It also saves your receptionist from answering the same 10 questions every day."
-
----
+> «Οι περισσότεροι άνθρωποι σήμερα διαλέγουν νέο γιατρό όπως διαλέγουν εστιατόριο — κοιτάζουν πρώτα online. Αν δεν εμφανίζεστε σε αυτή την αναζήτηση, αυτοί οι ασθενείς πάνε σε όποιον εμφανίζεται. Μια καθαρή, επαγγελματική ιστοσελίδα με τα προσόντα σας, τις υπηρεσίες σας και έναν τρόπο να κλείνουν ραντεβού θα άρχιζε να φέρνει νέους ασθενείς αμέσως. Επίσης γλιτώνει τη γραμματεία σας από το να απαντά τις ίδιες 10 ερωτήσεις κάθε μέρα.»
 
 ---
 
-# CATEGORY 6 — ART GALLERY
-**Clients:**
+---
+
+# ΚΑΤΗΓΟΡΙΑ 6 — ΓΚΑΛΕΡΙ ΤΕΧΝΗΣ
+**Πελάτες:**
 - Domus Art Gallery — 690747997
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **Art buyers and collectors search online.** International buyers, interior designers, and serious collectors browse art galleries online before visiting in person. Without a website, Domus doesn't exist in their world.
+1. **Αγοραστές τέχνης και συλλέκτες ψάχνουν online.** Διεθνείς αγοραστές, αρχιτέκτονες εσωτερικών χώρων και σοβαροί συλλέκτες ψάχνουν γκαλερί τέχνης online πριν τις επισκεφθούν. Χωρίς ιστοσελίδα, η Domus δεν υπάρχει στον κόσμο τους.
 
-2. **No online exhibition.** Every gallery that has a website can showcase its artists and works 24/7 to a global audience. Domus is limited to whoever physically walks through the door.
+2. **Καμία online έκθεση.** Κάθε γκαλερί που έχει ιστοσελίδα μπορεί να προβάλει τους καλλιτέχνες και τα έργα της 24/7 σε παγκόσμιο κοινό. Η Domus περιορίζεται σε όποιον περνάει φυσικά από την πόρτα.
 
-3. **Events and openings go unannounced.** Without a website or linked online presence, exhibition openings only reach people who already know the gallery. A website with an events page and email newsletter multiplies reach dramatically.
+3. **Εκδηλώσεις και εγκαίνια δεν ανακοινώνονται.** Χωρίς ιστοσελίδα ή συνδεδεμένη online παρουσία, τα εγκαίνια εκθέσεων φτάνουν μόνο σε όσους ήδη γνωρίζουν τη γκαλερί. Μια ιστοσελίδα με σελίδα εκδηλώσεων και email newsletter πολλαπλασιάζει δραματικά την προσέγγιση.
 
-4. **They are losing to galleries with online stores.** Many art galleries now sell prints and smaller works directly through their website. This is an entire revenue stream Domus is missing.
+4. **Χάνουν από γκαλερί με online καταστήματα.** Πολλές γκαλερί τέχνης πουλούν τώρα prints και μικρότερα έργα απευθείας μέσω της ιστοσελίδας τους. Αυτή είναι μια ολόκληρη πηγή εσόδων που η Domus χάνει.
 
-5. **They look less legitimate.** In the art world, credibility is everything. A gallery without a website in 2025 raises questions — is it serious? Is it still open? Collectors and artists choose established-looking galleries.
+5. **Φαίνονται λιγότερο νόμιμοι.** Στον κόσμο της τέχνης, η αξιοπιστία είναι το παν. Μια γκαλερί χωρίς ιστοσελίδα το 2026 δημιουργεί ερωτήματα — είναι σοβαρή; Λειτουργεί ακόμα; Συλλέκτες και καλλιτέχνες διαλέγουν γκαλερί που δείχνουν εδραιωμένες.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Online gallery** — showcase current and past exhibitions with high-quality images
-- **Artist profiles** — build long-term relationships with represented artists
-- **Events calendar** — announce openings, private views, art fairs
-- **Online shop (optional)** — sell prints, smaller works, limited editions
-- **Press & media page** — coverage, features, legitimacy signals
-- **Contact & visit page** — location, hours, appointment booking
-- **Google SEO** — rank for "art gallery Athens," "contemporary art Greece"
-- **International reach** — attract buyers who can't visit in person but can purchase online
+- **Online γκαλερί** — προβολή τρέχουσων και προηγούμενων εκθέσεων με υψηλής ποιότητας εικόνες
+- **Προφίλ καλλιτεχνών** — χτίζει μακροπρόθεσμες σχέσεις με τους εκπροσωπούμενους καλλιτέχνες
+- **Ημερολόγιο εκδηλώσεων** — ανακοινώστε εγκαίνια, ιδιωτικές προβολές, εκθέσεις τέχνης
+- **Online κατάστημα (προαιρετικό)** — πωλήσεις prints, μικρότερων έργων, περιορισμένων εκδόσεων
+- **Σελίδα Τύπου & Media** — καλύψεις, αναφορές, σήματα νομιμότητας
+- **Σελίδα επικοινωνίας & επίσκεψης** — τοποθεσία, ώρες, κράτηση ραντεβού
+- **SEO Google** — κατάταξη για «γκαλερί τέχνης Αθήνα», «σύγχρονη τέχνη Ελλάδα»
+- **Διεθνής εμβέλεια** — προσέλκυση αγοραστών που δεν μπορούν να επισκεφθούν αλλά μπορούν να αγοράσουν online
 
-### COLD CALL PITCH — ART GALLERY
+### COLD CALL PITCH — ΓΚΑΛΕΡΙ ΤΕΧΝΗΣ
 
-> "Art collectors and interior designers browse galleries online before they ever set foot inside one. If Domus doesn't have a website, you simply don't exist to that entire market — which is where most high-value sales come from. An online gallery with your artists' work, upcoming exhibitions, and a contact form would open you up to buyers across Greece and internationally. That's new revenue from people you'd never reach otherwise."
-
----
+> «Συλλέκτες τέχνης και αρχιτέκτονες εσωτερικών χώρων περιηγούνται γκαλερί online πριν πατήσουν ποτέ το πόδι τους μέσα. Αν η Domus δεν έχει ιστοσελίδα, απλά δεν υπάρχετε για ολόκληρη αυτή την αγορά — από όπου προέρχονται οι περισσότερες πωλήσεις υψηλής αξίας. Μια online γκαλερί με τα έργα των καλλιτεχνών σας, τις επερχόμενες εκθέσεις και μια φόρμα επικοινωνίας θα σας άνοιγε σε αγοραστές σε όλη την Ελλάδα και διεθνώς. Αυτό είναι νέα έσοδα από ανθρώπους που δεν θα φτάνατε ποτέ αλλιώς.»
 
 ---
 
-# CATEGORY 7 — CAFÉ / COFFEE SHOP
-**Clients:**
+---
+
+# ΚΑΤΗΓΟΡΙΑ 7 — ΚΑΦΕΤΕΡΙΑ / COFFEE SHOP
+**Πελάτες:**
 - Daily Coffee — 2291072210
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **Tourists and new locals Google cafés constantly.** "Best coffee near me," "café [area] Athens" — these are searches happening thousands of times a day. Without a website, Daily Coffee loses that traffic entirely to cafés that appear in results.
+1. **Τουρίστες και νέοι κάτοικοι ψάχνουν συνεχώς καφετέριες στο Google.** «Καλύτερος καφές κοντά μου», «καφετέρια [περιοχή] Αθήνα» — αυτές οι αναζητήσεις γίνονται χιλιάδες φορές την ημέρα. Χωρίς ιστοσελίδα, το Daily Coffee χάνει εντελώς αυτή την κίνηση σε καφετέριες που εμφανίζονται στα αποτελέσματα.
 
-2. **No menu visible online.** One of the top reasons people choose a café is the menu. If someone can't check the menu before coming, they often go somewhere they already know. A website with a menu removes that barrier.
+2. **Κανένα μενού ορατό online.** Ένας από τους κορυφαίους λόγους που οι άνθρωποι διαλέγουν καφετέρια είναι το μενού. Αν κάποιος δεν μπορεί να δει το μενού πριν έρθει, συχνά πηγαίνει κάπου που ήδη γνωρίζει. Μια ιστοσελίδα με μενού αφαιρεί αυτό το εμπόδιο.
 
-3. **Google Business Profile alone is not enough.** A Google Maps listing helps, but a website boosts its ranking and adds the credibility layer that makes people choose you over the competition.
+3. **Το Google Business Profile μόνο του δεν αρκεί.** Μια καταχώρηση Google Maps βοηθάει, αλλά μια ιστοσελίδα ενισχύει την κατάταξή του και προσθέτει το επίπεδο αξιοπιστίας που κάνει τους ανθρώπους να σας διαλέξουν αντί τον ανταγωνισμό.
 
-4. **No way to promote events or offers.** Special events, new seasonal menus, loyalty programs — without a website or linked landing page, none of this reaches new customers.
+4. **Κανένας τρόπος να προωθηθούν εκδηλώσεις ή προσφορές.** Ειδικές εκδηλώσεις, νέα εποχιακά μενού, προγράμματα πιστότητας — χωρίς ιστοσελίδα ή συνδεδεμένη landing page, τίποτα από αυτά δεν φτάνει σε νέους πελάτες.
 
-5. **Competitors with websites are winning.** Any café in the same area with a simple website showing photos, menu, and location is beating Daily Coffee in every online search.
+5. **Οι ανταγωνιστές με ιστοσελίδες κερδίζουν.** Οποιαδήποτε καφετέρια στην ίδια περιοχή με μια απλή ιστοσελίδα που δείχνει φωτογραφίες, μενού και τοποθεσία νικάει το Daily Coffee σε κάθε online αναζήτηση.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Menu page** — full coffee menu, food options, seasonal specials
-- **Atmosphere gallery** — photos of the space, making people want to visit
-- **Location & hours** — Google Maps embed, parking, public transport
-- **Google SEO** — rank locally for "coffee shop [area]"
-- **Events page** — open mic nights, new menu launches, promotions
-- **Online order / pre-order option** — takeaway orders, reducing counter wait times
-- **Instagram feed integration** — keep the site fresh automatically
+- **Σελίδα μενού** — πλήρες μενού καφέ, φαγητού, εποχιακές προτάσεις
+- **Γκαλερί ατμόσφαιρας** — φωτογραφίες του χώρου, που κάνουν τους ανθρώπους να θέλουν να επισκεφθούν
+- **Τοποθεσία & ώρες** — ενσωμάτωση Google Maps, parking, μέσα μεταφοράς
+- **SEO Google** — τοπική κατάταξη για «καφετέρια [περιοχή]»
+- **Σελίδα εκδηλώσεων** — open mic βραδιές, λανσάρισμα νέων μενού, προσφορές
+- **Online παραγγελία / pre-order** — παραγγελίες takeaway, μειώνουν τις αναμονές στο ταμείο
+- **Ενσωμάτωση Instagram feed** — κρατά τη σελίδα φρέσκια αυτόματα
 
-### COLD CALL PITCH — CAFÉ
+### COLD CALL PITCH — ΚΑΦΕΤΕΡΙΑ
 
-> "Every day, people in your area search Google for a café — and if you don't appear, they go somewhere else. It's that simple. A small, clean website with your menu, some photos of the space, and your opening hours would start driving foot traffic from people who have never heard of Daily Coffee. It's the cheapest marketing you can do."
-
----
+> «Κάθε μέρα, άνθρωποι στην περιοχή σας ψάχνουν στο Google για καφετέρια — και αν δεν εμφανίζεστε, πάνε κάπου αλλού. Είναι τόσο απλό. Μια μικρή, καθαρή ιστοσελίδα με το μενού σας, μερικές φωτογραφίες του χώρου και τις ώρες σας θα άρχιζε να φέρνει κίνηση από ανθρώπους που δεν έχουν ακούσει ποτέ για το Daily Coffee. Είναι το φθηνότερο marketing που μπορείτε να κάνετε.»
 
 ---
 
-# CATEGORY 8 — BEACH BAR
-**Clients:**
+---
+
+# ΚΑΤΗΓΟΡΙΑ 8 — BEACH BAR
+**Πελάτες:**
 - Nuevo Loca Beach Bar — 6909227467
 
 ---
 
-### WHY NO WEBSITE IS KILLING THEIR BUSINESS
+### ΓΙΑΤΙ Η ΑΠΟΥΣΙΑ ΙΣΤΟΣΕΛΙΔΑΣ ΣΚΟΤΩΝΕΙ ΤΗ ΔΟΥΛΕΙΑ ΤΟΥΣ
 
-1. **Tourists plan beach days online.** Visitors to the Athens Riviera search "beach bar" or "best beach bar near Athens" before they go anywhere. Without a website, Nuevo Loca is invisible to every tourist arriving in the area.
+1. **Οι τουρίστες προγραμματίζουν τις μέρες παραλίας online.** Επισκέπτες στην Αθηναϊκή Ριβιέρα ψάχνουν «beach bar» ή «καλύτερο beach bar κοντά στην Αθήνα» πριν πάνε οπουδήποτε. Χωρίς ιστοσελίδα, το Nuevo Loca είναι αόρατο σε κάθε τουρίστα που έρχεται στην περιοχή.
 
-2. **No way to show the vibe.** A beach bar's biggest selling point is atmosphere. Without a website with photos and video, there's no way to communicate what makes Nuevo Loca different from the next beach bar down the road.
+2. **Κανένας τρόπος να δείξουν την ατμόσφαιρα.** Το μεγαλύτερο σημείο πώλησης ενός beach bar είναι η ατμόσφαιρα. Χωρίς ιστοσελίδα με φωτογραφίες και βίντεο, δεν υπάρχει τρόπος να επικοινωνηθεί τι κάνει το Nuevo Loca διαφορετικό από το επόμενο beach bar πιο κάτω.
 
-3. **Events are not reaching new people.** DJ nights, themed parties, cocktail specials — without an events page or landing page for promotions, these only reach people already following on social media.
+3. **Οι εκδηλώσεις δεν φτάνουν σε νέους ανθρώπους.** DJ βραδιές, θεματικά πάρτι, ειδικές προτάσεις cocktail — χωρίς σελίδα εκδηλώσεων ή landing page για προωθήσεις, αυτές φτάνουν μόνο σε ανθρώπους που ήδη ακολουθούν στα social media.
 
-4. **No table/bed reservations.** Many beach bars now offer online reservation for sunbeds and VIP tables. Without this, Nuevo Loca loses customers who want certainty before making the trip.
+4. **Καμία κράτηση τραπεζιού/ξαπλώστρας.** Πολλά beach bar τώρα προσφέρουν online κράτηση για ξαπλώστρες και VIP τραπέζια. Χωρίς αυτό, το Nuevo Loca χάνει πελάτες που θέλουν βεβαιότητα πριν κάνουν το ταξίδι.
 
-5. **Groups and corporate events are being missed.** Companies and large groups planning a summer outing look for a venue with a professional online presence. No website = they book elsewhere.
+5. **Ομάδες και εταιρικές εκδηλώσεις χάνονται.** Εταιρείες και μεγάλες ομάδες που σχεδιάζουν καλοκαιρινή έξοδο ψάχνουν χώρο με επαγγελματική online παρουσία. Καμία ιστοσελίδα = κλείνουν αλλού.
 
-### WHAT A WEBSITE BRINGS THEM
+### ΤΙ ΤΟΥΣ ΦΕΡΝΕΙ ΜΙΑ ΙΣΤΟΣΕΛΙΔΑ
 
-- **Photo & video gallery** — the beach, the cocktails, the atmosphere — sell the experience
-- **Events calendar** — DJ nights, parties, weekly specials
-- **Menu page** — cocktails, food, sunbed/VIP packages and pricing
-- **Online reservation form** — sunbed bookings, VIP table reservations
-- **Location page** — how to get there by car, boat, or public transport
-- **Google SEO** — rank for "beach bar Athens riviera," "beach bar Attica"
-- **Group/corporate inquiry form** — capture high-value private events
-- **Social media hub** — central point linking all platforms
+- **Γκαλερί φωτογραφιών & βίντεο** — η παραλία, τα cocktails, η ατμόσφαιρα — πουλήστε την εμπειρία
+- **Ημερολόγιο εκδηλώσεων** — DJ βραδιές, πάρτι, εβδομαδιαίες προτάσεις
+- **Σελίδα μενού** — cocktails, φαγητό, πακέτα ξαπλώστρας/VIP και τιμές
+- **Online φόρμα κράτησης** — κρατήσεις ξαπλώστρας, VIP τραπεζιών
+- **Σελίδα τοποθεσίας** — πώς να φτάσετε με αυτοκίνητο, σκάφος ή ΜΜΜ
+- **SEO Google** — κατάταξη για «beach bar Αθηναϊκή Ριβιέρα», «beach bar Αττική»
+- **Φόρμα ομαδικού/εταιρικού ερωτήματος** — συλλαμβάνει ιδιωτικές εκδηλώσεις υψηλής αξίας
+- **Κέντρο social media** — κεντρικό σημείο που συνδέει όλες τις πλατφόρμες
 
 ### COLD CALL PITCH — BEACH BAR
 
-> "Every summer, thousands of tourists and Athenians search online for beach bars near Athens. Right now, Nuevo Loca doesn't show up in those searches. The bars that do are getting those customers. A website with your photos, your events, a menu, and a location map would put you on the map — literally. You'd also be able to take table and sunbed reservations online, which means confirmed revenue before someone even arrives."
+> «Κάθε καλοκαίρι, χιλιάδες τουρίστες και Αθηναίοι ψάχνουν online για beach bar κοντά στην Αθήνα. Αυτή τη στιγμή, το Nuevo Loca δεν εμφανίζεται σε αυτές τις αναζητήσεις. Τα bar που εμφανίζονται παίρνουν αυτούς τους πελάτες. Μια ιστοσελίδα με τις φωτογραφίες σας, τις εκδηλώσεις σας, ένα μενού και έναν χάρτη τοποθεσίας θα σας έβαζε στον χάρτη — κυριολεκτικά. Θα μπορούσατε επίσης να δέχεστε κρατήσεις τραπεζιών και ξαπλώστρων online, που σημαίνει επιβεβαιωμένα έσοδα πριν καν φτάσει κάποιος.»
 
 ---
 
 ---
 
-# QUICK REFERENCE — ALL 25 CLIENTS
+# ΓΡΗΓΟΡΗ ΑΝΑΦΟΡΑ — ΟΛΟΙ ΟΙ 25 ΠΕΛΑΤΕΣ
 
-| # | Business | Phone | Type | Key Angle |
-|---|----------|-------|------|-----------|
-| 1 | Domus Art Gallery | 690747997 | Art Gallery | Online gallery, international buyers, events |
-| 2 | K2 Project Varkiza | 6932749195 | Villa | Stop paying Airbnb commission, direct bookings |
-| 3 | Jasmine Villa | 6975107788 | Villa | Stop paying Airbnb commission, direct bookings |
-| 4 | Spanos Marine | 6940152855 | Marine/Boats | Google visibility, boat owners search online |
-| 5 | Mixahl Dandoulakhs | 6971765119 | Family Doctor | New patients find doctors online, online booking |
-| 6 | Casa di Luce | 2291078784 | Hotel | Save 20–25% Booking.com commission |
-| 7 | Terra Home | 6937727250 | Villa/Rental | Direct bookings, no commission |
-| 8 | Blue Oliva House | 6907550775 | Villa | Direct bookings, Google SEO |
-| 9 | Althea Holiday Studio | 6932434537 | Holiday Studio | Direct bookings, no commission |
-| 10 | Art Blue Residence Athens | 6982146081 | Villa | Athens market, direct bookings |
-| 11 | Pool House | 2291022000 | Villa | Direct bookings, showcase pool/amenities |
-| 12 | Daily Coffee | 2291072210 | Café | Local Google search, menu online, foot traffic |
-| 13 | Villa Apex | 6932272665 | Villa | Direct bookings, brand identity |
-| 14 | L D House Lagonisi | 6949345108 | Villa | Lagonisi market, direct bookings |
-| 15 | CasaMare Lagonisi | 6980625707 | Villa | Athens Riviera SEO, direct bookings |
-| 16 | Marina's Apartments Greece | 447507355908 | Apartments | Long-stay market, corporate renters |
-| 17 | Nataly Gardens with Pool | 2110154251 | Villa | Showcase pool/gardens, direct bookings |
-| 18 | Sia Mare Suites | 6995763058 | Suites | Save commission, show suites professionally |
-| 19 | Bombooo Vacation House | 6944648076 | Villa | Direct bookings, brand identity |
-| 20 | Villa Raf | 6944368062 | Villa | Direct bookings, Athens Riviera SEO |
-| 21 | Gi Gi Sea House | 6977600262 | Sea Villa | Seafront showcase, direct bookings |
-| 22 | Adrasteia | 6974055650 | Villa | Direct bookings, professional presence |
-| 23 | Anavyssos Place | 6949618720 | Villa | Anavyssos market, direct bookings |
-| 24 | Athens Riviera Villa | 6974547849 | Villa | High-end Athens Riviera market |
-| 25 | Nuevo Loca Beach Bar | 6909227467 | Beach Bar | Tourist traffic, events, reservations |
+| # | Επιχείρηση | Τηλέφωνο | Τύπος | Βασική Οπτική |
+|---|-----------|----------|-------|---------------|
+| 1 | Domus Art Gallery | 690747997 | Γκαλερί Τέχνης | Online γκαλερί, διεθνείς αγοραστές, εκδηλώσεις |
+| 2 | K2 Project Varkiza | 6932749195 | Βίλα | Σταματήστε την προμήθεια Airbnb, απευθείας κρατήσεις |
+| 3 | Jasmine Villa | 6975107788 | Βίλα | Σταματήστε την προμήθεια Airbnb, απευθείας κρατήσεις |
+| 4 | Spanos Marine | 6940152855 | Ναυτιλία/Σκάφη | Ορατότητα Google, οι ιδιοκτήτες σκαφών ψάχνουν online |
+| 5 | Μιχάλης Δανδουλάκης | 6971765119 | Οικογενειακός Γιατρός | Νέοι ασθενείς βρίσκουν γιατρούς online, online ραντεβού |
+| 6 | Casa di Luce | 2291078784 | Ξενοδοχείο | Εξοικονόμηση 20–25% προμήθειας Booking.com |
+| 7 | Terra Home | 6937727250 | Βίλα/Ενοικιαζόμενο | Απευθείας κρατήσεις, καμία προμήθεια |
+| 8 | Blue Oliva House | 6907550775 | Βίλα | Απευθείας κρατήσεις, SEO Google |
+| 9 | Althea Holiday Studio | 6932434537 | Studio Διακοπών | Απευθείας κρατήσεις, καμία προμήθεια |
+| 10 | Art Blue Residence Athens | 6982146081 | Βίλα | Αγορά Αθήνας, απευθείας κρατήσεις |
+| 11 | Pool House | 2291022000 | Βίλα | Απευθείας κρατήσεις, προβολή πισίνας/ανέσεων |
+| 12 | Daily Coffee | 2291072210 | Καφετέρια | Τοπική αναζήτηση Google, online μενού, κίνηση |
+| 13 | Villa Apex | 6932272665 | Βίλα | Απευθείας κρατήσεις, ταυτότητα brand |
+| 14 | L D House Lagonisi | 6949345108 | Βίλα | Αγορά Λαγονησίου, απευθείας κρατήσεις |
+| 15 | CasaMare Lagonisi | 6980625707 | Βίλα | SEO Αθηναϊκής Ριβιέρας, απευθείας κρατήσεις |
+| 16 | Marina's Apartments Greece | 447507355908 | Διαμερίσματα | Αγορά μακρόχρονης διαμονής, εταιρικοί ενοικιαστές |
+| 17 | Nataly Gardens with Pool | 2110154251 | Βίλα | Προβολή πισίνας/κήπων, απευθείας κρατήσεις |
+| 18 | Sia Mare Suites | 6995763058 | Suites | Εξοικονόμηση προμήθειας, επαγγελματική προβολή suites |
+| 19 | Bombooo Vacation House | 6944648076 | Βίλα | Απευθείας κρατήσεις, ταυτότητα brand |
+| 20 | Villa Raf | 6944368062 | Βίλα | Απευθείας κρατήσεις, SEO Αθηναϊκής Ριβιέρας |
+| 21 | Gi Gi Sea House | 6977600262 | Παραθαλάσσια Βίλα | Παραλιακή προβολή, απευθείας κρατήσεις |
+| 22 | Adrasteia | 6974055650 | Βίλα | Απευθείας κρατήσεις, επαγγελματική παρουσία |
+| 23 | Anavyssos Place | 6949618720 | Βίλα | Αγορά Αναβύσσου, απευθείας κρατήσεις |
+| 24 | Athens Riviera Villa | 6974547849 | Βίλα | Premium αγορά Αθηναϊκής Ριβιέρας |
+| 25 | Nuevo Loca Beach Bar | 6909227467 | Beach Bar | Τουριστική κίνηση, εκδηλώσεις, κρατήσεις |
 
 ---
 
-## OBJECTION HANDLING
+## ΑΝΤΙΜΕΤΩΠΙΣΗ ΑΝΤΙΡΡΗΣΕΩΝ
 
-**"I already use Airbnb / Booking.com"**
-> "Exactly — that means you're paying them 15–20% of every booking. A website doesn't replace those platforms, it runs alongside them. But every guest who books directly saves you that commission. The website pays for itself very quickly."
+**«Ήδη χρησιμοποιώ Airbnb / Booking.com»**
+> «Ακριβώς — αυτό σημαίνει ότι τους πληρώνετε 15–20% σε κάθε κράτηση. Μια ιστοσελίδα δεν αντικαθιστά αυτές τις πλατφόρμες, λειτουργεί παράλληλα μαζί τους. Αλλά κάθε επισκέπτης που κλείνει απευθείας σας γλιτώνει αυτή την προμήθεια. Η ιστοσελίδα αποπληρώνεται πολύ γρήγορα.»
 
-**"I have Instagram / Facebook"**
-> "Social media is rented land — tomorrow Meta can change the algorithm and your visibility disappears. A website is your property. It also shows up on Google, which Instagram doesn't."
+**«Έχω Instagram / Facebook»**
+> «Τα social media είναι νοικιασμένη γη — αύριο η Meta μπορεί να αλλάξει τον αλγόριθμο και η ορατότητά σας εξαφανίζεται. Μια ιστοσελίδα είναι δική σας περιουσία. Επίσης εμφανίζεται στο Google, που το Instagram δεν εμφανίζεται.»
 
-**"I don't have time to manage a website"**
-> "You won't need to. I build it, set it up, and it runs on its own. A booking calendar updates automatically. You only touch it if you want to."
+**«Δεν έχω χρόνο να διαχειριστώ μια ιστοσελίδα»**
+> «Δεν θα χρειαστεί. Την φτιάχνω εγώ, την στήνω, και τρέχει μόνη της. Το ημερολόγιο κρατήσεων ενημερώνεται αυτόματα. Την ακουμπάτε μόνο αν θέλετε.»
 
-**"It's too expensive"**
-> "What does one Airbnb booking pay you? A website costs less than the commission on 3–5 bookings — and then it keeps working for years. It's not a cost, it's an investment with a clear return."
+**«Είναι πολύ ακριβό»**
+> «Πόσα σας πληρώνει μία κράτηση Airbnb; Μια ιστοσελίδα κοστίζει λιγότερο από την προμήθεια 3–5 κρατήσεων — και μετά συνεχίζει να δουλεύει για χρόνια. Δεν είναι κόστος, είναι επένδυση με ξεκάθαρη απόδοση.»
 
-**"I'll think about it"**
-> "Of course — but while you think about it, anyone searching online for a villa / café / service like yours is booking with a competitor who already has a website. Can I at least send you a quick mockup so you can see what it would look like? No obligation."
+**«Θα το σκεφτώ»**
+> «Φυσικά — αλλά όσο το σκέφτεστε, όποιος ψάχνει online για βίλα / καφετέρια / υπηρεσία σαν τη δική σας κλείνει σε ανταγωνιστή που έχει ήδη ιστοσελίδα. Να σας στείλω τουλάχιστον ένα γρήγορο mockup για να δείτε πώς θα έδειχνε; Χωρίς δέσμευση.»
