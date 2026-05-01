@@ -50,8 +50,11 @@ def load_leads() -> list[dict]:
 
 
 def push_to_crm(leads: list[dict], url: str, token: str,
-                 batch_size: int = 200) -> dict:
-    """Push leads in batches. Returns total upserted count."""
+                 batch_size: int = 50) -> dict:
+    """Push leads in batches. Returns total upserted count.
+
+    Retries on timeout (Render free tier may need cold-start).
+    """
     if not url or not token:
         raise RuntimeError(
             "Missing CRM_URL or CRM_TOKEN. Set them as env vars or run "
@@ -64,24 +67,40 @@ def push_to_crm(leads: list[dict], url: str, token: str,
     for i in range(0, len(leads), batch_size):
         batch = leads[i:i+batch_size]
         body = json.dumps({"leads": batch}).encode("utf-8")
-        req = urllib.request.Request(
-            endpoint, data=body, method="POST",
-            headers={
-                "Content-Type": "application/json",
-                "X-Sync-Token": token,
-            })
-        try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                total_upserted += data.get("upserted", 0)
-                batch_num = i // batch_size + 1
-                print(f"  batch {batch_num}/{total_batches}: "
-                      f"{data.get('upserted', 0)} upserted", flush=True)
-        except urllib.error.HTTPError as e:
-            err = e.read().decode("utf-8")[:200]
-            raise RuntimeError(f"HTTP {e.code} from CRM: {err}") from None
-        except urllib.error.URLError as e:
-            raise RuntimeError(f"Could not reach CRM at {url}: {e}") from None
+        batch_num = i // batch_size + 1
+
+        attempt = 0
+        last_err = None
+        while attempt < 3:
+            attempt += 1
+            req = urllib.request.Request(
+                endpoint, data=body, method="POST",
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Sync-Token": token,
+                })
+            # 90s timeout — first call may need cold-start on free tier
+            timeout = 90 if attempt == 1 else 60
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    total_upserted += data.get("upserted", 0)
+                    print(f"  batch {batch_num}/{total_batches}: "
+                          f"{data.get('upserted', 0)} upserted", flush=True)
+                    break  # success, next batch
+            except urllib.error.HTTPError as e:
+                err = e.read().decode("utf-8")[:200]
+                raise RuntimeError(f"HTTP {e.code} from CRM: {err}") from None
+            except (urllib.error.URLError, TimeoutError, OSError) as e:
+                last_err = e
+                if attempt < 3:
+                    print(f"  batch {batch_num}: retry {attempt}/3 after error: "
+                          f"{type(e).__name__}", flush=True)
+                    time.sleep(3 * attempt)
+                    continue
+                raise RuntimeError(
+                    f"Could not reach CRM at {url} after 3 attempts: "
+                    f"{last_err}") from None
 
     return {"upserted": total_upserted, "sent": len(leads)}
 
