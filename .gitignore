@@ -1,0 +1,38 @@
+# Secrets — NEVER commit
+.env
+.env.local
+**/.env
+**/.secret_key
+crm/data/.secret_key
+
+# Local database files (data is in Supabase Postgres for production)
+crm/data/*.db
+crm/data/*.db-journal
+crm/data/*.db-wal
+crm/data/*.db-shm
+
+# Local config that contains tokens
+lead-finder/crm_sync.config.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Build output
+dist/
+build/
+*.spec
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Lead-finder local artifacts (large CSVs, runtime state)
+lead-finder/output/
+!lead-finder/output/.gitkeep
+
+# Playwright browser cache
+.playwright/

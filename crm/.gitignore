@@ -1,0 +1,22 @@
+# Secrets
+.env
+data/.secret_key
+
+# Local SQLite DB (we keep this out of git)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# Build output
+dist/
+build/
+*.spec
+__pycache__/
+*.pyc
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

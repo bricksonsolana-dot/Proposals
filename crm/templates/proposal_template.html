@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Πρόταση Ιστοσελίδας, {{ hotel_name }} / Devox</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;
+  background:#e8e8e8;
+  color:#111827;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+
+/* ── PAGE ─────────────────────────────────────────── */
+.page{
+  width:210mm;
+  min-height:297mm;
+  background:white;
+  margin:6mm auto;
+  padding:20mm 21mm 24mm;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+@page{size:A4;margin:0}
+
+@media print{
+  body{background:white}
+  .page{
+    margin:0;
+    page-break-after:always;
+    break-after:page;
+    box-shadow:none;
+  }
+  .page:last-child{page-break-after:avoid;break-after:avoid}
+}
+
+/* ── HEADER / FOOTER ──────────────────────────────── */
+.doc-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:11mm;
+  padding-bottom:3.5mm;
+  border-bottom:1px solid #e5e7eb;
+}
+
+.doc-footer{
+  position:absolute;
+  bottom:7mm;left:21mm;right:21mm;
+  padding-top:2.5mm;
+  border-top:1px solid #e5e7eb;
+  display:flex;
+  justify-content:space-between;
+  font-size:7.5pt;
+  color:#9ca3af;
+}
+
+/* ── LOGO ─────────────────────────────────────────── */
+.logo img{
+  height:32px;
+  width:auto;
+  display:block;
+}
+
+/* ── COVER ────────────────────────────────────────── */
+.cover-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:6mm 0;
+}
+
+.cover-ref{font-size:9pt;color:#94a3b8;text-align:right}
+
+.cover-title{
+  font-size:42pt;
+  font-weight:800;
+  color:#0f172a;
+  line-height:1.08;
+  margin-top:16mm;
+}
+.cover-title .accent{color:#0d9488}
+
+.cover-bar{width:52px;height:4px;background:#0d9488;margin:8mm 0 0}
+
+.cover-to{font-size:10.5pt;color:#475569;line-height:1.9;margin-top:auto;padding-top:12mm}
+
+/* ── SECTION TITLE ────────────────────────────────── */
+.st{
+  font-size:20pt;
+  font-weight:800;
+  color:#0f172a;
+  line-height:1.15;
+  margin-bottom:2mm;
+}
+.st-bar{width:44px;height:3px;background:#0d9488;margin-bottom:7mm}
+
+/* ── BODY TEXT ────────────────────────────────────── */
+p{font-size:11.5pt;line-height:1.7;color:#374151;margin-bottom:4mm}
+h3{font-size:13pt;font-weight:700;color:#0f172a;margin:5.5mm 0 2.5mm}
+h4{font-size:11pt;font-weight:700;color:#0f172a;margin-bottom:1.5mm}
+strong{color:#0f172a}
+
+/* ── BULLET LIST ──────────────────────────────────── */
+.bl{list-style:none;margin:0 0 4mm}
+.bl li{
+  font-size:11.5pt;
+  color:#374151;
+  line-height:1.65;
+  padding:1.2mm 0 1.2mm 11px;
+  border-left:2px solid #cbd5e1;
+  margin-bottom:1.5mm;
+}
+
+/* ── TWO-COL ──────────────────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin:4mm 0}
+
+/* ── PROS / CONS ──────────────────────────────────── */
+.box-pros,.box-cons{padding:4mm;border-radius:3px}
+.box-pros{background:#f0fdfa;border-left:3px solid #0d9488}
+.box-cons{background:#fff7ed;border-left:3px solid #f97316}
+
+.box-label{
+  font-size:7.5pt;font-weight:700;
+  text-transform:uppercase;letter-spacing:.7px;
+  margin-bottom:3mm;
+}
+.box-pros .box-label{color:#0f766e}
+.box-cons .box-label{color:#c2410c}
+
+.box-pros ul,.box-cons ul{list-style:none}
+.box-pros li,.box-cons li{
+  font-size:10.5pt;line-height:1.55;
+  margin-bottom:1.8mm;color:#374151;
+  padding-left:14px;position:relative;
+}
+.box-pros li::before{content:'✓';position:absolute;left:0;color:#0d9488;font-weight:700}
+.box-cons li::before{content:'✕';position:absolute;left:0;color:#f97316;font-weight:700}
+
+/* ── CALLOUTS ─────────────────────────────────────── */
+.callout{padding:3.5mm 4.5mm;border-radius:3px;margin:4mm 0}
+.callout p{margin:0;font-size:10.5pt;line-height:1.6}
+.callout-blue{background:#f0fdfa;border-left:4px solid #0d9488}
+.callout-blue p{color:#134e4a}
+.callout-orange{background:#fff7ed;border-left:4px solid #f97316}
+.callout-orange p{color:#9a3412}
+.callout-green{background:#f0fdf4;border-left:4px solid #22c55e}
+.callout-green p{color:#14532d}
+.callout-dark{background:#f8fafc;border-left:4px solid #0f172a}
+.callout-dark p{color:#0f172a}
+
+/* ── OPTION CARDS ─────────────────────────────────── */
+.option-card{
+  border:1.5px solid #e5e7eb;
+  border-radius:6px;
+  padding:5mm 5mm 4mm;
+  margin-bottom:4mm;
+  position:relative;
+}
+.option-card.recommended{
+  border-color:#0d9488;
+  background:#f0fdfa;
+}
+.option-label{
+  font-size:8pt;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  color:#6b7280;
+  margin-bottom:1.5mm;
+}
+.option-card.recommended .option-label{color:#0f766e}
+.option-name{
+  font-size:14pt;
+  font-weight:800;
+  color:#0f172a;
+  margin-bottom:1mm;
+}
+.option-price{
+  font-size:20pt;
+  font-weight:800;
+  color:#0d9488;
+  line-height:1;
+  margin-bottom:3mm;
+}
+.option-price .vat{
+  font-size:10pt;
+  font-weight:400;
+  color:#9ca3af;
+  margin-left:2px;
+}
+.option-desc{
+  font-size:10.5pt;
+  color:#374151;
+  line-height:1.6;
+  margin-bottom:3mm;
+}
+.rec-tag{
+  position:absolute;
+  top:4mm;right:4mm;
+  background:#0d9488;
+  color:#ffffff;
+  font-size:7pt;
+  font-weight:800;
+  padding:1.5px 7px;
+  border-radius:20px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+/* ── INCLUDE LIST ─────────────────────────────────── */
+.inc-list{list-style:none;margin:0}
+.inc-list li{
+  font-size:10.5pt;
+  color:#374151;
+  line-height:1.55;
+  margin-bottom:1.5mm;
+  padding-left:14px;
+  position:relative;
+}
+.inc-list li::before{
+  content:'✓';
+  position:absolute;left:0;
+  color:#0d9488;font-weight:700;
+}
+
+/* ── TABLE ────────────────────────────────────────── */
+table.t{width:100%;border-collapse:collapse;margin:4mm 0;font-size:10.5pt}
+table.t th{
+  background:#0f172a;color:white;
+  padding:2.5mm 3.5mm;text-align:left;
+  font-weight:600;font-size:9.5pt;
+}
+table.t td{
+  padding:2.5mm 3.5mm;
+  border-bottom:1px solid #e5e7eb;
+  vertical-align:top;color:#374151;
+}
+table.t tr.hl td{background:#f0fdfa;font-weight:600;color:#134e4a}
+table.t tr.tot td{
+  background:#f8fafc;font-weight:700;
+  color:#0f172a;border-top:2px solid #0f172a;
+}
+
+/* ── STEP LIST ────────────────────────────────────── */
+.steps{list-style:none;margin:0 0 5mm}
+.steps li{display:flex;gap:3.5mm;margin-bottom:3mm;align-items:flex-start}
+.step-n{
+  flex-shrink:0;width:5.5mm;height:5.5mm;
+  border-radius:50%;background:#0d9488;color:white;
+  font-size:7.5pt;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:1mm;
+}
+.step-text{font-size:11pt;color:#374151;line-height:1.6}
+
+/* ── FEATURE GRID ─────────────────────────────────── */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin:4mm 0}
+.feat-card{border:1px solid #e5e7eb;border-radius:4px;padding:3.5mm 4mm}
+.feat-card h4{font-size:10.5pt;margin-bottom:1.5mm}
+.feat-card p{font-size:9.5pt;color:#6b7280;margin:0;line-height:1.5}
+
+/* ── PAYMENT ──────────────────────────────────────── */
+.pay-row{display:flex;gap:4mm;align-items:flex-start;margin-bottom:4mm}
+.pay-pct{
+  font-size:26pt;font-weight:800;
+  color:#0d9488;min-width:16mm;line-height:1;
+}
+.pay-desc{font-size:11pt;color:#374151;padding-top:1.5mm;line-height:1.55}
+
+/* ── UTILS ────────────────────────────────────────── */
+.mb4{margin-bottom:4mm}
+.mb6{margin-bottom:6mm}
+.mb8{margin-bottom:8mm}
+.mt4{margin-top:4mm}
+.mt6{margin-top:6mm}
+</style>
+</head>
+<body>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 1 · COVER
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="cover-body">
+    <div>
+      <div class="cover-ref">&nbsp; {{ date }}</div>
+      <div class="cover-title">
+        Πρόταση<br>ανάπτυξης<br><span class="accent">Ιστοσελίδας</span>
+      </div>
+      <div class="cover-bar"></div>
+    </div>
+    <div class="cover-to">
+      <div>Προς: {{ hotel_name }}</div>
+      <div>{% if property_type == "villa" %}Βίλα προς ενοικίαση{% elif property_type == "hotel" %}Ξενοδοχειακή μονάδα{% else %}Κατάλυμα{% endif %} στην περιοχή {{ location }}</div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>1 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 2 · COVER LETTER
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <p>Αθήνα, {{ date }}</p>
+  <p class="mb8">Αγαπητοί συνεργάτες,</p>
+
+  <p>
+    Συζητήσαμε αναλυτικά την κατάσταση του {{ hotel_name }}: μια πολύ καλή {% if property_type == "villa" %}βίλα προς ενοικίαση{% elif property_type == "hotel" %}ξενοδοχειακή μονάδα{% else %}κατάλυμα{% endif %}
+    στην περιοχή {{ location }}, με ορατότητα προς το παρόν <strong>μόνο μέσω OTAs (Online Travel
+    Agencies, δηλαδή Booking.com &amp; Airbnb)</strong>. Αυτό σημαίνει δύο πράγματα: ο επισκέπτης
+    δεν μπορεί να σας βρει χωρίς διαμεσολαβητή, και κάθε κράτηση «κοστίζει» 15–18% σε προμήθεια.
+  </p>
+
+  <p>
+    Μια <strong>δική σας ιστοσελίδα</strong> λύνει και τα δύο: χτίζει το brand σας online,
+    σας δίνει άμεσο κανάλι επαφής με τον επισκέπτη και, ανάλογα με την επιλογή που θα κάνετε,
+    σας επιτρέπει να δέχεστε <strong>απευθείας κρατήσεις χωρίς προμήθεια</strong>.
+  </p>
+
+  <p>Οι ανάγκες όπως τις καταγράψαμε:</p>
+
+  <ul class="bl mb6">
+    <li>Επαγγελματική online παρουσία που αντικατοπτρίζει το επίπεδο του καταλύματος</li>
+    <li>Πλούσιο gallery showcase με μεγάλες, μοντέρνες φωτογραφίες</li>
+    <li>Ανάδειξη της τοποθεσίας: {{ location }}, παραλίες, αξιοθέατα</li>
+    <li>Δυνατότητα διαχείρισης περιεχομένου μέσω <strong>CMS (Content Management System)</strong>, ώστε να αλλάζετε εσείς κείμενα και φωτογραφίες χωρίς developer (διαθέσιμο στην Επιλογή Β)</li>
+    <li>Πολύγλωσσο περιεχόμενο: Ελληνικά &amp; Αγγλικά</li>
+    <li>Mobile-first σχεδιασμός, η πλειοψηφία των αναζητήσεων γίνεται από κινητό</li>
+    <li>Δυνατότητα μελλοντικής επέκτασης σε direct booking engine χωρίς rebuild</li>
+  </ul>
+
+  <p>
+    Με βάση τα παραπάνω, παρουσιάζουμε <strong>δύο εναλλακτικές λύσεις</strong>:
+    μια κομψή ψηφιακή παρουσία που χτίζει brand και δέχεται αιτήματα κράτησης απευθείας
+    από εσάς (χωρίς διαμεσολάβηση Booking ή Airbnb), ή μια πλήρη πλατφόρμα με δικό σας
+    booking engine και online πληρωμές. Και στις δύο επιλογές, <strong>η κράτηση γίνεται
+    μαζί σας απευθείας, όχι μέσω OTA</strong>. Στην Επιλογή Β περιλαμβάνεται και CMS για διαχείριση περιεχομένου.
+  </p>
+
+  <p>Είμαστε στη διάθεσή σας για οποιαδήποτε διευκρίνιση.</p>
+
+  <div style="margin-top:8mm">
+    <p style="margin:0">Με εκτίμηση,</p>
+    <p style="margin:2mm 0 0;font-weight:700;color:#0f172a;font-size:11pt">
+      {{ author_names }}
+    </p>
+    <p style="margin:0;color:#64748b;font-size:9pt">Co-Founders, Devox</p>
+    <p style="margin:1mm 0 0;color:#64748b;font-size:9pt">{{ author_phone }} &nbsp;|&nbsp; {{ author_email }} &nbsp;|&nbsp; devox.gr</p>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>2 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 3 · PROJECT UNDERSTANDING
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Κατανόηση<br>του project</div>
+  <div class="st-bar"></div>
+
+  <p>
+    Το {{ hotel_name }} είναι ένα premium {% if property_type == "villa" %}κατάλυμα προς ενοικίαση{% elif property_type == "hotel" %}ξενοδοχείο{% else %}κατάλυμα{% endif %} στην περιοχή {{ location_long }}.
+    {% if region_description %}{{ region_description }}{% else %}Μία από τις πιο ανταγωνιστικές τοποθεσίες της ελληνικής αγοράς φιλοξενίας.{% endif %}
+    Αυτή τη στιγμή,
+    το {% if property_type == "villa" %}κατάλυμα{% elif property_type == "hotel" %}ξενοδοχείο{% else %}κατάλυμα{% endif %} προβάλλεται μόνο μέσω <strong>OTAs</strong> (Booking.com &amp; Airbnb).
+  </p>
+
+  {% if region_sales_angle %}
+  <div class="callout callout-blue mb6">
+    <p><strong>Γιατί μια ιστοσελίδα έχει νόημα {{ region_genitive }}:</strong>
+    {{ region_sales_angle }}</p>
+  </div>
+  {% endif %}
+
+  <p>
+    Η εξάρτηση από στρατηγική μόνο OTAs έχει συγκεκριμένα κόστη:
+  </p>
+
+  <div class="feat-grid mb6">
+    <div class="feat-card">
+      <h4>Προμήθεια κρατήσεων</h4>
+      <p>15–18% επί κάθε κράτησης πάει στην πλατφόρμα, όχι σε εσάς</p>
+    </div>
+    <div class="feat-card">
+      <h4>Καμία brand ταυτότητα</h4>
+      <p>Ο επισκέπτης σας ξεχνάει· επόμενη φορά «θα ψάξει στο Booking ή Airbnb»</p>
+    </div>
+    <div class="feat-card">
+      <h4>Μηδενική επανάληψη</h4>
+      <p>Δεν υπάρχει κανάλι για direct επικοινωνία ή loyalty/repeat πελατών</p>
+    </div>
+    <div class="feat-card">
+      <h4>Έλεγχος αφήγησης</h4>
+      <p>Φωτογραφίες, περιγραφή, αξία· όλα φιλτράρονται από τα standards των OTAs</p>
+    </div>
+    <div class="feat-card">
+      <h4>SEO που χάνεται</h4>
+      <p>Όταν κάποιος γράφει «{{ hotel_name }}» στο Google, βρίσκει Booking ή Airbnb, όχι εσάς</p>
+    </div>
+    <div class="feat-card">
+      <h4>Καμία upsell ευκαιρία</h4>
+      <p>Δεν μπορείτε να προτείνετε extras (μεταφορά, breakfast, late check-out) στον δικό σας ρυθμό</p>
+    </div>
+  </div>
+
+  <p>
+    Μια δική σας ιστοσελίδα δεν αντικαθιστά τα OTAs, <strong>τα συμπληρώνει</strong>.
+    Συνεχίζετε να έχετε visibility μέσω Booking &amp; Airbnb, αλλά αποκτάτε ένα δεύτερο κανάλι
+    όπου οι κρατήσεις (αν επιλέξετε booking engine) είναι 100% δικές σας, χωρίς προμήθεια,
+    και ο επισκέπτης μπαίνει στο δικό σας οικοσύστημα, όχι των OTAs.
+  </p>
+
+  <div class="callout callout-blue">
+    <p>
+      <strong>Η λογική:</strong> κάθε direct κράτηση που έρχεται μέσω της δικής σας ιστοσελίδας
+      γλιτώνει 15–18% προμήθεια OTA. Ακόμη και με μερικές direct κρατήσεις τη σεζόν, η
+      εξοικονόμηση καλύπτει το ετήσιο λειτουργικό κόστος της ιστοσελίδας, και κάθε επόμενη
+      direct κράτηση είναι καθαρό κέρδος. Το ζητούμενο δεν είναι να αντικατασταθούν Booking
+      &amp; Airbnb, αλλά να υπάρχει <strong>ένα τρίτο, δικό σας κανάλι</strong>.
+    </p>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>3 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 4 · OPTION A, PRESENTATION SITE
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Επιλογή Α<br>Presentation Site: Ψηφιακή Παρουσία &amp; Brand</div>
+  <div class="st-bar"></div>
+
+  <p>
+    Μια <strong>επαγγελματική ιστοσελίδα παρουσίασης</strong> με premium UI και πλούσιο gallery.
+    Ο επισκέπτης βρίσκει όλα όσα χρειάζεται για να αποφασίσει και επικοινωνεί απευθείας μαζί σας
+    μέσω φόρμας αιτήματος, <strong>όχι μέσω OTA</strong>. Static σχεδιασμός για μέγιστη ταχύτητα
+    και χαμηλό κόστος.
+  </p>
+
+  <div class="option-card">
+    <div class="option-label">Επιλογή Α: Presentation Site</div>
+    <div class="option-name">Custom σχεδιασμός + Modern Gallery + Direct Inquiry</div>
+    <div class="option-price">{{ option_a_price }} <span class="vat">+ ΦΠΑ</span></div>
+    <div class="option-desc">
+      Πολλές σελίδες, μοντέρνο UI, custom σχεδιασμός χωρίς έτοιμα templates.
+      Χρόνος παράδοσης: 2–3 εβδομάδες.
+    </div>
+    <ul class="inc-list">
+      <li>Homepage με hero βίντεο/φωτογραφία και ανάδειξη του brand</li>
+      <li>Σελίδα παρουσίασης του καταλύματος με αναλυτικά χαρακτηριστικά</li>
+      <li><strong>Modern photo gallery</strong> με μεγάλες φωτογραφίες, lightbox, smooth transitions</li>
+      <li>Σελίδα τοποθεσίας: παραλίες, αξιοθέατα, εστιατόρια, χιλιομετρικές αποστάσεις, Google Map</li>
+      <li>Σελίδα παροχών &amp; υπηρεσιών (πισίνα, parking, AC, kitchen, sea view κλπ)</li>
+      <li>Σελίδα «About» με την ιστορία και το concept του καταλύματος</li>
+      <li><strong>Φόρμα αιτήματος κράτησης</strong> με ημερομηνίες, άτομα, στοιχεία επαφής, σχόλια</li>
+      <li>Email ειδοποίηση σε εσάς + αυτόματο email επιβεβαίωσης παραλαβής στον επισκέπτη</li>
+      <li>Πολύγλωσση υποστήριξη: Ελληνικά &amp; Αγγλικά</li>
+      <li>Αλλαγές περιεχομένου (κείμενα, φωτογραφίες) μέσω της ομάδας μας στο πακέτο συντήρησης</li>
+      <li>WhatsApp / call CTA buttons για άμεση επικοινωνία</li>
+      <li>Mobile-first responsive σχεδιασμός, εξαιρετικά γρήγορη απόδοση</li>
+      <li>Βασικό SEO setup (meta tags, sitemap, schema markup, Open Graph)</li>
+      <li>Σύνδεση Google Analytics + Google Search Console</li>
+      <li>1 μήνας δωρεάν bug fixing μετά την παράδοση</li>
+    </ul>
+  </div>
+
+  <div class="two-col mb4">
+    <div class="box-pros">
+      <div class="box-label">Πλεονεκτήματα</div>
+      <ul>
+        <li>Χαμηλό αρχικό κόστος, γρήγορη απόσβεση</li>
+        <li>Γρήγορη παράδοση (2–3 εβδομάδες)</li>
+        <li>Πολύ χαμηλό μηνιαίο κόστος λειτουργίας</li>
+        <li>Άμεση παρουσία στο Google με δικό σας domain</li>
+        <li>Καθαρό branding· ο επισκέπτης βλέπει εσάς, όχι Booking ή Airbnb</li>
+        <li>Direct επαφή με τον επισκέπτη, καμία προμήθεια OTA</li>
+      </ul>
+    </div>
+    <div class="box-cons">
+      <div class="box-label">Μειονεκτήματα</div>
+      <ul>
+        <li>Δεν περιλαμβάνεται CMS· οι αλλαγές περιεχομένου γίνονται μέσω της ομάδας μας</li>
+        <li>Δεν υπάρχει αυτοματοποιημένο booking· απαιτείται χειροκίνητη απάντηση σε κάθε αίτημα</li>
+        <li>Καμία online πληρωμή· η προκαταβολή γίνεται με κατάθεση ή Stripe payment link που στέλνετε εσείς</li>
+        <li>Δεν υπάρχει real-time ημερολόγιο διαθεσιμότητας στο site</li>
+        <li>Δεν υπάρχει channel manager· χειροκίνητη ενημέρωση διαθεσιμότητας μεταξύ site, Booking &amp; Airbnb</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-orange">
+    <p>
+      <strong>Πότε ταιριάζει:</strong> αν θέλετε άμεση online παρουσία με χαμηλό budget, χαμηλό
+      όγκο direct κρατήσεων στην αρχή, και προτιμάτε το ανθρώπινο βήμα, να μιλάτε εσείς με
+      κάθε επισκέπτη. Καλή πρώτη φάση, μπορεί αργότερα να αναβαθμιστεί στην Επιλογή Β
+      <u>χωρίς rebuild</u>.
+    </p>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>4 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 5 · OPTION B, FULL BOOKING PLATFORM
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Επιλογή Β<br>Full Booking Platform: Direct Bookings &amp; Payments</div>
+  <div class="st-bar"></div>
+
+  <p>
+    Η πλήρης λύση: όλα τα χαρακτηριστικά της Επιλογής Α + booking system + online πληρωμές.
+    Ο επισκέπτης κάνει <strong>πραγματική κράτηση online</strong>, με <strong>πληρωμή απευθείας
+    με κάρτα</strong> ή προκαταβολή, και λαμβάνει αυτόματη επιβεβαίωση. Εσείς αποφεύγετε εντελώς
+    την προμήθεια Booking &amp; Airbnb για κάθε direct κράτηση.
+  </p>
+
+  <div class="option-card recommended">
+    <div class="rec-tag">Προτείνεται</div>
+    <div class="option-label">Επιλογή Β: Full Booking Platform</div>
+    <div class="option-name">Παρουσίαση + Booking Engine + Online Πληρωμές + CMS</div>
+    <div class="option-price">{{ option_b_price }} <span class="vat">+ ΦΠΑ</span></div>
+    <div class="option-desc">
+      Όλα της Επιλογής Α + πλήρης πλατφόρμα κρατήσεων με online πληρωμές και channel manager.
+      Χρόνος παράδοσης: 5–6 εβδομάδες.
+    </div>
+    <ul class="inc-list">
+      <li><strong>Όλες οι σελίδες, gallery και branding της Επιλογής Α</strong></li>
+      <li><strong>CMS (Sanity)</strong>: αλλάζετε εσείς κείμενα, φωτογραφίες, τιμές, παροχές χωρίς developer</li>
+      <li><strong>Real booking flow</strong>: επιλογή ημερομηνιών → extras → πληρωμή → επιβεβαίωση</li>
+      <li>Σύνδεση πληρωμών (Stripe ή Viva Wallet): κάρτα, Apple Pay, Google Pay</li>
+      <li>Επιλογή προκαταβολής (π.χ. 30%) ή πλήρους πληρωμής</li>
+      <li>Channel Manager integration: αυτόματος συγχρονισμός διαθεσιμότητας με Booking/Airbnb</li>
+      <li>Δυναμική τιμολόγηση ανά σεζόν (high / mid / low season)</li>
+      <li>Αυτόματα emails: confirmation, pre-arrival, post-stay, review request</li>
+      <li>Upsell extras κατά το checkout (transfer, breakfast, late check-out, baby cot)</li>
+      <li>Promo codes &amp; discounts για ειδικές προσφορές ή loyalty πελάτες</li>
+      <li>Πλήρες admin dashboard: reservations, calendar, revenue analytics</li>
+      <li>GDPR compliant: Privacy, Terms, Cookies σελίδες</li>
+      <li>1 μήνας δωρεάν bug fixing μετά την παράδοση</li>
+    </ul>
+  </div>
+
+  <div class="two-col mb4">
+    <div class="box-pros">
+      <div class="box-label">Πλεονεκτήματα</div>
+      <ul>
+        <li>Μηδενική προμήθεια OTA σε direct κρατήσεις, μέγιστη απόσβεση</li>
+        <li>Πλήρως αυτοματοποιημένη ροή· δεν χρειάζεται χειροκίνητη επιβεβαίωση</li>
+        <li>Channel Manager μηδενίζει τον κίνδυνο double-booking</li>
+        <li>Upsells αυξάνουν το μέσο έσοδο ανά κράτηση κατά 10–20%</li>
+        <li>Πλήρης κυριότητα δεδομένων πελατών: email marketing, repeat bookings</li>
+        <li>Premium αίσθηση, ίσο επίπεδο με τις μεγάλες αλυσίδες</li>
+      </ul>
+    </div>
+    <div class="box-cons">
+      <div class="box-label">Μειονεκτήματα</div>
+      <ul>
+        <li>Υψηλότερο αρχικό κόστος ανάπτυξης σε σχέση με Α</li>
+        <li>Μεγαλύτερος χρόνος παράδοσης (5–6 εβδομάδες)</li>
+        <li>Μηνιαίο κόστος Channel Manager (~€20–€50/μήνα)</li>
+        <li>Stripe/Viva fees: ~1,5% + €0,25 ανά συναλλαγή</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-green">
+    <p>
+      <strong>Γιατί το προτείνουμε:</strong> στην τιμή των {{ option_b_price }}, η Επιλογή Β είναι
+      ασύγκριτα συμφέρουσα. Παρόμοιες λύσεις στην αγορά τιμολογούνται σε €3.000+. Με ακόμη και
+      10–15 direct κρατήσεις τη σεζόν, η επένδυση αποσβένεται πλήρως μέσα στον πρώτο χρόνο
+      μόνο από εξοικονόμηση προμηθειών. Η τελική τιμή εντός του range οριστικοποιείται γραπτώς
+      μετά το discovery call, με βάση το τελικό scope που θα συμφωνηθεί.
+    </p>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>5 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 6 · COMPARISON & EXTRAS
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Σύγκριση<br>επιλογών</div>
+  <div class="st-bar"></div>
+
+  <table class="t mb4">
+    <thead>
+      <tr>
+        <th>Παράμετρος</th>
+        <th>Α: Presentation</th>
+        <th>Β: Full Booking Platform</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Κόστος ανάπτυξης</td>
+        <td>{{ option_a_price }}</td>
+        <td>{{ option_b_price }}</td>
+      </tr>
+      <tr>
+        <td>Χρόνος παράδοσης</td>
+        <td>2–3 εβδομάδες</td>
+        <td>5–6 εβδομάδες</td>
+      </tr>
+      <tr>
+        <td>Custom design &amp; branding</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Modern photo gallery</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Πολύγλωσσο (EL/EN)</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>CMS (αυτόνομη αλλαγή περιεχομένου)</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>SEO setup</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Direct inquiry form</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Online booking (αυτοματοποιημένο)</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Online πληρωμή</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Channel Manager</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Upsell extras</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Admin dashboard</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td>Εξοικονόμηση OTA προμήθειας</td>
+        <td>Μερική (χειροκίνητο)</td>
+        <td>Πλήρης (αυτοματοποιημένο)</td>
+      </tr>
+      <tr class="hl">
+        <td><strong>Σύσταση</strong></td>
+        <td style="color:#6b7280">Για ξεκίνημα με χαμηλό budget</td>
+        <td><strong>✓ Προτείνεται</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Μηνιαίο λειτουργικό κόστος</h3>
+  <p style="font-size:10pt;margin-bottom:3mm">
+    Το μηνιαίο κόστος αποτελείται από <strong>δύο μέρη</strong>: τα έξοδα τρίτων υπηρεσιών
+    (που πληρώνετε απευθείας στους παρόχους) και το <strong>προαιρετικό μηνιαίο πακέτο συντήρησης</strong>
+    (που πληρώνετε σε εμάς για να κρατάμε την ιστοσελίδα ζωντανή και ενημερωμένη).
+  </p>
+
+  <table class="t mb4">
+    <thead>
+      <tr><th>Κατηγορία</th><th>Επιλογή Α</th><th>Επιλογή Β</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Hosting (Vercel)</td><td>€0</td><td>€0–€20</td></tr>
+      <tr><td>Database (Supabase)</td><td>€0</td><td>€0–€25</td></tr>
+      <tr><td>CMS (Sanity)</td><td>✗</td><td>€0 (free tier)</td></tr>
+      <tr><td>Email service (Resend)</td><td>✗</td><td>€0–€20</td></tr>
+      <tr><td>Channel Manager</td><td>✗</td><td>€20–€50</td></tr>      <tr class="hl"><td><strong>Πακέτο συντήρησης Devox</strong> <em style="font-weight:400;color:#0f766e">(προαιρετικό)</em></td><td><strong>€20–€30</strong></td><td><strong>€50–€100</strong></td></tr>
+      <tr class="tot"><td><strong>Σύνολο / μήνα</strong> (με συντήρηση)</td><td><strong>~€20–€30</strong></td><td><strong>~€70–€210</strong></td></tr>
+      <tr><td><strong>Σύνολο / μήνα</strong> (χωρίς συντήρηση)</td><td><strong>~€0</strong></td><td><strong>~€20–€110</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-orange mb4">
+    <p>
+      <strong>Το πακέτο συντήρησης είναι προαιρετικό.</strong> Έχετε πλήρες δικαίωμα να μην
+      το επιλέξετε. Σε αυτή την περίπτωση, με την παράδοση παίρνετε τον πηγαίο κώδικα και
+      τα στοιχεία πρόσβασης σε όλες τις υπηρεσίες, και η συντήρηση γίνεται δική σας ευθύνη
+      (ή κάποιου άλλου developer που θα επιλέξετε). Αναλυτικές λεπτομέρειες για το τι
+      περιλαμβάνει η συντήρηση και τι σημαίνει να την αναλάβετε εσείς, στην επόμενη σελίδα.
+    </p>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>6 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 7B · MAINTENANCE BREAKDOWN
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Πακέτο<br>Συντήρησης</div>
+  <div class="st-bar"></div>
+
+  <p>
+    Μια σύγχρονη ιστοσελίδα <strong>δεν είναι «παράδοση και τέλος»</strong>. Το λογισμικό που τη
+    στηρίζει (Next.js, βιβλιοθήκες, dependencies) εκδίδει νέες εκδόσεις τακτικά, οι browsers
+    αλλάζουν, οι πάροχοι (Stripe, Supabase) ενημερώνουν τα APIs τους, και νέες ευπάθειες
+    ασφαλείας εμφανίζονται. Χωρίς ενεργή συντήρηση, η ιστοσελίδα σε 12–18 μήνες αρχίζει
+    σταδιακά να εμφανίζει προβλήματα, να γίνεται ευάλωτη ή να σταματάει να δουλεύει εντελώς.
+  </p>
+
+  <p>
+    Γι' αυτό προτείνουμε ένα <strong>μηνιαίο πακέτο συντήρησης</strong>, το οποίο εκτελείται από
+    την ομάδα μας με αφιερωμένο χρόνο κάθε μήνα. Παρακάτω βλέπετε το κόστος και τι περιλαμβάνεται
+    σε κάθε επίπεδο.
+  </p>
+
+  <div class="two-col mb4">
+    <div class="option-card">
+      <div class="option-label">Συντήρηση για Επιλογή Α</div>
+      <div class="option-name">Basic Maintenance</div>
+      <div class="option-price">€20 – €30 <span class="vat">/ μήνα</span></div>
+      <div class="option-desc">
+        Βασική συντήρηση για presentation site: updates, security patches, monitoring,
+        backups και email support.
+      </div>
+    </div>
+    <div class="option-card recommended">
+      <div class="rec-tag">Booking Platform</div>
+      <div class="option-label">Συντήρηση για Επιλογή Β</div>
+      <div class="option-name">Full Maintenance &amp; Support</div>
+      <div class="option-price">€50 – €100 <span class="vat">/ μήνα</span></div>
+      <div class="option-desc">
+        Πλήρης συντήρηση για live booking platform: όλα της Basic + booking engine support,
+        performance monitoring, priority response &amp; quarterly reviews.
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:0">Τι περιλαμβάνει αναλυτικά</h3>
+  <table class="t mb4">
+    <thead>
+      <tr>
+        <th>Παροχή</th>
+        <th>Basic (Α)</th>
+        <th>Full (Β)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Updates Next.js, dependencies &amp; security patches</strong> κάθε μήνα</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td><strong>Παρακολούθηση uptime</strong> με ειδοποιήσεις σε downtime</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td><strong>Τακτικά backups</strong> &amp; restore σε περίπτωση ανάγκης</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td><strong>Bug fixes</strong> για προβλήματα που εμφανίζονται σε production</td>
+        <td>✓</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td><strong>Email support</strong> για ερωτήσεις χρήσης &amp; γενικά θέματα</td>
+        <td>✓ (απάντηση εντός 48ωρων)</td>
+        <td>✓ (απάντηση εντός 24ωρων)</td>
+      </tr>
+      <tr>
+        <td><strong>Αλλαγές περιεχομένου</strong> (κείμενα, φωτογραφίες, τιμές)</td>
+        <td>έως 1 ώρα/μήνα</td>
+        <td>έως 2 ώρες/μήνα (επιπλέον της αυτόνομης αλλαγής μέσω CMS)</td>
+      </tr>
+      <tr>
+        <td><strong>Συντήρηση booking engine</strong> (Stripe API updates, channel manager sync issues)</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td><strong>Performance monitoring &amp; optimization</strong> (Core Web Vitals, SEO health)</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+      <tr>
+        <td><strong>Priority response</strong> σε critical issues (π.χ. πληρωμές offline)</td>
+        <td>✗</td>
+        <td>✓ (απάντηση εντός 4 ωρών)</td>
+      </tr>
+      <tr>
+        <td><strong>Quarterly review call</strong> για προτάσεις βελτιώσεων &amp; analytics review</td>
+        <td>✗</td>
+        <td>✓</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-orange mb4">
+    <p>
+      <strong>Επιλογή να μη συμμετάσχετε στο πακέτο συντήρησης:</strong> Έχετε πλήρες δικαίωμα
+      να αρνηθείτε το μηνιαίο πακέτο. Σε αυτή την περίπτωση, με την παράδοση σας παρέχουμε
+      τον <strong>πλήρη πηγαίο κώδικα</strong>, την τεκμηρίωση και τα στοιχεία πρόσβασης σε όλες τις
+      υπηρεσίες (Vercel, Supabase, Sanity, Stripe). Από εκείνο το σημείο και μετά, η συντήρηση
+      γίνεται με δική σας ευθύνη: εσείς ή κάποιος άλλος developer θα πρέπει να αναλάβει updates,
+      patches, bug fixes, integration changes και monitoring. Σε αυτή την περίπτωση δεν παρέχουμε
+      support πέραν του 1 μήνα δωρεάν bug fixing που περιλαμβάνεται στην παράδοση.
+    </p>
+  </div>
+
+  <div class="callout callout-blue">
+    <p>
+      <strong>Η σύστασή μας:</strong> Για το {{ hotel_name }}, που λειτουργεί ως live booking platform
+      με πληρωμές, η συντήρηση είναι ουσιώδης. Ένα bug στο checkout flow ή ένα Stripe API change
+      που δεν αντιμετωπίζεται μπορεί να σημαίνει χαμένες κρατήσεις. Στα €50–€100/μήνα, το
+      πακέτο της Επιλογής Β αποσβένεται από μία και μόνη direct κράτηση που προστατεύεται.
+    </p>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>7 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 7C · ADDITIONAL COSTS
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Πρόσθετα<br>Κόστη &amp; Σημειώσεις</div>
+  <div class="st-bar"></div>
+
+  <h3 style="margin-top:0">Πρόσθετα κόστη (κοινά για όλες τις επιλογές)</h3>
+  <ul class="bl mb6">
+    <li>Domain name (.gr ή .com): ~€15–€25 + ΦΠΑ / έτος</li>
+    <li>SSL: Δωρεάν, included σε όλα τα hosting πλάνα που χρησιμοποιούμε</li>
+    <li>Επαγγελματική φωτογράφηση του καταλύματος: Δεν περιλαμβάνεται, <strong>ισχυρά συνιστάται</strong></li>
+    <li>Drone footage / video tour: Δεν περιλαμβάνεται, προαιρετικό</li>
+    <li>Κειμενογράφηση EL/EN: Περιλαμβάνεται basic copywriting· εξειδικευμένο copy χρεώνεται ξεχωριστά</li>
+    <li>Stripe/Viva fees (μόνο Επιλογή Β): ~1,5% + €0,25 ανά συναλλαγή</li>
+  </ul>
+
+  <h3>Σημειώσεις κόστους</h3>
+  <ul class="bl mb4">
+    <li>Τα κόστη τρίτων υπηρεσιών (Vercel, Supabase, Sanity, Stripe) πληρώνονται απευθείας στους παρόχους, όχι σε εμάς. Είναι τιμές κατασκευαστή.</li>
+    <li>Το πακέτο συντήρησης τιμολογείται από εμάς μηνιαία και μπορεί να διακοπεί ανά πάσα στιγμή με 30 ημέρες ειδοποίηση.</li>
+    <li>Σε περίπτωση διακοπής συντήρησης, η ευθύνη του site περνάει σε εσάς και κρατάτε τον πηγαίο κώδικα.</li>
+    <li>Για Επιλογή Β, αν επιθυμείτε αναβάθμιση πακέτου συντήρησης (π.χ. από €50 σε €100/μήνα) ανάλογα με τον όγκο direct κρατήσεων, αυτό συμφωνείται μετά τον πρώτο χρόνο λειτουργίας.</li>
+  </ul>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>8 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 7 · METHODOLOGY
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Μεθοδολογία<br>Υλοποίησης</div>
+  <div class="st-bar"></div>
+
+  <p>
+    Ακολουθούμε μια δομημένη, διαφανή διαδικασία. Δεν υπάρχουν εκπλήξεις: ξέρετε πάντα
+    σε ποιο στάδιο βρίσκεστε και τι μένει. Για τη μετάβαση σε κάθε επόμενο βήμα,
+    πρέπει να έχει ολοκληρωθεί και εγκριθεί το προηγούμενο.
+  </p>
+
+  <ul class="steps mb6">
+    <li>
+      <div class="step-n">1</div>
+      <div class="step-text">
+        <strong>Kickoff &amp; Discovery:</strong> Αναλυτική συζήτηση για το brand, το αισθητικό ύφος,
+        το target κοινό (Έλληνες / διεθνείς, οικογένειες / ζευγάρια / business). Συγκέντρωση
+        υλικού: φωτογραφίες, λογότυπο, περιγραφές, στοιχεία τοποθεσίας.
+      </div>
+    </li>
+    <li>
+      <div class="step-n">2</div>
+      <div class="step-text">
+        <strong>Wireframes &amp; UX flow:</strong> Δημιουργία wireframes για κάθε σελίδα. Για Επιλογή Β,
+        ιδιαίτερη έμφαση στη ροή κράτησης. Πρώτη έγκριση. Αν περάσει 1 εβδομάδα χωρίς παρατηρήσεις,
+        τα wireframes θεωρούνται αποδεχθέντα.
+      </div>
+    </li>
+    <li>
+      <div class="step-n">3</div>
+      <div class="step-text">
+        <strong>Visual Design:</strong> Πλήρης σχεδιασμός UI σε Figma ή απευθείας σε κώδικα με live
+        preview. Έως 2 γύροι βελτιώσεων βάσει feedback, εντός 2 εβδομάδων από κάθε παρουσίαση.
+      </div>
+    </li>
+    <li>
+      <div class="step-n">4</div>
+      <div class="step-text">
+        <strong>Development:</strong> Ανάπτυξη front-end και (όπου εφαρμόζει) back-end.
+        Setup του CMS και εισαγωγή αρχικού περιεχομένου (μόνο Επιλογή Β). Εβδομαδιαία ενημέρωση
+        προόδου. Πρόσβαση σε project management tool για real-time tracking.
+      </div>
+    </li>
+    <li>
+      <div class="step-n">5</div>
+      <div class="step-text">
+        <strong>QA &amp; Testing:</strong> Έλεγχος σε Chrome, Firefox, Edge, Safari,
+        desktop, tablet, mobile. Για Επιλογή Β: end-to-end booking test, payment test, channel
+        manager sync test, webhooks.
+      </div>
+    </li>
+    <li>
+      <div class="step-n">6</div>
+      <div class="step-text">
+        <strong>Παράδοση &amp; Εκπαίδευση:</strong> Launch, εκπαίδευση χρήσης CMS &amp; admin dashboard
+        (μόνο Επιλογή Β), documentation. <strong>1 μήνας δωρεάν bug fixing</strong> μετά την παράδοση.*
+      </div>
+    </li>
+  </ul>
+
+  <p style="font-size:8.5pt;color:#6b7280">
+    * Η ημερομηνία παράδοσης είναι η ημερομηνία που παραδίδουμε το site προς έλεγχο, όχι η go-live ημερομηνία.
+    Καθυστερήσεις από την πλευρά σας (παράδοση υλικού, feedback) επηρεάζουν τον εκτιμώμενο χρόνο.
+  </p>
+
+  <h3 class="mt6">Τεχνολογία</h3>
+  <p>
+    Δεν χρησιμοποιούμε WordPress. Κατασκευάζουμε custom σε <strong>Next.js 16 + TypeScript +
+    Tailwind</strong> στο frontend. Για Επιλογή Β: <strong>Sanity CMS</strong> για διαχείριση
+    περιεχομένου, <strong>Supabase</strong> (PostgreSQL με Row Level Security) για βάση,
+    <strong>Stripe / Viva</strong> για πληρωμές, <strong>Resend</strong> για emails, hosting σε
+    <strong>Vercel</strong>. Αυτό σημαίνει ταχύτητα, ασφάλεια και χαμηλό λειτουργικό κόστος μακροπρόθεσμα.
+  </p>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>9 / 10</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 8 · PAYMENT & NEXT STEPS
+═══════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="doc-header">
+    <div class="logo"><img src="public/images/logo.png" alt="Devox"></div>
+  </div>
+
+  <div class="st">Τρόπος Πληρωμής<br>&amp; Επόμενα Βήματα</div>
+  <div class="st-bar"></div>
+
+  <p>
+    Το πλάνο αποπληρωμής είναι δομημένο έτσι ώστε και οι δύο πλευρές να έχουν ασφάλεια
+    σε κάθε στάδιο:
+  </p>
+
+  <div style="margin:6mm 0 7mm">
+    <div class="pay-row">
+      <div class="pay-pct">40%</div>
+      <div class="pay-desc">
+        <strong>Προκαταβολή</strong><br>
+        Κατά την υπογραφή της σύμβασης. Καλύπτει το kickoff, τα wireframes και τον UX σχεδιασμό.
+      </div>
+    </div>
+    <div class="pay-row">
+      <div class="pay-pct">30%</div>
+      <div class="pay-desc">
+        <strong>Ενδιάμεση πληρωμή</strong><br>
+        Με την έγκριση του visual design και την έναρξη του development.
+      </div>
+    </div>
+    <div class="pay-row">
+      <div class="pay-pct">30%</div>
+      <div class="pay-desc">
+        <strong>Εξόφληση</strong><br>
+        Με την παράδοση του ολοκληρωμένου project προς έλεγχο.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-blue mb6">
+    <p>
+      Η έκδοση νόμιμου παραστατικού γίνεται εντός 5 εργάσιμων ημερών από κάθε κατάθεση.
+      Εργασίες εκτός scope τιμολογούνται ξεχωριστά βάσει ωριαίας χρέωσης που συμφωνείται εκ των προτέρων.
+    </p>
+  </div>
+
+  <h3>Ισχύς προσφοράς</h3>
+  <p class="mb6">Η παρούσα προσφορά ισχύει για <strong>30 ημέρες</strong> από την ημερομηνία έκδοσής της.</p>
+
+  <h3>Επόμενα βήματα</h3>
+  <ul class="steps mb8">
+    <li>
+      <div class="step-n">1</div>
+      <div class="step-text">Discovery call για αναλυτική συζήτηση του project, της φωτογραφικής τράπεζας και των στόχων της σεζόν</div>
+    </li>
+    <li>
+      <div class="step-n">2</div>
+      <div class="step-text">Επιλογή πακέτου (Α ή Β), με δυνατότητα μελλοντικής αναβάθμισης χωρίς rebuild</div>
+    </li>
+    <li>
+      <div class="step-n">3</div>
+      <div class="step-text">Υπογραφή σύμβασης, προκαταβολή και έναρξη kickoff</div>
+    </li>
+  </ul>
+
+  <p style="font-size:10pt;color:#374151;margin-bottom:6mm">
+    Είμαστε στη διάθεσή σας για οποιαδήποτε διευκρίνιση.
+  </p>
+
+  <div>
+    <p style="margin:0;font-size:10pt;color:#374151">Για την Devox,</p>
+    <p style="margin:2mm 0 0;font-weight:700;color:#0f172a;font-size:11pt">
+      {{ author_names }}
+    </p>
+    <p style="margin:0;color:#64748b;font-size:9pt">Co-Founders</p>
+    <p style="margin:1.5mm 0 0;color:#64748b;font-size:9pt">
+      {{ author_phone }} &nbsp;|&nbsp; {{ author_email }} &nbsp;|&nbsp; devox.gr
+    </p>
+  </div>
+
+  <div class="doc-footer">
+    <span>© 2026 Devox · devox.gr</span>
+    <span>10 / 10</span>
+  </div>
+</div>
+
+
+</body>
+</html>

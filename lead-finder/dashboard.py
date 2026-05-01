@@ -215,6 +215,236 @@ def api_leads():
     })
 
 
+def generate_talking_points(lead: dict) -> list[str]:
+    """Auto-generate sales pitch bullet points based on lead data."""
+    points = []
+    name = lead.get("name", "")
+    op = (lead.get("online_presence") or "").lower()
+    cat = (lead.get("category") or "").lower()
+
+    # Online presence specific pitches
+    if op == "none":
+        points.append(
+            "Δεν εμφανίζεται website στο Google Maps profile τους — "
+            "τους χάνουν δυνητικοί επισκέπτες."
+        )
+    elif op == "facebook":
+        points.append(
+            "Έχουν μόνο Facebook page ως online presence — "
+            "ένα professional site θα ανέβαζε credibility."
+        )
+    elif op == "instagram":
+        points.append(
+            "Έχουν μόνο Instagram ως κανάλι — "
+            "δεν δέχονται direct booking, χάνουν σε προμήθειες OTA."
+        )
+    elif op == "booking":
+        points.append(
+            "Φαίνονται μόνο μέσω Booking.com — πληρώνουν 15-18% commission "
+            "σε κάθε κράτηση. Με δικό τους site γλιτώνουν."
+        )
+    elif op == "airbnb":
+        points.append(
+            "Φαίνονται μόνο μέσω Airbnb — εξαρτώνται 100% από την πλατφόρμα."
+        )
+    elif op == "ota-aggregator" or op == "link-in-bio":
+        points.append(
+            "Δεν έχουν δικό τους site — μόνο OTA listing ή link-in-bio."
+        )
+
+    # Domain availability — VERY strong pitch
+    sug = lead.get("domain_suggestion") or ""
+    if sug:
+        points.append(
+            f"Το domain {sug} είναι διαθέσιμο — μπορούμε να το πιάσουμε "
+            f"για εσάς πριν το κλείσει κάποιος άλλος."
+        )
+
+    # Category-based personalisation
+    if "villa" in cat or "villa" in name.lower():
+        points.append(
+            "Premium κατάλυμα: το branding και τα high-quality photos "
+            "παίζουν τεράστιο ρόλο. Ένα παρουσιαστικό site αυξάνει "
+            "averageRate."
+        )
+    elif "apartment" in cat or "studio" in cat:
+        points.append(
+            "Self-catering κατάλυμα — οι direct guests προτιμούν να κλείνουν "
+            "με τον ιδιοκτήτη όταν έχουν τη δυνατότητα."
+        )
+
+    # Email
+    if not lead.get("email"):
+        points.append(
+            "Δεν φαίνεται email στο Google Maps — μπορείτε να ζητήσετε "
+            "στο τηλέφωνο για να στείλετε προσφορά γραπτώς."
+        )
+
+    return points
+
+
+@app.route("/api/lead/<phone>")
+def api_lead_detail(phone):
+    leads = load_leads()
+    import re as _re
+    norm = _re.sub(r"[^\d+]", "", phone)
+    for l in leads:
+        if _re.sub(r"[^\d+]", "", l.get("phone", "")) == norm:
+            return jsonify({
+                "lead": l,
+                "talking_points": generate_talking_points(l),
+            })
+    return jsonify({"error": "not found"}), 404
+
+
+enrich_state = {"running": False, "done": 0, "total": 0,
+                  "started_at": None, "log": []}
+enrich_lock = threading.Lock()
+
+
+def run_enrich_thread(force: bool):
+    import asyncio as _asyncio
+    import sys as _sys
+    sys.path.insert(0, str(ROOT))
+    from enrich import load_master, save_master, enrich_all
+    leads = load_master()
+    pending = [l for l in leads if force or not l.get("enriched_at")]
+    with enrich_lock:
+        enrich_state["running"] = True
+        enrich_state["done"] = 0
+        enrich_state["total"] = len(pending)
+        enrich_state["started_at"] = time.time()
+        enrich_state["log"] = [
+            f"Loaded {len(leads)} leads, {len(pending)} need enrichment"]
+
+    async def progress(done, total):
+        with enrich_lock:
+            enrich_state["done"] = done
+
+    try:
+        loop = _asyncio.new_event_loop()
+        _asyncio.set_event_loop(loop)
+        enriched = loop.run_until_complete(
+            enrich_all(leads, concurrency=30, force=force,
+                        on_progress=progress))
+        save_master(enriched)
+        loop.close()
+        gr = sum(1 for l in enriched if l.get("domain_gr_available") == "yes")
+        com = sum(1 for l in enriched if l.get("domain_com_available") == "yes")
+        with enrich_lock:
+            enrich_state["log"].append(
+                f".gr available: {gr}, .com available: {com}")
+            enrich_state["done"] = enrich_state["total"]
+
+        # Auto-sync to CRM after enrichment finishes
+        try:
+            from crm_sync import load_config, push_to_crm, load_leads as _ll
+            cfg = load_config()
+            if cfg.get("url") and cfg.get("token"):
+                fresh = _ll()
+                result = push_to_crm(fresh, cfg["url"], cfg["token"])
+                with enrich_lock:
+                    enrich_state["log"].append(
+                        f"CRM sync: {result['upserted']} pushed")
+        except Exception as e:
+            with enrich_lock:
+                enrich_state["log"].append(f"CRM sync failed: {e}")
+    except Exception as e:
+        with enrich_lock:
+            enrich_state["log"].append(f"ERROR: {e}")
+    finally:
+        with enrich_lock:
+            enrich_state["running"] = False
+
+
+@app.route("/api/enrich", methods=["POST"])
+def api_enrich():
+    data = request.get_json(force=True) or {}
+    force = bool(data.get("force", False))
+    with enrich_lock:
+        if enrich_state["running"]:
+            return jsonify({"ok": False, "msg": "already running"})
+    threading.Thread(target=run_enrich_thread, args=(force,),
+                       daemon=True).start()
+    return jsonify({"ok": True, "msg": "started"})
+
+
+@app.route("/api/enrich/status")
+def api_enrich_status():
+    with enrich_lock:
+        elapsed = (time.time() - enrich_state["started_at"]) \
+            if enrich_state["started_at"] else 0
+        rate = enrich_state["done"] / elapsed if elapsed else 0
+        eta = ((enrich_state["total"] - enrich_state["done"]) / rate) \
+            if rate else 0
+        return jsonify({
+            "running": enrich_state["running"],
+            "done": enrich_state["done"],
+            "total": enrich_state["total"],
+            "percent": (enrich_state["done"] / enrich_state["total"] * 100)
+                        if enrich_state["total"] else 0,
+            "elapsed": elapsed,
+            "eta": eta,
+            "log": enrich_state["log"][-10:],
+        })
+
+
+sync_state = {"running": False, "msg": "", "last_result": None,
+                "started_at": None}
+sync_lock = threading.Lock()
+
+
+def run_sync_thread():
+    with sync_lock:
+        sync_state["running"] = True
+        sync_state["msg"] = "Loading config..."
+        sync_state["started_at"] = time.time()
+        sync_state["last_result"] = None
+    try:
+        sys.path.insert(0, str(ROOT))
+        from crm_sync import load_config, push_to_crm, load_leads
+        cfg = load_config()
+        if not cfg.get("url") or not cfg.get("token"):
+            with sync_lock:
+                sync_state["msg"] = ("Not configured. Run "
+                                       "'python crm_sync.py --setup' "
+                                       "in terminal.")
+            return
+        leads = load_leads()
+        with sync_lock:
+            sync_state["msg"] = (f"Pushing {len(leads)} leads to "
+                                   f"{cfg['url']}...")
+        result = push_to_crm(leads, cfg["url"], cfg["token"])
+        with sync_lock:
+            sync_state["msg"] = (f"Done — {result['upserted']} upserted")
+            sync_state["last_result"] = result
+    except Exception as e:
+        with sync_lock:
+            sync_state["msg"] = f"ERROR: {e}"
+    finally:
+        with sync_lock:
+            sync_state["running"] = False
+
+
+@app.route("/api/sync_crm", methods=["POST"])
+def api_sync_crm():
+    with sync_lock:
+        if sync_state["running"]:
+            return jsonify({"ok": False, "msg": "already running"})
+    threading.Thread(target=run_sync_thread, daemon=True).start()
+    return jsonify({"ok": True, "msg": "started"})
+
+
+@app.route("/api/sync_crm/status")
+def api_sync_crm_status():
+    with sync_lock:
+        return jsonify({
+            "running": sync_state["running"],
+            "msg": sync_state["msg"],
+            "last_result": sync_state["last_result"],
+        })
+
+
 @app.route("/api/start", methods=["POST"])
 def api_start():
     data = request.get_json(force=True) or {}
@@ -338,6 +568,64 @@ INDEX_HTML = """<!doctype html>
              margin-left: 4px; }
   .wa-link:hover { color: #22c55e; }
   .scraped-tick { color: #4ade80; font-size: 14px; margin-left: 4px; }
+  .domain-yes { color: #4ade80; font-weight: 600; font-size: 12px; }
+  .domain-no { color: #6b7280; font-size: 12px; }
+
+  .lead-row { cursor: pointer; }
+  .lead-row.selected td { background: #1e293b !important; }
+
+  /* Side panel overlay */
+  .panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+                   display: none; z-index: 100; }
+  .panel-overlay.open { display: block; }
+  .side-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 460px;
+                background: #14171f; border-left: 1px solid #2a2f3d;
+                box-shadow: -4px 0 24px rgba(0,0,0,0.4); z-index: 101;
+                transform: translateX(100%); transition: transform 0.25s ease;
+                overflow-y: auto; }
+  .side-panel.open { transform: translateX(0); }
+  .panel-header { padding: 18px 20px; border-bottom: 1px solid #2a2f3d;
+                  display: flex; justify-content: space-between;
+                  align-items: flex-start; gap: 12px; position: sticky;
+                  top: 0; background: #14171f; z-index: 1; }
+  .panel-close { background: transparent; color: #8b92a6; border: 0;
+                 font-size: 20px; cursor: pointer; padding: 4px 8px; }
+  .panel-close:hover { color: #e8eaf0; }
+  .panel-body { padding: 20px; }
+  .panel-body h3 { font-size: 11px; text-transform: uppercase;
+                   color: #8b92a6; letter-spacing: 0.5px; margin: 20px 0 8px; }
+  .panel-body h3:first-child { margin-top: 0; }
+  .panel-body .name { font-size: 20px; font-weight: 700; color: #e8eaf0;
+                      margin-bottom: 4px; }
+  .panel-body .meta { font-size: 13px; color: #8b92a6; }
+  .panel-actions { display: grid; grid-template-columns: 1fr 1fr 1fr;
+                   gap: 8px; margin: 16px 0; }
+  .panel-actions a { background: #2563eb; color: white; padding: 10px;
+                     border-radius: 6px; text-align: center; font-size: 13px;
+                     font-weight: 600; text-decoration: none;
+                     display: flex; align-items: center; justify-content: center;
+                     gap: 6px; }
+  .panel-actions a.wa { background: #16a34a; }
+  .panel-actions a.email { background: #7c3aed; }
+  .panel-actions a:hover { opacity: 0.85; }
+  .info-row { display: flex; justify-content: space-between;
+              padding: 8px 0; border-bottom: 1px solid #1a1d27;
+              font-size: 13px; }
+  .info-row:last-child { border-bottom: 0; }
+  .info-row .label { color: #8b92a6; }
+  .info-row .value { color: #e8eaf0; font-weight: 500; max-width: 60%;
+                     text-align: right; word-break: break-word; }
+  .info-row .copy-btn { background: #1a1d27; border: 1px solid #2a2f3d;
+                        color: #8b92a6; padding: 2px 6px; border-radius: 4px;
+                        font-size: 11px; cursor: pointer; margin-left: 6px; }
+  .info-row .copy-btn:hover { color: #e8eaf0; background: #2a2f3d; }
+  .talking-points { background: #1a1d27; border-radius: 8px; padding: 14px;
+                    border-left: 3px solid #4ade80; }
+  .talking-points li { font-size: 13px; line-height: 1.5; margin-bottom: 8px;
+                       color: #e8eaf0; }
+  .talking-points li:last-child { margin-bottom: 0; }
+  .panel-extlink { color: #60a5fa; text-decoration: none; }
+  .panel-extlink:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -378,6 +666,44 @@ INDEX_HTML = """<!doctype html>
         <div class="value" id="stat-regions">0</div></div>
     </div>
 
+    <h2>Domain Enrichment</h2>
+    <div style="font-size:12px;color:#8b92a6;margin-bottom:8px">
+      Checks .gr / .com availability for every lead's name.
+    </div>
+    <div class="controls">
+      <button id="btn-enrich" type="button">Enrich Domains</button>
+    </div>
+    <div id="enrich-card" style="display:none; background:#1a1d27;
+         padding:10px; border-radius:6px; margin-top:8px; font-size:12px">
+      <div style="display:flex; justify-content:space-between;
+           margin-bottom:6px">
+        <span id="enrich-text">0 / 0</span>
+        <span id="enrich-eta" style="color:#fbbf24"></span>
+      </div>
+      <div style="background:#0a0c12; height:6px; border-radius:3px;
+           overflow:hidden">
+        <div id="enrich-bar" style="height:100%;
+             background:linear-gradient(90deg,#f59e0b,#ef4444);
+             width:0%; transition:width 0.3s"></div>
+      </div>
+    </div>
+
+    <h2>CRM Sync</h2>
+    <div style="font-size:12px;color:#8b92a6;margin-bottom:8px">
+      Pushes all leads to the CRM workspace.
+      Auto-runs after every scrape and enrichment.
+    </div>
+    <div class="controls">
+      <button id="btn-sync-crm" type="button" style="background:#16a34a;
+              padding:12px 16px; font-size:14px; width:100%">
+        ⬆ Push leads to CRM
+      </button>
+    </div>
+    <div id="sync-status" style="display:none; background:#1a1d27;
+         padding:10px; border-radius:6px; margin-top:8px; font-size:12px">
+      <span id="sync-msg">—</span>
+    </div>
+
     <h2>Live Log</h2>
     <div class="log" id="log"></div>
   </div>
@@ -410,17 +736,30 @@ INDEX_HTML = """<!doctype html>
     <table>
       <thead><tr>
         <th>Region</th><th>Name</th><th>Category</th><th>Online</th>
-        <th>Phone</th><th>Email</th><th></th>
+        <th>Phone</th><th>Email</th><th>Domain</th><th></th>
       </tr></thead>
-      <tbody id="leads-body"><tr><td colspan="7" class="empty">No leads yet</td></tr></tbody>
+      <tbody id="leads-body"><tr><td colspan="8" class="empty">No leads yet</td></tr></tbody>
     </table>
   </div>
 </div>
+
+<div class="panel-overlay" id="panel-overlay"></div>
+<aside class="side-panel" id="side-panel">
+  <div class="panel-header">
+    <div>
+      <div class="name" id="sp-name">—</div>
+      <div class="meta" id="sp-meta">—</div>
+    </div>
+    <button class="panel-close" id="sp-close">✕</button>
+  </div>
+  <div class="panel-body" id="sp-body"></div>
+</aside>
 
 <script>
 let allLeads = [];
 let activeRegion = null;
 let filterText = '';
+let selectedLeadPhone = null;
 
 let regionGroups = {};
 let scrapedStatus = {};
@@ -585,15 +924,173 @@ function renderLeads() {
     const phone = escapeHtml(l.phone||'');
     const waLink = phone ?
       `<a href="https://wa.me/${phone.replace('+','')}" target="_blank" class="wa-link" title="WhatsApp">💬</a>` : '';
-    return `<tr><td>${escapeHtml(l.region||'')}</td>
+    let domainCell = '';
+    const grA = l.domain_gr_available;
+    const comA = l.domain_com_available;
+    if (grA || comA) {
+      const sug = l.domain_suggestion;
+      if (sug) {
+        domainCell = `<span class="domain-yes">✓ ${escapeHtml(sug)}</span>`;
+      } else if (grA === 'no' && comA === 'no') {
+        domainCell = `<span class="domain-no">✗ taken</span>`;
+      }
+    } else {
+      domainCell = '<span style="color:#6b7280">—</span>';
+    }
+    const rowClass = phone === selectedLeadPhone ? 'lead-row selected' : 'lead-row';
+    return `<tr class="${rowClass}" data-phone="${phone}">
+       <td>${escapeHtml(l.region||'')}</td>
        <td><b>${escapeHtml(l.name||'')}</b></td>
        <td>${escapeHtml(l.category||'')}</td>
        <td>${opBadge}</td>
-       <td><a href="tel:${phone}" style="color:#60a5fa">${phone}</a> ${waLink}</td>
+       <td><a href="tel:${phone}" style="color:#60a5fa" onclick="event.stopPropagation()">${phone}</a> ${waLink}</td>
        <td>${escapeHtml(l.email||'')}</td>
+       <td>${domainCell}</td>
        <td>${mapsBtn}</td></tr>`;
   }).join('');
+  // Wire up row clicks
+  for (const tr of tbody.querySelectorAll('tr.lead-row')) {
+    tr.onclick = (e) => {
+      // Don't open panel if clicking a link/button inside
+      if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+      openLeadPanel(tr.dataset.phone);
+    };
+  }
 }
+
+async function openLeadPanel(phone) {
+  selectedLeadPhone = phone;
+  renderLeads(); // re-highlight
+  const overlay = document.getElementById('panel-overlay');
+  const panel = document.getElementById('side-panel');
+  overlay.classList.add('open');
+  panel.classList.add('open');
+  document.getElementById('sp-name').textContent = 'Loading...';
+  document.getElementById('sp-meta').textContent = '';
+  document.getElementById('sp-body').innerHTML = '';
+
+  try {
+    const r = await fetch(`/api/lead/${encodeURIComponent(phone)}`);
+    const data = await r.json();
+    if (data.error) {
+      document.getElementById('sp-body').innerHTML =
+        `<div style="color:#fca5a5">Lead not found</div>`;
+      return;
+    }
+    renderLeadDetail(data.lead, data.talking_points || []);
+  } catch (e) {
+    document.getElementById('sp-body').innerHTML =
+      `<div style="color:#fca5a5">Error: ${escapeHtml(String(e))}</div>`;
+  }
+}
+
+function closeLeadPanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+  document.getElementById('side-panel').classList.remove('open');
+  selectedLeadPhone = null;
+  renderLeads();
+}
+
+document.getElementById('sp-close').onclick = closeLeadPanel;
+document.getElementById('panel-overlay').onclick = closeLeadPanel;
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLeadPanel();
+});
+
+function renderLeadDetail(l, talkingPoints) {
+  document.getElementById('sp-name').textContent = l.name || '—';
+  document.getElementById('sp-meta').textContent =
+    [l.region, l.category].filter(Boolean).join(' • ');
+
+  const phone = (l.phone || '').replace(/[^\\d+]/g, '');
+  const waPhone = phone.replace('+','').replace(/^00/,'');
+  const email = l.email || '';
+  const gmaps = l.gmaps_url || '';
+  const op = (l.online_presence || '').toLowerCase();
+  const sug = l.domain_suggestion || '';
+  const grA = l.domain_gr_available;
+  const comA = l.domain_com_available;
+
+  let domainBlock = '';
+  if (grA || comA) {
+    const grLabel = grA === 'yes' ? '<span class="domain-yes">✓ available</span>' :
+                    grA === 'no' ? '<span class="domain-no">✗ taken</span>' :
+                    '<span class="domain-no">' + escapeHtml(grA||'—') + '</span>';
+    const comLabel = comA === 'yes' ? '<span class="domain-yes">✓ available</span>' :
+                     comA === 'no' ? '<span class="domain-no">✗ taken</span>' :
+                     '<span class="domain-no">' + escapeHtml(comA||'—') + '</span>';
+    domainBlock = `
+      <h3>Domain Availability</h3>
+      <div class="info-row"><span class="label">.gr</span>
+        <span class="value">${grLabel}</span></div>
+      <div class="info-row"><span class="label">.com</span>
+        <span class="value">${comLabel}</span></div>
+      ${sug ? `<div class="info-row"><span class="label">Suggested</span>
+        <span class="value"><b>${escapeHtml(sug)}</b>
+          <button class="copy-btn" onclick="copyToClip('${escapeHtml(sug)}', this)">copy</button>
+        </span></div>` : ''}`;
+  } else {
+    domainBlock = `<h3>Domain Availability</h3>
+      <div style="color:#6b7280;font-size:13px">
+        Not checked yet. Click "Enrich Domains" in the sidebar.
+      </div>`;
+  }
+
+  const actions = `
+    <div class="panel-actions">
+      ${phone ? `<a href="tel:${phone}">📞 Call</a>` :
+                '<a style="opacity:0.4;cursor:not-allowed">📞 Call</a>'}
+      ${waPhone ? `<a class="wa" href="https://wa.me/${waPhone}" target="_blank">💬 WA</a>` :
+                  '<a class="wa" style="opacity:0.4;cursor:not-allowed">💬 WA</a>'}
+      ${email ? `<a class="email" href="mailto:${email}">✉️ Email</a>` :
+                '<a class="email" style="opacity:0.4;cursor:not-allowed">✉️ Email</a>'}
+    </div>`;
+
+  const tpBlock = talkingPoints.length ?
+    `<ul class="talking-points">
+       ${talkingPoints.map(t => `<li>${escapeHtml(t)}</li>`).join('')}
+     </ul>` :
+    `<div style="color:#6b7280;font-size:13px">No specific talking points generated.</div>`;
+
+  document.getElementById('sp-body').innerHTML = `
+    ${actions}
+    <h3>Contact</h3>
+    <div class="info-row"><span class="label">Phone</span>
+      <span class="value">${escapeHtml(phone || '—')}
+        ${phone ? `<button class="copy-btn" onclick="copyToClip('${phone}', this)">copy</button>` : ''}
+      </span></div>
+    <div class="info-row"><span class="label">Email</span>
+      <span class="value">${escapeHtml(email || '—')}
+        ${email ? `<button class="copy-btn" onclick="copyToClip('${email}', this)">copy</button>` : ''}
+      </span></div>
+    <div class="info-row"><span class="label">Region</span>
+      <span class="value">${escapeHtml(l.region || '—')}</span></div>
+    <div class="info-row"><span class="label">Category</span>
+      <span class="value">${escapeHtml(l.category || '—')}</span></div>
+
+    <h3>Online Presence</h3>
+    <div class="info-row"><span class="label">Status</span>
+      <span class="value">
+        <span class="op-badge op-${op || 'none'}">${escapeHtml(op || 'none')}</span>
+      </span></div>
+    ${gmaps ? `<div class="info-row"><span class="label">Google Maps</span>
+      <span class="value"><a class="panel-extlink" href="${escapeHtml(gmaps)}" target="_blank">View listing →</a></span></div>` : ''}
+
+    ${domainBlock}
+
+    <h3>Sales Talking Points</h3>
+    ${tpBlock}
+  `;
+}
+
+function copyToClip(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.textContent;
+    btn.textContent = '✓ copied';
+    setTimeout(() => btn.textContent = old, 1200);
+  });
+}
+window.copyToClip = copyToClip;
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c =>
@@ -619,6 +1116,68 @@ document.getElementById('btn-start').onclick = async () => {
 document.getElementById('btn-stop').onclick = async () => {
   await fetch('/api/stop', {method: 'POST'});
 };
+
+document.getElementById('btn-enrich').onclick = async () => {
+  await fetch('/api/enrich', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({force: false}),
+  });
+};
+
+document.getElementById('btn-sync-crm').onclick = async () => {
+  await fetch('/api/sync_crm', { method: 'POST' });
+};
+
+async function refreshSyncCrm() {
+  const r = await fetch('/api/sync_crm/status');
+  const s = await r.json();
+  const card = document.getElementById('sync-status');
+  const btn = document.getElementById('btn-sync-crm');
+  if (s.running) {
+    card.style.display = 'block';
+    btn.disabled = true;
+    document.getElementById('sync-msg').textContent = s.msg || 'Working...';
+  } else {
+    btn.disabled = false;
+    if (s.msg) {
+      card.style.display = 'block';
+      document.getElementById('sync-msg').textContent = s.msg;
+    } else {
+      card.style.display = 'none';
+    }
+  }
+}
+
+async function refreshEnrich() {
+  const r = await fetch('/api/enrich/status');
+  const s = await r.json();
+  const card = document.getElementById('enrich-card');
+  const btn = document.getElementById('btn-enrich');
+  if (s.running) {
+    card.style.display = 'block';
+    btn.disabled = true;
+    const pct = Math.round(s.percent || 0);
+    document.getElementById('enrich-bar').style.width = pct + '%';
+    document.getElementById('enrich-text').textContent =
+      `${s.done} / ${s.total} (${pct}%)`;
+    const eta = s.eta || 0;
+    document.getElementById('enrich-eta').textContent =
+      eta < 60 ? `${Math.round(eta)}s left` : `${Math.round(eta/60)}m left`;
+  } else {
+    btn.disabled = false;
+    if (s.total && s.done >= s.total) {
+      card.style.display = 'block';
+      document.getElementById('enrich-bar').style.width = '100%';
+      document.getElementById('enrich-text').textContent =
+        `Done: ${s.done} / ${s.total}`;
+      document.getElementById('enrich-eta').textContent = '✅';
+      // Auto-refresh leads to show new columns
+      refreshLeads();
+    } else {
+      card.style.display = 'none';
+    }
+  }
+}
 
 async function startScrape(regions) {
   const concurrency = +document.getElementById('concurrency').value;
@@ -662,6 +1221,8 @@ refreshProgress();
 setInterval(refreshStatus, 1500);
 setInterval(refreshLeads, 5000);
 setInterval(refreshProgress, 2000);
+setInterval(refreshEnrich, 1500);
+setInterval(refreshSyncCrm, 2000);
 // Refresh region list after scraping completes (to update checkmarks)
 let wasRunning = false;
 setInterval(async () => {

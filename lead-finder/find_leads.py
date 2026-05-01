@@ -30,7 +30,9 @@ REJECTED_JSON = OUTPUT_DIR / "rejected.json"
 SCRAPED_JSON = OUTPUT_DIR / "scraped.json"
 PROGRESS_JSON = OUTPUT_DIR / "progress.json"
 MASTER_FIELDS = ["region", "name", "category", "phone", "email",
-                  "gmaps_url", "online_presence"]
+                  "gmaps_url", "online_presence",
+                  "domain_gr_available", "domain_com_available",
+                  "domain_suggestion", "enriched_at"]
 
 
 def load_rejected() -> set[str]:
@@ -148,6 +150,13 @@ def save_master(leads_by_key: dict):
                 "email": clean_field(r.get("email", "") or extract_email(r)),
                 "gmaps_url": clean_field(r.get("gmaps_url", "")),
                 "online_presence": clean_field(r.get("online_presence", "")),
+                "domain_gr_available": clean_field(
+                    r.get("domain_gr_available", "")),
+                "domain_com_available": clean_field(
+                    r.get("domain_com_available", "")),
+                "domain_suggestion": clean_field(
+                    r.get("domain_suggestion", "")),
+                "enriched_at": clean_field(r.get("enriched_at", "")),
             })
 
 
@@ -360,6 +369,23 @@ async def run(args):
     print(f"DONE. master has {len(master)} leads (+{new_total} this run)")
     print(f"  -> {MASTER_CSV}")
 
+    # Auto-sync to CRM if configured
+    if not args.no_sync:
+        try:
+            from crm_sync import load_config, push_to_crm, load_leads
+            cfg = load_config()
+            if cfg.get("url") and cfg.get("token"):
+                all_leads = load_leads()
+                print(f"\n[CRM Sync] Pushing {len(all_leads)} leads "
+                      f"to {cfg['url']}...")
+                result = push_to_crm(all_leads, cfg["url"], cfg["token"])
+                print(f"[CRM Sync] Done — {result['upserted']} upserted")
+            else:
+                print("\n[CRM Sync] Not configured. Run "
+                      "'python crm_sync.py --setup' to enable.")
+        except Exception as e:
+            print(f"\n[CRM Sync] Failed: {e}")
+
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
@@ -374,6 +400,8 @@ def main():
                    help="skip regions that already have leads in the master CSV")
     p.add_argument("--concurrency", type=int, default=2,
                    help="number of regions to scrape in parallel (default 2)")
+    p.add_argument("--no-sync", action="store_true",
+                   help="don't push results to CRM after scraping")
     args = p.parse_args()
     asyncio.run(run(args))
 
