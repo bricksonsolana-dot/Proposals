@@ -134,7 +134,6 @@ button:hover { background: #1d4ed8; }
   <input name="password" type="password" required>
   <button type="submit">Sign In</button>
   {% if error %}<div class="err">{{ error }}</div>{% endif %}
-  <div class="hint">Default admin: admin / admin123</div>
 </form>
 </body></html>"""
 
