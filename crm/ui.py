@@ -4,6 +4,10 @@ INDEX_HTML = r"""<!doctype html>
 <html lang="el">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Devox CRM</title>
 <style>
 * { box-sizing: border-box; }
@@ -394,6 +398,192 @@ tr.lead-row.selected td { background: #1e293b; }
 .user-row .role { font-size: 11px; padding: 3px 8px; border-radius: 12px;
                    background: #2a2f3d; color: #d6d3d1; }
 .user-row .role.admin { background: #422006; color: #fbbf24; }
+
+/* ============================================================
+   MOBILE  (max-width: 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* Hide desktop top-nav links & sidebar toggle */
+  .top .nav { display: none; }
+  .top .center-title { position: static; transform: none;
+                        font-size: 15px; letter-spacing: 0.5px; }
+  .top { padding: 10px 14px; gap: 10px; flex-wrap: nowrap; }
+  .top h1 img { height: 24px; }
+  .top .user-info { font-size: 12px; gap: 6px; }
+  .top .user-info .badge { display: none; }
+  #calls-today-badge { font-size: 11px; padding: 3px 7px; }
+  #online-now { display: none; }
+
+  /* Bottom tab bar */
+  .bottom-tabs {
+    display: flex !important;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #1a1d27; border-top: 1px solid #2a2f3d;
+    z-index: 90; height: 58px;
+  }
+  .bottom-tabs a {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: #6b7280; text-decoration: none; font-size: 10px;
+    font-weight: 600; gap: 3px; padding: 6px 0;
+    border-top: 2px solid transparent; cursor: pointer;
+    transition: color 0.15s;
+  }
+  .bottom-tabs a .tab-icon { font-size: 20px; line-height: 1; }
+  .bottom-tabs a.active { color: #60a5fa; border-top-color: #2563eb; }
+
+  /* Main layout: no sidebar, full width, bottom padding for tab bar */
+  .container { grid-template-columns: 1fr !important; height: auto; }
+  .sidebar { display: none !important; }
+  .main { padding: 12px; padding-bottom: 72px; overflow-y: auto;
+          height: calc(100vh - 52px); }
+
+  /* Leads toolbar → vertical stack */
+  .leads-toolbar {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .leads-toolbar .fav-toggle-label { justify-content: center; }
+
+  /* Quick filter pills: horizontal scroll */
+  .quick-filters { flex-wrap: nowrap !important; overflow-x: auto;
+                    -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .quick-filter-pill { white-space: nowrap; flex-shrink: 0; }
+
+  /* Hide table on mobile — show cards instead */
+  table.leads-table { display: none !important; }
+  .leads-cards { display: flex !important; flex-direction: column; gap: 10px; }
+
+  /* Lead card */
+  .lead-card {
+    background: #1a1d27; border-radius: 10px; padding: 14px;
+    border: 1px solid #2a2f3d; cursor: pointer; position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lead-card:active { background: #1e293b; }
+  .lead-card .lc-top { display: flex; align-items: flex-start; gap: 10px; }
+  .lead-card .lc-star { font-size: 20px; color: #4b5563; padding: 0;
+                         background: transparent; border: 0; cursor: pointer;
+                         flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .lead-card .lc-star.active { color: #fbbf24; }
+  .lead-card .lc-info { flex: 1; min-width: 0; }
+  .lead-card .lc-name { font-weight: 700; font-size: 15px; color: #e8eaf0;
+                          white-space: nowrap; overflow: hidden;
+                          text-overflow: ellipsis; }
+  .lead-card .lc-region { font-size: 12px; color: #8b92a6; margin-top: 2px; }
+  .lead-card .lc-badges { display: flex; flex-wrap: wrap; gap: 6px;
+                            margin-top: 10px; align-items: center; }
+  .lead-card .lc-phone { display: flex; align-items: center; gap: 8px;
+                           margin-top: 10px; }
+  .lead-card .lc-phone a {
+    flex: 1; background: #2563eb; color: white; text-decoration: none;
+    padding: 11px; border-radius: 8px; text-align: center;
+    font-weight: 700; font-size: 14px; display: flex;
+    align-items: center; justify-content: center; gap: 6px;
+  }
+  .lead-card .lc-phone a.wa { background: #16a34a; }
+
+  /* Full-screen panel on mobile */
+  .side-panel {
+    width: 100% !important;
+    top: 0 !important;
+    border-left: 0 !important;
+    border-radius: 0 !important;
+  }
+  .panel-header { padding: 14px 16px; }
+  .panel-body { padding: 14px 16px; padding-bottom: 80px; }
+
+  /* Bigger action buttons in panel */
+  .panel-actions a {
+    padding: 14px 8px !important;
+    font-size: 15px !important;
+  }
+  .action-row button {
+    padding: 14px 6px !important;
+    font-size: 13px !important;
+  }
+  #sp-note { font-size: 15px; min-height: 80px; }
+  .save-bar { padding: 14px; }
+  .save-bar .btn { padding: 16px !important; font-size: 16px !important; }
+
+  /* Filter modal trigger button */
+  .mobile-filter-btn {
+    display: flex !important;
+    align-items: center; gap: 6px; background: #1a1d27;
+    border: 1px solid #2a2f3d; color: #d6d3d1; padding: 10px 14px;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Filter drawer */
+  .filter-drawer {
+    position: fixed; inset: 0; z-index: 150;
+    background: rgba(0,0,0,0.6); display: none;
+  }
+  .filter-drawer.open { display: block; }
+  .filter-drawer-inner {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #14171f; border-top-left-radius: 16px;
+    border-top-right-radius: 16px; padding: 20px 18px 40px;
+    max-height: 80vh; overflow-y: auto;
+  }
+  .filter-drawer-inner h3 {
+    font-size: 11px; text-transform: uppercase; color: #8b92a6;
+    letter-spacing: 0.5px; margin: 0 0 10px;
+  }
+  .filter-drawer-inner .filter-group { margin-bottom: 14px; }
+  .filter-drawer-inner select,
+  .filter-drawer-inner input[type=text] {
+    font-size: 16px; /* prevent iOS zoom */
+    padding: 12px;
+  }
+  .filter-drawer-close {
+    float: right; background: transparent; border: 0;
+    color: #8b92a6; font-size: 22px; cursor: pointer; padding: 0;
+  }
+
+  /* Daily plan / feed / admin on mobile */
+  #view-plan, #view-feed, #view-resources,
+  #view-proposal, #view-admin { padding: 0; }
+
+  /* Proposal form full width */
+  #view-proposal > div > div:first-child,
+  #view-proposal > div > div:last-child {
+    /* handled by grid override below */
+  }
+  #view-proposal > div {
+    grid-template-columns: 1fr !important;
+  }
+  #prop-preview-area { min-height: 400px !important; }
+
+  /* Resources list → accordion on mobile */
+  #view-resources > div { grid-template-columns: 1fr !important; }
+
+  /* Daily plan cards */
+  #view-plan > div { grid-template-columns: 1fr !important; }
+
+  /* Notify toast — bottom on mobile */
+  .notify { top: auto !important; bottom: 70px; right: 12px; left: 12px;
+             text-align: center; }
+
+  /* inputs: prevent iOS auto-zoom (needs font-size >= 16px on focus) */
+  input[type=text], input[type=password], input[type=date],
+  input[type=number], select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Hide bottom tabs on desktop */
+.bottom-tabs { display: none; }
+/* Hide leads-cards on desktop, show table */
+.leads-cards { display: none; }
+/* Hide mobile-only elements on desktop */
+.mobile-filter-btn { display: none; }
+.filter-drawer { display: none; }
 </style>
 </head>
 <body>
@@ -415,6 +605,56 @@ tr.lead-row.selected td { background: #1e293b; }
     <span class="badge">Hi, {{ user.full_name }}</span>
     <span id="calls-today-badge" class="target-badge">0/20 calls today</span>
     <a href="/logout">Logout</a>
+  </div>
+</div>
+
+<!-- Bottom tab bar (mobile only) -->
+<nav class="bottom-tabs">
+  <a id="btab-leads" class="active" data-view="leads">
+    <span class="tab-icon">📋</span><span>Leads</span>
+  </a>
+  <a id="btab-plan" data-view="plan">
+    <span class="tab-icon">📅</span><span>My Day</span>
+  </a>
+  <a id="btab-feed" data-view="feed">
+    <span class="tab-icon">📡</span><span>Activity</span>
+  </a>
+  <a id="btab-proposal" data-view="proposal">
+    <span class="tab-icon">📄</span><span>Proposal</span>
+  </a>
+  <a id="btab-more" data-view="more">
+    <span class="tab-icon">⋯</span><span>More</span>
+  </a>
+</nav>
+
+<!-- Mobile filter drawer -->
+<div class="filter-drawer" id="filter-drawer">
+  <div class="filter-drawer-inner">
+    <button class="filter-drawer-close" id="filter-drawer-close">✕</button>
+    <h3>Filters</h3>
+    <div class="filter-group">
+      <label style="font-size:11px;color:#8b92a6">View</label>
+      <div class="toggle-row">
+        <button id="m-t-mine" data-mine="1">My Leads</button>
+        <button id="m-t-all" class="active" data-mine="0">All Leads</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label style="font-size:11px;color:#8b92a6">Region</label>
+      <select id="m-filter-region"><option value="">All regions</option></select>
+    </div>
+    <div class="filter-group">
+      <label style="font-size:11px;color:#8b92a6">Assignee</label>
+      <select id="m-filter-assignee"><option value="">All assignees</option></select>
+    </div>
+    <div class="filter-group">
+      <label class="fav-toggle-label" style="width:100%">
+        <input id="m-filter-fav" type="checkbox">
+        <span>⭐ Favorites only</span>
+      </label>
+    </div>
+    <button class="btn" style="width:100%;padding:14px;margin-top:10px"
+            id="filter-drawer-apply">Show results</button>
   </div>
 </div>
 
@@ -458,6 +698,9 @@ tr.lead-row.selected td { background: #1e293b; }
           <input id="filter-fav-top" type="checkbox">
           <span>⭐ Favorites</span>
         </label>
+        <button class="mobile-filter-btn" id="mobile-filter-btn">
+          <span>⚙️</span> Filters
+        </button>
       </div>
 
       <div class="leads-header">
@@ -467,7 +710,7 @@ tr.lead-row.selected td { background: #1e293b; }
         <div class="quick-filters" id="quick-status-filters"></div>
       </div>
 
-      <table>
+      <table class="leads-table">
         <thead><tr>
           <th>★</th><th>Status</th><th>Name</th><th>Region</th><th>Online</th>
           <th>Phone</th><th>Domain</th><th>Assigned</th>
@@ -476,6 +719,11 @@ tr.lead-row.selected td { background: #1e293b; }
           <tr><td colspan="8" class="empty">Loading...</td></tr>
         </tbody>
       </table>
+
+      <!-- Mobile card list -->
+      <div class="leads-cards" id="leads-cards">
+        <div class="empty">Loading...</div>
+      </div>
     </div>
 
     <!-- DAILY PLAN VIEW -->
@@ -647,13 +895,22 @@ let currentView = 'leads';
 
 // ----------------- View switching -----------------
 function setView(v) {
+  if (v === 'more') {
+    showMoreMenu();
+    return;
+  }
   currentView = v;
   for (const id of ['leads', 'plan', 'feed', 'admin', 'resources', 'proposal']) {
     const view = document.getElementById('view-' + id);
     if (view) view.classList.toggle('hidden', id !== v);
     const link = document.getElementById('nav-' + id);
     if (link) link.classList.toggle('active', id === v);
+    const btab = document.getElementById('btab-' + id);
+    if (btab) btab.classList.toggle('active', id === v);
   }
+  // Bottom tab "More" stays inactive once we navigate elsewhere
+  const btabMore = document.getElementById('btab-more');
+  if (btabMore) btabMore.classList.remove('active');
   document.getElementById('sidebar-leads').classList.toggle('hidden', v !== 'leads');
   document.getElementById('sidebar-admin').classList.toggle('hidden', v !== 'admin');
   if (v === 'plan') refreshPlan();
@@ -663,7 +920,40 @@ function setView(v) {
   if (v === 'proposal') initProposalForm();
 }
 
-for (const link of document.querySelectorAll('.nav a')) {
+function showMoreMenu() {
+  const opts = [
+    { v: 'resources', label: '📚 Resources' },
+  ];
+  if (ME.role === 'admin') opts.push({ v: 'admin', label: '⚙️ Admin' });
+  opts.push({ v: '__logout', label: '🚪 Logout' });
+  // Reuse filter drawer markup as a generic bottom sheet
+  const drawer = document.getElementById('filter-drawer');
+  const inner = drawer.querySelector('.filter-drawer-inner');
+  inner.innerHTML = `
+    <button class="filter-drawer-close" id="more-close">✕</button>
+    <h3>More</h3>
+    ${opts.map(o => `
+      <button class="btn secondary" style="width:100%;padding:14px;margin-bottom:8px;
+              text-align:left;font-size:15px" data-more="${o.v}">${o.label}</button>
+    `).join('')}
+  `;
+  drawer.classList.add('open');
+  inner.querySelector('#more-close').onclick = () => {
+    drawer.classList.remove('open');
+    rebuildFilterDrawer();
+  };
+  for (const b of inner.querySelectorAll('button[data-more]')) {
+    b.onclick = () => {
+      drawer.classList.remove('open');
+      const v = b.dataset.more;
+      if (v === '__logout') { window.location.href = '/logout'; return; }
+      rebuildFilterDrawer();
+      setView(v);
+    };
+  }
+}
+
+for (const link of document.querySelectorAll('.nav a, .bottom-tabs a')) {
   link.onclick = () => setView(link.dataset.view);
 }
 
@@ -780,9 +1070,70 @@ function renderLeads() {
   const rows = allLeads;
   document.getElementById('lead-count').textContent = `(${rows.length} shown)`;
   const tbody = document.getElementById('leads-body');
+  const cardsEl = document.getElementById('leads-cards');
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="8" class="empty">No leads match</td></tr>';
+    if (cardsEl) cardsEl.innerHTML = '<div class="empty">No leads match</div>';
     return;
+  }
+  // Mobile cards
+  if (cardsEl) {
+    cardsEl.innerHTML = rows.map(l => {
+      const op = (l.online_presence||'').toLowerCase() || 'none';
+      const status = l.status || 'new';
+      const phone = (l.phone||'');
+      const waPhone = phone.replace(/[^\d+]/g,'').replace('+','').replace(/^00/,'');
+      const starCls = l.is_favorite ? 'lc-star active' : 'lc-star';
+      const starChar = l.is_favorite ? '★' : '☆';
+      const propCount = l.property_count || 1;
+      const propBadge = propCount > 1
+        ? `<span class="multi-prop-badge">📦 ${propCount}</span>` : '';
+      let assigned = '<span class="assigned-pill unassigned">unassigned</span>';
+      if (l.assigned_to_name) {
+        const cls = l.assigned_to === ME.id ? 'assigned-pill mine' : 'assigned-pill';
+        assigned = `<span class="${cls}">${escapeHtml(l.assigned_to_name)}</span>`;
+      }
+      return `<div class="lead-card" data-phone="${escapeHtml(phone)}">
+        <div class="lc-top">
+          <button class="${starCls}" data-phone="${escapeHtml(phone)}" data-fav="${l.is_favorite?1:0}">${starChar}</button>
+          <div class="lc-info">
+            <div class="lc-name">${escapeHtml(l.name||'')}${propBadge}</div>
+            <div class="lc-region">${escapeHtml(l.region||'')} • ${escapeHtml(l.category||'')}</div>
+            <div class="lc-badges">
+              <span class="status-badge s-${status}">${STATUS_LABEL[status]||status}</span>
+              <span class="op-badge op-${op}">${escapeHtml(op)}</span>
+              ${assigned}
+            </div>
+          </div>
+        </div>
+        <div class="lc-phone">
+          <a href="tel:${escapeHtml(phone)}" onclick="event.stopPropagation()">📞 ${escapeHtml(phone)}</a>
+          ${waPhone ? `<a class="wa" target="_blank" href="https://wa.me/${waPhone}" onclick="event.stopPropagation()">💬</a>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    for (const card of cardsEl.querySelectorAll('.lead-card')) {
+      card.onclick = (e) => {
+        if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' ||
+            e.target.closest('a') || e.target.closest('button')) return;
+        openPanel(card.dataset.phone);
+      };
+    }
+    for (const star of cardsEl.querySelectorAll('.lc-star')) {
+      star.onclick = async (e) => {
+        e.stopPropagation();
+        const ph = star.dataset.phone;
+        const isCurrentlyFav = star.dataset.fav === '1';
+        const method = isCurrentlyFav ? 'DELETE' : 'POST';
+        await fetch('/api/lead/' + encodeURIComponent(ph) + '/favorite', { method });
+        star.dataset.fav = isCurrentlyFav ? '0' : '1';
+        star.textContent = isCurrentlyFav ? '☆' : '★';
+        star.classList.toggle('active', !isCurrentlyFav);
+        const lead = allLeads.find(x => x.phone === ph);
+        if (lead) lead.is_favorite = isCurrentlyFav ? 0 : 1;
+        if (favOnly && isCurrentlyFav) refreshLeads();
+      };
+    }
   }
   tbody.innerHTML = rows.map(l => {
     const op = (l.online_presence||'').toLowerCase() || 'none';
@@ -872,6 +1223,93 @@ document.getElementById('filter-assignee-top').onchange = e => {
 document.getElementById('filter-fav-top').onchange = e => {
   favOnly = e.target.checked; refreshLeads();
 };
+
+// ----------------- Mobile filter drawer -----------------
+function rebuildFilterDrawer() {
+  const inner = document.querySelector('#filter-drawer .filter-drawer-inner');
+  if (!inner) return;
+  inner.innerHTML = `
+    <button class="filter-drawer-close" id="filter-drawer-close">✕</button>
+    <h3>Filters</h3>
+    <div class="filter-group">
+      <label style="font-size:11px;color:#8b92a6">View</label>
+      <div class="toggle-row">
+        <button id="m-t-mine" data-mine="1" class="${myMode?'active':''}">My Leads</button>
+        <button id="m-t-all" data-mine="0" class="${!myMode?'active':''}">All Leads</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label style="font-size:11px;color:#8b92a6">Region</label>
+      <select id="m-filter-region"></select>
+    </div>
+    <div class="filter-group">
+      <label style="font-size:11px;color:#8b92a6">Assignee</label>
+      <select id="m-filter-assignee"></select>
+    </div>
+    <div class="filter-group">
+      <label class="fav-toggle-label" style="width:100%">
+        <input id="m-filter-fav" type="checkbox" ${favOnly?'checked':''}>
+        <span>⭐ Favorites only</span>
+      </label>
+    </div>
+    <button class="btn" style="width:100%;padding:14px;margin-top:10px"
+            id="filter-drawer-apply">Show results</button>
+  `;
+  // Mirror options from desktop selects
+  const regSrc = document.getElementById('filter-region-top');
+  const regDst = document.getElementById('m-filter-region');
+  if (regSrc && regDst) {
+    regDst.innerHTML = regSrc.innerHTML;
+    regDst.value = activeFilterRegion;
+  }
+  const asgSrc = document.getElementById('filter-assignee-top');
+  const asgDst = document.getElementById('m-filter-assignee');
+  if (asgSrc && asgDst) {
+    asgDst.innerHTML = asgSrc.innerHTML;
+    asgDst.value = activeFilterAssignee;
+  }
+  inner.querySelector('#filter-drawer-close').onclick = () => {
+    document.getElementById('filter-drawer').classList.remove('open');
+  };
+  inner.querySelector('#m-t-mine').onclick = () => {
+    myMode = 1;
+    inner.querySelector('#m-t-mine').classList.add('active');
+    inner.querySelector('#m-t-all').classList.remove('active');
+  };
+  inner.querySelector('#m-t-all').onclick = () => {
+    myMode = 0;
+    inner.querySelector('#m-t-all').classList.add('active');
+    inner.querySelector('#m-t-mine').classList.remove('active');
+  };
+  inner.querySelector('#filter-drawer-apply').onclick = () => {
+    activeFilterRegion = inner.querySelector('#m-filter-region').value;
+    activeFilterAssignee = inner.querySelector('#m-filter-assignee').value;
+    favOnly = inner.querySelector('#m-filter-fav').checked;
+    // Sync desktop UI as well
+    if (regSrc) regSrc.value = activeFilterRegion;
+    if (asgSrc) asgSrc.value = activeFilterAssignee;
+    document.getElementById('filter-fav-top').checked = favOnly;
+    document.getElementById('t-mine').classList.toggle('active', myMode === 1);
+    document.getElementById('t-all').classList.toggle('active', myMode === 0);
+    document.getElementById('filter-drawer').classList.remove('open');
+    refreshLeads();
+  };
+}
+
+const mobFilterBtn = document.getElementById('mobile-filter-btn');
+if (mobFilterBtn) {
+  mobFilterBtn.onclick = () => {
+    rebuildFilterDrawer();
+    document.getElementById('filter-drawer').classList.add('open');
+  };
+}
+// Close drawer on backdrop click
+const fdrawer = document.getElementById('filter-drawer');
+if (fdrawer) {
+  fdrawer.addEventListener('click', (e) => {
+    if (e.target === fdrawer) fdrawer.classList.remove('open');
+  });
+}
 
 // ----------------- Side panel -----------------
 async function openPanel(phone) {

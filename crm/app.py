@@ -99,13 +99,16 @@ def events():
 # ---------- Auth routes ----------
 
 LOGIN_HTML = """<!doctype html>
-<html><head><meta charset="utf-8"><title>Login - CRM</title>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Login - CRM</title>
 <style>
 body { font-family: -apple-system, Segoe UI, sans-serif; background: #0f1117;
        color: #e8eaf0; margin: 0; min-height: 100vh; display: flex;
-       align-items: center; justify-content: center; }
+       align-items: center; justify-content: center; padding: 16px; }
 .box { background: #1a1d27; padding: 32px; border-radius: 12px;
-       width: 360px; border: 1px solid #2a2f3d; }
+       width: 100%; max-width: 360px; border: 1px solid #2a2f3d; }
+input { font-size: 16px !important; }
 .logo { display: flex; align-items: center; justify-content: center;
         margin-bottom: 20px; }
 .logo img { height: 56px; width: auto;
