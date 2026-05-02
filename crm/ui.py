@@ -5751,10 +5751,23 @@ function detectPlatform() {
                         || window.navigator.standalone === true;
   const isAndroid = /Android/i.test(ua);
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  // TWA leaves the android-app:// referrer on first load only — after
+  // a soft reload it goes empty. We cache the original referrer in
+  // sessionStorage so detection survives navigation.
+  let originalRef = '';
+  try { originalRef = sessionStorage.getItem('_orig_ref') || ''; } catch {}
+  if (!originalRef) {
+    originalRef = document.referrer || '';
+    try { sessionStorage.setItem('_orig_ref', originalRef); } catch {}
+  }
   const isTWA = isStandalone && isAndroid &&
-                document.referrer.startsWith('android-app://');
+                originalRef.startsWith('android-app://');
   const isPWA = isStandalone && !isTWA;
-  return { isAndroid, isIOS, isStandalone, isTWA, isPWA };
+  return {
+    isAndroid, isIOS, isStandalone, isTWA, isPWA,
+    referrer: originalRef,
+    displayMode: isStandalone ? 'standalone' : 'browser',
+  };
 }
 
 function pushHelpText(state) {
@@ -5837,14 +5850,26 @@ function updatePushUI() {
         const r = await fetch('/api/push/diagnose');
         if (!r.ok) { notify('Could not load diagnostics'); return; }
         const d = await r.json();
+        const p = detectPlatform();
         const lines = [
+          '=== Server ===',
           `pywebpush: ${d.pywebpush_version}`,
           `py_vapid: ${d.py_vapid_version}`,
           `Public key prefix: ${d.vapid_public_key_prefix || '(not set)'}`,
           `Subscriptions: ${(d.subscriptions || []).length}`,
+          '',
+          '=== Device ===',
+          `Display mode: ${p.displayMode}`,
+          `isStandalone: ${p.isStandalone}`,
+          `isAndroid: ${p.isAndroid}`,
+          `isIOS: ${p.isIOS}`,
+          `isTWA: ${p.isTWA}`,
+          `Referrer: ${p.referrer || '(empty)'}`,
+          `Notification.permission: ${('Notification' in window) ? Notification.permission : 'n/a'}`,
         ];
         for (const s of (d.subscriptions || [])) {
-          lines.push('---');
+          lines.push('');
+          lines.push('=== Subscription ===');
           lines.push(`Via: ${s.endpoint_host}`);
           if (s.last_error) {
             lines.push(`Last error (${s.last_error_at}):`);
