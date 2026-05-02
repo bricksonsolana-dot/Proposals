@@ -2018,7 +2018,15 @@ code {
           <b>"Allow from this source"</b> για τον browser σου</li>
         <li>Πίσω και πάτα <b>Install</b></li>
         <li>Άνοιξε την εφαρμογή και κάνε login</li>
+        <li><b>Καθάρισμα:</b> μετά το install μπορείς να σβήσεις το
+          <code>DevoxSales.apk</code> από τα Downloads — δεν χρειάζεται
+          πια. Το app ήδη εγκαταστάθηκε.</li>
       </ol>
+      <div class="notice" style="margin-top:14px">
+        <b>Για να απεγκαταστήσεις:</b> long-press το εικονίδιο στο home
+        screen → Uninstall. Ή Settings → Apps → Devox Sales → Uninstall.
+        <br>Δεν χρειάζεται να ψάξεις το APK στο file manager.
+      </div>
       <div class="notice">
         Επειδή το APK δεν διανέμεται μέσω Google Play, το Android
         ζητά μία φορά άδεια ότι εμπιστεύεσαι την πηγή.
