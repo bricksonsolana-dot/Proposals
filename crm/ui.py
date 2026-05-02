@@ -2708,6 +2708,34 @@ tr.lead-row.selected td { background: var(--brand-soft); }
           </div>
           <span class="account-pill" id="acc-push-pill">Off</span>
         </button>
+        <button class="account-row" id="acc-test-push" style="display:none">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round"><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Send test notification</div>
+            <div class="account-row-sub">Confirm this device receives pushes</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round" class="account-chevron">
+               <polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+        <div class="account-row static" id="acc-push-help" style="display:none">
+          <span class="ic" style="background:var(--warning-soft);color:var(--warning)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </span>
+          <div class="account-row-text">
+            <div class="account-row-title">How to allow notifications</div>
+            <div class="account-row-sub" id="acc-push-help-text"></div>
+          </div>
+        </div>
         <div class="account-row static">
           <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -2718,6 +2746,43 @@ tr.lead-row.selected td { background: var(--brand-soft); }
             <div class="account-row-sub">Real-time updates while the app is open</div>
           </div>
           <span class="account-pill on">On</span>
+        </div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Device & app info</div>
+        <div class="account-row static">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line></svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Running mode</div>
+            <div class="account-row-sub" id="acc-mode-sub">—</div>
+          </div>
+          <span class="account-pill" id="acc-mode-pill">—</span>
+        </div>
+        <div class="account-row static" id="acc-twa-warning" style="display:none">
+          <span class="ic" style="background:var(--warning-soft);color:var(--warning)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </span>
+          <div class="account-row-text">
+            <div class="account-row-title">URL bar visible? Reinstall the app</div>
+            <div class="account-row-sub">
+              Android caches the trust check the first time you install.
+              If you installed before the latest update, uninstall and
+              reinstall from <b>/download/android</b> — that fixes both
+              the URL bar and notifications.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2901,8 +2966,57 @@ function paintAccountAvatar() {
   }
 }
 
+function paintDeviceInfo() {
+  const p = detectPlatform();
+  const pill = document.getElementById('acc-mode-pill');
+  const sub = document.getElementById('acc-mode-sub');
+  const warn = document.getElementById('acc-twa-warning');
+  if (!pill || !sub) return;
+  let label, detail, isFullApp;
+  if (p.isTWA) {
+    label = 'Android app';
+    detail = 'Trusted Web Activity (no URL bar) — full app mode.';
+    isFullApp = true;
+  } else if (p.isStandalone && p.isAndroid) {
+    label = 'Android (PWA)';
+    detail = 'Installed as a Progressive Web App. Reinstall the APK from /download/android for full TWA mode.';
+    isFullApp = false;
+  } else if (p.isAndroid) {
+    label = 'Android (browser)';
+    detail = 'Open as installed app from the home screen icon for the best experience.';
+    isFullApp = false;
+  } else if (p.isIOS && p.isStandalone) {
+    label = 'iPhone (Home Screen)';
+    detail = 'Installed via "Add to Home Screen" — fullscreen mode.';
+    isFullApp = true;
+  } else if (p.isIOS) {
+    label = 'iPhone (Safari)';
+    detail = 'Tap Share → Add to Home Screen for the best experience.';
+    isFullApp = false;
+  } else if (p.isStandalone) {
+    label = 'Desktop (PWA)';
+    detail = 'Installed as a desktop PWA.';
+    isFullApp = true;
+  } else {
+    label = 'Desktop (browser)';
+    detail = 'Use the Windows installer for a native window — see Download.';
+    isFullApp = true;  // not really a problem, just an option
+  }
+  pill.textContent = label;
+  pill.className = isFullApp ? 'account-pill on' : 'account-pill';
+  sub.textContent = detail;
+
+  // Show the reinstall warning only when Android user thinks they
+  // installed but the TWA didn't kick in
+  if (warn) {
+    warn.style.display = (p.isAndroid && p.isStandalone && !p.isTWA)
+      ? '' : 'none';
+  }
+}
+
 function refreshAccountView() {
   paintAccountAvatar();
+  paintDeviceInfo();
   const regs = ME.regions || [];
   const line = document.getElementById('account-regions-line');
   const list = document.getElementById('account-regions-list');
@@ -5512,34 +5626,121 @@ async function disablePush() {
   updatePushUI();
 }
 
+// Detect runtime environment so we can give the right instructions
+function detectPlatform() {
+  const ua = navigator.userAgent;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                        || window.navigator.standalone === true;
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isTWA = isStandalone && isAndroid &&
+                document.referrer.startsWith('android-app://');
+  const isPWA = isStandalone && !isTWA;
+  return { isAndroid, isIOS, isStandalone, isTWA, isPWA };
+}
+
+function pushHelpText(state) {
+  const p = detectPlatform();
+  if (state === 'denied') {
+    if (p.isAndroid && p.isTWA) {
+      return 'Open Android Settings → Apps → Devox Sales → Notifications → turn on. Then come back and tap "Push notifications" again.';
+    }
+    if (p.isAndroid) {
+      return 'In Chrome: tap the lock icon next to the URL → Permissions → Notifications → Allow. Or Settings → Site settings → Notifications.';
+    }
+    if (p.isIOS) {
+      return 'Settings → Notifications → Devox Sales → turn Allow Notifications on.';
+    }
+    return 'Click the lock icon in your browser address bar → Site permissions → Notifications → Allow.';
+  }
+  if (state === 'unsupported-ios-tab') {
+    return 'On iPhone, open this site in Safari, then tap Share → Add to Home Screen. Notifications only work after that.';
+  }
+  if (state === 'unsupported') {
+    return 'This browser does not support push notifications. Use Chrome on Android or Safari on iOS 16.4+ (Add to Home Screen first).';
+  }
+  return '';
+}
+
 function updatePushUI() {
   const pill = document.getElementById('acc-push-pill');
   const sub = document.getElementById('acc-push-sub');
   const btn = document.getElementById('acc-toggle-push');
+  const test = document.getElementById('acc-test-push');
+  const help = document.getElementById('acc-push-help');
+  const helpText = document.getElementById('acc-push-help-text');
   if (!pill || !btn) return;
+
+  const p = detectPlatform();
+  // iOS Safari supports push only when installed to Home Screen
+  if (p.isIOS && !p.isStandalone) {
+    pill.textContent = 'iOS — install first';
+    pill.className = 'account-pill';
+    btn.disabled = true;
+    if (sub) sub.textContent = 'Tap Share → Add to Home Screen, then enable from there.';
+    if (help) help.style.display = '';
+    if (helpText) helpText.textContent = pushHelpText('unsupported-ios-tab');
+    if (test) test.style.display = 'none';
+    return;
+  }
+
   if (!pushSupported) {
     pill.textContent = 'Unsupported';
     pill.className = 'account-pill';
     btn.disabled = true;
-    if (sub) sub.textContent = 'This browser does not support push.';
+    if (sub) sub.textContent = 'This browser cannot deliver push notifications.';
+    if (help) help.style.display = '';
+    if (helpText) helpText.textContent = pushHelpText('unsupported');
+    if (test) test.style.display = 'none';
     return;
   }
+
   const perm = ('Notification' in window) ? Notification.permission : 'default';
+
   if (pushSubscription && perm === 'granted') {
     pill.textContent = 'On';
     pill.className = 'account-pill on';
+    if (sub) sub.textContent = "You'll get pings for new messages and assignments.";
+    if (help) help.style.display = 'none';
+    if (test) test.style.display = '';
   } else if (perm === 'denied') {
     pill.textContent = 'Blocked';
     pill.className = 'account-pill';
-    if (sub) sub.textContent = 'Allow notifications in your browser settings.';
+    if (sub) sub.textContent = 'Notifications are blocked by your browser/OS.';
+    if (help) help.style.display = '';
+    if (helpText) helpText.textContent = pushHelpText('denied');
+    if (test) test.style.display = 'none';
   } else {
     pill.textContent = 'Off';
     pill.className = 'account-pill';
+    if (sub) sub.textContent = 'Tap to enable. Your browser will ask for permission.';
+    if (help) help.style.display = 'none';
+    if (test) test.style.display = 'none';
   }
+
   btn.onclick = () => {
+    if (perm === 'denied') {
+      // Show clear instructions instead of trying to re-prompt (which
+      // most browsers/OSes won't honor once denied)
+      alert(pushHelpText('denied'));
+      return;
+    }
     if (pushSubscription) disablePush();
     else enablePush();
   };
+  if (test) {
+    test.onclick = async () => {
+      const r = await fetch('/api/push/test', { method: 'POST' });
+      if (r.ok) {
+        const d = await r.json();
+        if (d.sent && d.sent > 0) {
+          notify('Test sent — check your notifications panel');
+        } else {
+          notify('Server tried to send but no devices received it. Check Render logs.');
+        }
+      }
+    };
+  }
 }
 
 // Bootstrap push as soon as the page loads (registers SW so we're ready
