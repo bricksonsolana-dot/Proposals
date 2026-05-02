@@ -5848,9 +5848,9 @@ function updatePushUI() {
         return;
       }
       // Subscription still on file but delivery failed for some
-      // other reason. Show the actual error so we can debug.
-      const err = d.last_error ? ` — ${d.last_error}` : '';
-      notify(`Delivery failed${err}. Tap Reset notifications below.`);
+      // other reason. Auto-recover instead of showing a wall of text.
+      notify('Delivery failed — refreshing subscription...');
+      await autoRecoverPush();
     };
   }
 }

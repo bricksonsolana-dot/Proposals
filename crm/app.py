@@ -60,12 +60,17 @@ app.config.update(
 @app.after_request
 def _set_cache_headers(response):
     """Add Cache-Control + immutable for /static/* (rebuilds bust caches
-    via the deploy hash that Render rotates). API responses stay
-    no-cache by default."""
+    via the deploy hash that Render rotates). API and page responses
+    stay no-store so updates propagate without users needing to clear
+    cache or reinstall the TWA."""
     if request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "public, max-age=604800"
     elif request.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store"
+    elif request.path in ("/", "/login", "/download", "/sw.js"):
+        # Inline-rendered HTML pages and the service worker — must
+        # always re-fetch so a deploy is visible immediately
+        response.headers["Cache-Control"] = "no-store, must-revalidate"
     return response
 
 # Run a function in a background daemon thread so it doesn't block the

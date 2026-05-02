@@ -33,17 +33,21 @@ def _b64url_encode(b: bytes) -> str:
 
 
 def _generate_keys() -> dict:
-    """Generate a fresh VAPID key pair (P-256 ECDH)."""
+    """Generate a fresh VAPID key pair (P-256 ECDH).
+
+    Uses the SEC1 / TraditionalOpenSSL format ("-----BEGIN EC PRIVATE
+    KEY-----") because some older pywebpush + py_vapid versions choked
+    on PKCS8 ("-----BEGIN PRIVATE KEY-----").
+    """
     from cryptography.hazmat.primitives.asymmetric import ec
     from cryptography.hazmat.primitives import serialization
 
     private_key = ec.generate_private_key(ec.SECP256R1())
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption(),
     ).decode("ascii")
-    # Public key as raw 65-byte point (0x04 + X + Y), then base64url
     public_numbers = private_key.public_key().public_numbers()
     public_raw = (
         b"\x04" +
@@ -52,6 +56,22 @@ def _generate_keys() -> dict:
     )
     public_b64 = _b64url_encode(public_raw)
     return {"private_pem": private_pem, "public_b64": public_b64}
+
+
+def _validate_pem(pem: str) -> bool:
+    """Confirm a PEM string actually parses as an EC private key."""
+    if not pem or not isinstance(pem, str):
+        return False
+    try:
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import ec
+        key = serialization.load_pem_private_key(
+            pem.encode("ascii"), password=None)
+        return isinstance(key, ec.EllipticCurvePrivateKey)
+    except Exception as e:
+        print(f"[push] PEM validation failed: {type(e).__name__}: {e}",
+              flush=True)
+        return False
 
 
 def _config_get(key: str) -> str | None:
@@ -98,27 +118,51 @@ def _load_or_generate() -> dict:
         try:
             db_pub = _config_get("vapid_public")
             db_priv = _config_get("vapid_private")
-            if db_pub and db_priv:
+            if db_pub and db_priv and _validate_pem(db_priv):
                 _vapid = {
                     "public_b64": db_pub,
                     "private_pem": db_priv,
                     "claims_email": claims_email,
                 }
-                print("[push] loaded VAPID keys from DB", flush=True)
+                print("[push] loaded valid VAPID keys from DB",
+                      flush=True)
                 return _vapid
+            elif db_pub or db_priv:
+                print("[push] DB-stored VAPID keys are missing or "
+                      "corrupt, regenerating", flush=True)
         except Exception as e:
             print(f"[push] DB read failed: {e}", flush=True)
-        # First run — generate, persist
+
+        # First run OR previous keys broken — generate fresh, persist
         keys = _generate_keys()
+        # Sanity check before storing
+        if not _validate_pem(keys["private_pem"]):
+            print("[push] FATAL: freshly generated PEM failed to "
+                  "validate — pywebpush will not work", flush=True)
         try:
             _config_set("vapid_public", keys["public_b64"])
             _config_set("vapid_private", keys["private_pem"])
-            print("[push] generated and persisted new VAPID keys", flush=True)
+            print("[push] generated and persisted new VAPID keys",
+                  flush=True)
         except Exception as e:
             print(f"[push] DB write failed, keys won't persist: {e}",
                   flush=True)
         keys["claims_email"] = claims_email
         _vapid = keys
+        # When keys rotate, every existing subscription is now stale
+        # because they're signed against the OLD public key. Wipe them
+        # so users get a clean re-subscribe on next enable.
+        try:
+            import db as _db
+            row = _db.query_one(
+                "SELECT COUNT(*) AS n FROM push_subscriptions", ())
+            n = (row or {}).get("n", 0) if row else 0
+            if n:
+                _db.execute("DELETE FROM push_subscriptions", ())
+                print(f"[push] wiped {n} stale subscription(s) after "
+                      f"VAPID key rotation", flush=True)
+        except Exception as e:
+            print(f"[push] could not wipe stale subs: {e}", flush=True)
         return _vapid
 
 
