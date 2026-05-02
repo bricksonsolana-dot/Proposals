@@ -1119,6 +1119,17 @@ def download_desktop():
         download_name="DevoxSales-Setup.exe")
 
 
+@app.route("/.well-known/assetlinks.json")
+def assetlinks():
+    """Digital Asset Links — verifies the TWA-packaged Android app
+    is owned by this domain. Without this, the Android app shows the
+    URL bar at the top instead of running fullscreen."""
+    return send_from_directory(
+        str(ROOT / "static" / ".well-known"),
+        "assetlinks.json",
+        mimetype="application/json")
+
+
 @app.route("/download/android")
 def download_android():
     if not (DIST_DIR / APK_FILE).exists():
