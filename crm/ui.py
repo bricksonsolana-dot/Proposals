@@ -180,6 +180,15 @@ a:hover { color: var(--brand-hover); }
   width: 44px; height: 44px;
   font-size: 16px;
 }
+.user-avatar-img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.avatar-wrap { position: relative; display: inline-flex; }
 .user-menu-btn {
   display: inline-flex; align-items: center; gap: 8px;
   background: transparent; border: 0;
@@ -1114,6 +1123,19 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   cursor: pointer;
   align-items: center; justify-content: center;
 }
+.chat-edit-btn {
+  background: transparent; border: 0;
+  color: var(--text-3);
+  width: 36px; height: 36px;
+  border-radius: var(--r-2);
+  cursor: pointer; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+.chat-edit-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -1368,26 +1390,49 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 
 /* Mobile chat tweaks */
 @media (max-width: 768px) {
+  /* Chat takes the entire viewport below the top bar, ignoring the
+     main padding so the composer can sit flush at the bottom against
+     the tab bar. */
+  #view-chat {
+    position: fixed;
+    top: 48px;
+    left: 0; right: 0;
+    bottom: var(--bottom-tabs-h);
+    padding: 0 !important;
+    margin: 0;
+    z-index: 5;
+    background: var(--bg);
+  }
   .chat-layout {
     grid-template-columns: 1fr;
-    height: calc(100vh - 48px - var(--bottom-tabs-h));
+    height: 100%;
+    width: 100%;
     border-radius: 0;
     border: 0;
-    margin: -16px -16px 0;
-    width: calc(100% + 32px);
+    margin: 0;
   }
   .chat-sidebar { border-right: 0; }
   .chat-sidebar.hidden-on-mobile { display: none; }
   .chat-thread.active-on-mobile { display: flex; }
   .chat-thread:not(.active-on-mobile) { display: none; }
-  .chat-thread-header { padding: 12px 16px; }
+  .chat-thread-header {
+    padding: 10px 14px;
+    background: rgba(18, 20, 27, 0.92);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 0.5px solid var(--border);
+  }
   .chat-back-btn { display: inline-flex; }
   .chat-messages { padding: 14px 16px; }
   .chat-composer {
-    padding: 12px 16px;
+    padding: 10px 14px;
+    border-top: 0.5px solid var(--border);
+    background: rgba(18, 20, 27, 0.96);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    flex-shrink: 0;
   }
   .chat-composer textarea { font-size: 16px; }
-  .nav-chat-badge { font-size: 9px; }
 }
 
 /* ---------- Proposal view ---------- */
@@ -2607,8 +2652,10 @@ tr.lead-row.selected td { background: var(--brand-soft); }
       <h2>Account</h2>
       <div class="account-card">
         <div class="account-head">
-          <span class="user-avatar lg" id="account-avatar"></span>
-          <div>
+          <span class="avatar-wrap" id="account-avatar-wrap">
+            <span class="user-avatar lg" id="account-avatar"></span>
+          </span>
+          <div style="flex:1">
             <div class="account-name">{{ user.full_name }}</div>
             <div class="account-meta">
               <span>@{{ user.username }}</span>
@@ -2616,6 +2663,11 @@ tr.lead-row.selected td { background: var(--brand-soft); }
               <span class="role">{{ user.role }}</span>
             </div>
           </div>
+          <input type="file" id="account-avatar-input" accept="image/*"
+                 style="display:none">
+          <button class="btn ghost sm" id="account-avatar-btn">
+            Change photo
+          </button>
         </div>
         <div id="account-regions-line" class="account-regions" style="display:none">
           <span class="account-label">Assigned regions</span>
@@ -2811,9 +2863,46 @@ function setView(v, opts) {
   if (v === 'chat') openChatView();
 }
 
-function refreshAccountView() {
+async function compressSquareAvatar(file, size = 320, quality = 0.82) {
+  const img = await new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = reject;
+    im.src = URL.createObjectURL(file);
+  });
+  const minSide = Math.min(img.width, img.height);
+  const sx = (img.width - minSide) / 2;
+  const sy = (img.height - minSide) / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+  URL.revokeObjectURL(img.src);
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+function paintAccountAvatar() {
+  const wrap = document.getElementById('account-avatar-wrap');
   const av = document.getElementById('account-avatar');
-  if (av) av.textContent = initials(ME.full_name);
+  if (!av) return;
+  // Refresh from cache
+  if (ME.avatar) avatarCache.set(ME.id, ME.avatar);
+  av.textContent = initials(ME.full_name);
+  // Remove old img if any
+  const old = wrap.querySelector('.user-avatar-img');
+  if (old) old.remove();
+  if (ME.avatar) {
+    const img = document.createElement('img');
+    img.className = 'user-avatar-img lg';
+    img.src = ME.avatar;
+    wrap.appendChild(img);
+  }
+}
+
+function refreshAccountView() {
+  paintAccountAvatar();
   const regs = ME.regions || [];
   const line = document.getElementById('account-regions-line');
   const list = document.getElementById('account-regions-list');
@@ -2829,6 +2918,38 @@ function refreshAccountView() {
   const pwBtn = document.getElementById('acc-change-pw');
   if (pwBtn) pwBtn.onclick = () => openChangePasswordModal();
   if (typeof updatePushUI === 'function') updatePushUI();
+
+  // Avatar upload
+  const avBtn = document.getElementById('account-avatar-btn');
+  const avInput = document.getElementById('account-avatar-input');
+  if (avBtn && avInput) {
+    avBtn.onclick = () => avInput.click();
+    avInput.onchange = async (e) => {
+      const file = (e.target.files || [])[0];
+      if (!file) return;
+      try {
+        const dataUrl = await compressSquareAvatar(file);
+        const r = await fetch('/api/me/avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: dataUrl }),
+        });
+        if (r.ok) {
+          ME.avatar = dataUrl;
+          avatarCache.set(ME.id, dataUrl);
+          paintAccountAvatar();
+          notify('Profile photo updated');
+        } else {
+          let msg = 'Upload failed';
+          try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+          notify(msg);
+        }
+      } catch (err) {
+        notify('Could not read image');
+      }
+      avInput.value = '';
+    };
+  }
 }
 
 function showMoreMenu() {
@@ -3932,11 +4053,16 @@ window.goToProposal = function(phone) {
 async function loadUsers() {
   const r = await fetch('/api/users');
   users = await r.json();
+  for (const u of users) {
+    if (u.avatar) avatarCache.set(u.id, u.avatar);
+  }
+  // Seed the cache with my own avatar from ME
+  if (ME.avatar) avatarCache.set(ME.id, ME.avatar);
   // Top assignee dropdown
   const topSel = document.getElementById('filter-assignee-top');
   if (topSel) {
     const cur = topSel.value;
-    topSel.innerHTML = '<option value="">👤 All assignees</option>' +
+    topSel.innerHTML = '<option value="">All assignees</option>' +
       '<option value="unassigned">— Unassigned —</option>' +
       users.map(u => `<option value="${u.id}">${escapeHtml(u.full_name)}</option>`).join('');
     topSel.value = cur;
@@ -4730,6 +4856,109 @@ function renderComposerAttachments() {
   }
 }
 
+async function openChatEditModal(chat) {
+  let pendingAvatar = chat.avatar || null;
+  let modal = document.getElementById('chat-edit-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'chat-edit-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);'+
+    'z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);
+                border-radius:14px;width:420px;max-width:100%">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);
+                  display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:16px;font-weight:600">Edit chat</div>
+        <button class="filter-drawer-close" id="ce-close">✕</button>
+      </div>
+      <div style="padding:20px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <span class="avatar-wrap" id="ce-av-wrap">
+            <span class="user-avatar lg"
+                  style="background:linear-gradient(135deg,#2ecc71,#5cd0ff)">#</span>
+            ${pendingAvatar ? `<img class="user-avatar-img lg" src="${pendingAvatar}">` : ''}
+          </span>
+          <input type="file" id="ce-file" accept="image/*" style="display:none">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn ghost sm" id="ce-pick">Change photo</button>
+            <button class="btn ghost sm" id="ce-clear">Remove photo</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:var(--text-3);
+                  margin-bottom:6px;font-weight:600;text-transform:uppercase">
+            Chat name
+          </label>
+          <input id="ce-name" type="text" value="${escapeHtml(chat.name || '')}"
+                 maxlength="60">
+        </div>
+        <div id="ce-error" style="color:var(--danger);font-size:13px;
+              margin-top:8px;display:none"></div>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);
+                  display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn secondary" id="ce-cancel">Cancel</button>
+        <button class="btn" id="ce-save">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  function showErr(msg) {
+    const e = document.getElementById('ce-error');
+    e.textContent = msg; e.style.display = msg ? 'block' : 'none';
+  }
+  function refreshPreview() {
+    const wrap = document.getElementById('ce-av-wrap');
+    const old = wrap.querySelector('.user-avatar-img');
+    if (old) old.remove();
+    if (pendingAvatar) {
+      const img = document.createElement('img');
+      img.className = 'user-avatar-img lg';
+      img.src = pendingAvatar;
+      wrap.appendChild(img);
+    }
+  }
+  const close = () => modal.remove();
+  document.getElementById('ce-close').onclick = close;
+  document.getElementById('ce-cancel').onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+  document.getElementById('ce-pick').onclick = () =>
+    document.getElementById('ce-file').click();
+  document.getElementById('ce-clear').onclick = () => {
+    pendingAvatar = null;
+    refreshPreview();
+  };
+  document.getElementById('ce-file').onchange = async (e) => {
+    const f = (e.target.files || [])[0];
+    if (!f) return;
+    try {
+      pendingAvatar = await compressSquareAvatar(f);
+      refreshPreview();
+    } catch { showErr('Could not read image'); }
+    e.target.value = '';
+  };
+  document.getElementById('ce-save').onclick = async () => {
+    showErr('');
+    const name = document.getElementById('ce-name').value.trim();
+    const body = { name, avatar: pendingAvatar };
+    const r = await fetch('/api/chats/' + chat.id, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      notify('Chat updated');
+      close();
+      // Reload current chat to reflect changes
+      if (activeChatId === chat.id) openChat(chat.id);
+      refreshChatList();
+    } else {
+      let msg = 'Failed to save';
+      try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+      showErr(msg);
+    }
+  };
+}
+
 function openImageLightbox(src) {
   const lb = document.createElement('div');
   lb.className = 'image-lightbox';
@@ -4739,12 +4968,22 @@ function openImageLightbox(src) {
 }
 window.openImageLightbox = openImageLightbox;
 
+// Cache of avatar data URLs by user id, populated when /api/users
+// is loaded. avatarHTML() pulls from this if there's a real image,
+// falls back to initials otherwise.
+const avatarCache = new Map();
+
 function avatarHTML(userId, fullName, online, size) {
   const init = initials(fullName || '');
   const cls = (online ? 'avatar-wrap online' : 'avatar-wrap');
   const sizeCls = size === 'lg' ? ' lg' : '';
+  const img = userId ? avatarCache.get(userId) : null;
+  const imgHtml = img
+    ? `<img class="user-avatar-img${sizeCls}" src="${img}" alt="">`
+    : '';
   return `<span class="${cls}">
-    <span class="user-avatar${sizeCls}" data-uid="${userId}">${escapeHtml(init)}</span>
+    <span class="user-avatar${sizeCls}" data-uid="${userId || ''}">${escapeHtml(init)}</span>
+    ${imgHtml}
     <span class="online-dot"></span>
   </span>`;
 }
@@ -4847,9 +5086,15 @@ function renderChatList() {
       ? `<span class="chat-unread">${c.unread > 99 ? '99+' : c.unread}</span>`
       : '';
     let avatarHtml;
-    if (c.type === 'team') {
-      avatarHtml = `<span class="avatar-wrap"><span class="user-avatar"
-                    style="background:linear-gradient(135deg,#2ecc71,#5cd0ff)">#</span></span>`;
+    if (c.type === 'team' || c.type === 'group') {
+      const imgPart = c.avatar
+        ? `<img class="user-avatar-img" src="${c.avatar}">` : '';
+      avatarHtml = `<span class="avatar-wrap"
+        style="width:38px;height:38px;display:inline-block;position:relative">
+        <span class="user-avatar" style="width:38px;height:38px;font-size:13px;
+              background:linear-gradient(135deg,#2ecc71,#5cd0ff)">#</span>
+        ${imgPart}
+      </span>`;
     } else {
       avatarHtml = avatarHTML(avatarUid, c.name, avatarOnline);
     }
@@ -4908,9 +5153,17 @@ async function openChat(chatId) {
   const chat = data.chat;
   let headerAvatar;
   let headerSub = '';
-  if (chat.type === 'team') {
-    headerAvatar = `<span class="user-avatar"
-      style="background:linear-gradient(135deg,#2ecc71,#5cd0ff);width:36px;height:36px;font-size:13px">#</span>`;
+  if (chat.type === 'team' || chat.type === 'group') {
+    if (chat.avatar) {
+      headerAvatar = `<span class="avatar-wrap">
+        <span class="user-avatar" style="width:36px;height:36px;font-size:13px;
+              background:var(--surface-3)">#</span>
+        <img class="user-avatar-img" src="${chat.avatar}"
+             style="width:36px;height:36px"></span>`;
+    } else {
+      headerAvatar = `<span class="user-avatar"
+        style="background:linear-gradient(135deg,#2ecc71,#5cd0ff);width:36px;height:36px;font-size:13px">#</span>`;
+    }
     headerSub = `${chat.members.length} members`;
   } else {
     const peer = chat.members.find(m => m.user_id !== ME.id);
@@ -4918,6 +5171,15 @@ async function openChat(chatId) {
     headerAvatar = avatarHTML(peer && peer.user_id, chat.name, peerOnline);
     headerSub = peerOnline ? 'Online now' : 'Offline';
   }
+  const adminEditBtn = (ME.role === 'admin' && chat.type !== 'dm')
+    ? `<button class="chat-edit-btn" id="chat-edit-btn" title="Edit chat">
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+         </svg>
+       </button>` : '';
   thread.innerHTML = `
     <div class="chat-thread-header">
       <button class="chat-back-btn" id="chat-back">
@@ -4926,10 +5188,11 @@ async function openChat(chatId) {
              stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </button>
       ${headerAvatar}
-      <div>
+      <div style="flex:1; min-width:0">
         <div class="name">${escapeHtml(chat.name)}</div>
         <div class="sub">${escapeHtml(headerSub)}</div>
       </div>
+      ${adminEditBtn}
     </div>
     <div class="chat-messages" id="chat-messages"></div>
     <div class="chat-composer">
@@ -4968,6 +5231,9 @@ async function openChat(chatId) {
       '<div class="chat-thread-empty">Select a conversation to start chatting</div>';
     renderChatList();
   };
+  // Admin edit-chat button
+  const editBtn = document.getElementById('chat-edit-btn');
+  if (editBtn) editBtn.onclick = () => openChatEditModal(chat);
   // Render messages
   const msgs = document.getElementById('chat-messages');
   msgs.innerHTML = '';

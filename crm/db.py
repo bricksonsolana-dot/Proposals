@@ -268,6 +268,12 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
@@ -376,6 +382,12 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
@@ -430,7 +442,9 @@ def init_schema():
     # Migrations for existing DBs
     _migrate_add_column("leads", "properties", "TEXT")
     _migrate_add_column("users", "last_seen_at", "TIMESTAMP")
+    _migrate_add_column("users", "avatar", "TEXT")
     _migrate_add_column("messages", "attachments", "TEXT")
+    _migrate_add_column("chats", "avatar", "TEXT")
 
 
 if __name__ == "__main__":

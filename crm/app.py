@@ -688,12 +688,12 @@ def api_users():
     include_inactive = request.args.get("include_inactive") == "1"
     if include_inactive and g.user["role"] == "admin":
         rows = db.query(
-            "SELECT id, username, full_name, role, is_active FROM users "
-            "ORDER BY is_active DESC, full_name", ())
+            "SELECT id, username, full_name, role, is_active, avatar "
+            "FROM users ORDER BY is_active DESC, full_name", ())
     else:
         rows = db.query(
-            "SELECT id, username, full_name, role, is_active FROM users "
-            "WHERE is_active = 1 ORDER BY full_name", ())
+            "SELECT id, username, full_name, role, is_active, avatar "
+            "FROM users WHERE is_active = 1 ORDER BY full_name", ())
     return jsonify(rows)
 
 
@@ -817,6 +817,41 @@ def api_reset_password(uid):
     db.execute("UPDATE users SET password_hash = ? WHERE id = ?",
                  (auth.hash_password(new_pw), uid))
     return jsonify({"ok": True})
+
+
+@app.route("/api/me/avatar", methods=["POST"])
+@auth.login_required
+def api_set_my_avatar():
+    """Upload a profile picture. Body: {"data": "data:image/jpeg;base64,..."}.
+    The image is already compressed client-side (square crop, ~300px,
+    JPEG q=0.8 → ~30-50KB). Setting null clears the avatar."""
+    data = request.get_json(force=True) or {}
+    avatar = data.get("data")
+    if avatar is None or avatar == "":
+        db.execute("UPDATE users SET avatar = NULL WHERE id = ?",
+                     (g.user["id"],))
+        return jsonify({"ok": True})
+    if not isinstance(avatar, str) or not avatar.startswith("data:image/"):
+        return jsonify({"error": "must be a data:image/* URL"}), 400
+    if len(avatar) > 250_000:
+        return jsonify(
+            {"error": "avatar too large (max ~180KB after base64)"}), 400
+    db.execute("UPDATE users SET avatar = ? WHERE id = ?",
+                 (avatar, g.user["id"]))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/users/<int:uid>/avatar")
+@auth.login_required
+def api_get_avatar(uid):
+    """Return another user's avatar (or null). Cheap endpoint, used by
+    the chat list and message rendering to overlay the avatar on top of
+    the initials placeholder."""
+    row = db.query_one(
+        "SELECT avatar FROM users WHERE id = ? AND is_active = 1", (uid,))
+    if not row:
+        return jsonify({"avatar": None})
+    return jsonify({"avatar": row.get("avatar")})
 
 
 @app.route("/api/me/password", methods=["POST"])
@@ -1136,7 +1171,7 @@ def _chat_summary(chat_id: int, viewer_id: int) -> dict:
     unread_count, members (just user_ids for DMs to find the peer).
     """
     chat = db.query_one(
-        "SELECT id, type, name, created_at FROM chats WHERE id = ?",
+        "SELECT id, type, name, avatar, created_at FROM chats WHERE id = ?",
         (chat_id,))
     if not chat:
         return None
@@ -1180,6 +1215,7 @@ def _chat_summary(chat_id: int, viewer_id: int) -> dict:
         "id": chat["id"],
         "type": chat["type"],
         "name": display_name,
+        "avatar": chat.get("avatar"),
         "members": members,
         "unread": unread,
         "last_message": {
@@ -1214,7 +1250,7 @@ def api_chats():
 
     # Q1: chat metadata + viewer's last_read_at
     chat_rows = db.query(
-        f"SELECT c.id, c.type, c.name, cm.last_read_at "
+        f"SELECT c.id, c.type, c.name, c.avatar, cm.last_read_at "
         f"FROM chats c "
         f"JOIN chat_members cm ON cm.chat_id = c.id AND cm.user_id = ? "
         f"WHERE c.id IN ({placeholders})",
@@ -1319,6 +1355,7 @@ def api_chats():
             }
         out.append({
             "id": cid, "type": c["type"], "name": display_name,
+            "avatar": c.get("avatar"),
             "members": members,
             "unread": unread_by_chat.get(cid, 0),
             "last_message": last_payload,
@@ -1521,6 +1558,48 @@ def api_send_message(chat_id):
         })
 
     return jsonify({"ok": True, "message": payload})
+
+
+@app.route("/api/chats/<int:chat_id>", methods=["PATCH"])
+@auth.admin_required
+def api_update_chat(chat_id):
+    """Admin can rename a chat or change its avatar (group/team only).
+    Body: {"name": "...", "avatar": "data:image/jpeg;base64,..." | null}"""
+    chat = db.query_one(
+        "SELECT id, type FROM chats WHERE id = ?", (chat_id,))
+    if not chat:
+        return jsonify({"error": "chat not found"}), 404
+    if chat["type"] == "dm":
+        return jsonify({"error": "cannot rename a direct message"}), 400
+    data = request.get_json(force=True) or {}
+    name = data.get("name")
+    avatar = data.get("avatar", "__unchanged__")
+    updates = []
+    params = []
+    if name is not None:
+        nm = (name or "").strip()
+        if not nm:
+            return jsonify({"error": "name cannot be empty"}), 400
+        if len(nm) > 60:
+            return jsonify({"error": "name too long (max 60)"}), 400
+        updates.append("name = ?"); params.append(nm)
+    if avatar != "__unchanged__":
+        if avatar is None or avatar == "":
+            updates.append("avatar = NULL")
+        else:
+            if not isinstance(avatar, str) or not avatar.startswith("data:image/"):
+                return jsonify({"error": "bad avatar"}), 400
+            if len(avatar) > 250_000:
+                return jsonify({"error": "avatar too large"}), 400
+            updates.append("avatar = ?"); params.append(avatar)
+    if not updates:
+        return jsonify({"ok": True, "unchanged": True})
+    params.append(chat_id)
+    db.execute(
+        f"UPDATE chats SET {', '.join(updates)} WHERE id = ?",
+        tuple(params))
+    broadcast({"type": "chat_updated", "chat_id": chat_id})
+    return jsonify({"ok": True})
 
 
 @app.route("/api/chats/<int:chat_id>/read", methods=["POST"])
@@ -2062,19 +2141,25 @@ def download_android():
 
 # ---------- Main UI ----------
 
+def _enrich_me(user_dict: dict) -> dict:
+    user_dict["regions"] = get_user_regions(user_dict["id"])
+    row = db.query_one(
+        "SELECT avatar FROM users WHERE id = ?", (user_dict["id"],))
+    user_dict["avatar"] = (row or {}).get("avatar")
+    return user_dict
+
+
 @app.route("/")
 @auth.login_required
 def index():
-    user = dict(g.user)
-    user["regions"] = get_user_regions(user["id"])
+    user = _enrich_me(dict(g.user))
     return render_template_string(INDEX_HTML, user=user)
 
 
 @app.route("/api/me")
 @auth.login_required
 def api_me():
-    user = dict(g.user)
-    user["regions"] = get_user_regions(user["id"])
+    user = _enrich_me(dict(g.user))
     return jsonify(user)
 
 
