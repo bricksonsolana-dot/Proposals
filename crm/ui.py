@@ -2695,10 +2695,20 @@ function renderMyRegionsUI() {
 renderMyRegionsUI();
 
 // ----------------- View switching -----------------
-function setView(v) {
+function setView(v, opts) {
+  opts = opts || {};
+  const pushHistory = opts.pushHistory !== false;
   if (v === 'more') {
     showMoreMenu();
     return;
+  }
+  // Push a history entry so the system back button navigates between
+  // views inside the app instead of jumping back to /login. We only
+  // push when the view actually changes.
+  if (pushHistory && currentView !== v) {
+    try {
+      history.pushState({ view: v }, '', '#' + v);
+    } catch (e) {}
   }
   currentView = v;
   for (const id of ['leads', 'plan', 'feed', 'admin', 'resources',
@@ -5153,6 +5163,58 @@ setInterval(refreshPresence, 20000);
 // Fetch chat list once on init so the unread badge is correct from the
 // first paint. Subsequent updates ride on the SSE chat_message channel.
 refreshChatList();
+
+// Wire the system back button to navigate between SPA views instead
+// of jumping back to /login. We seed a base history entry for "leads"
+// so the first back-press from any other view drops the user on Leads
+// instead of leaving the app or hitting the login page.
+try {
+  if (!history.state || !history.state.view) {
+    history.replaceState({ view: 'leads' }, '', '#leads');
+  }
+} catch (e) {}
+
+window.addEventListener('popstate', (e) => {
+  // Close any open overlays first — that's what the user expects from
+  // back: dismiss the modal, not navigate away.
+  const closables = [
+    document.querySelector('.dm-picker'),
+    document.getElementById('region-picker-modal'),
+    document.getElementById('pw-modal'),
+    document.getElementById('new-user-modal'),
+  ];
+  for (const c of closables) { if (c) { c.remove(); /* eat back */
+    history.pushState({ view: currentView }, '', '#' + currentView);
+    return; } }
+  const drawer = document.getElementById('filter-drawer');
+  if (drawer && drawer.classList.contains('open')) {
+    drawer.classList.remove('open');
+    rebuildFilterDrawer();
+    history.pushState({ view: currentView }, '', '#' + currentView);
+    return;
+  }
+  // Close the lead detail panel if it's open
+  const panel = document.getElementById('side-panel');
+  if (panel && panel.classList.contains('open')) {
+    closePanel();
+    history.pushState({ view: currentView }, '', '#' + currentView);
+    return;
+  }
+  // Otherwise, pop into the matching view
+  const target = (e.state && e.state.view) || 'leads';
+  if (target !== currentView) {
+    setView(target, { pushHistory: false });
+  }
+});
+
+// If the URL has a #view hash on first load (e.g. from a deep link),
+// honour it instead of the default Leads view.
+const _initialHash = (location.hash || '').replace(/^#/, '');
+const _validViews = new Set(['leads', 'plan', 'feed', 'admin',
+  'resources', 'proposal', 'account', 'chat']);
+if (_initialHash && _validViews.has(_initialHash)) {
+  setView(_initialHash, { pushHistory: false });
+}
 
 // Init — every user lands in All Leads by default. The My Leads tab
 // shows only the leads that admin has assigned to them via regions

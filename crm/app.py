@@ -250,6 +250,13 @@ button:active { transform: scale(0.99); }
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # If the user already has a valid session, don't show the login
+    # form — send them back into the app. This fixes the Android back
+    # button showing the sign-in page after navigating around the SPA.
+    if request.method == "GET" and "user_id" in session:
+        if auth._check_still_active(session["user_id"]):
+            return redirect("/")
+        session.clear()
     error = None
     if request.method == "POST":
         username = (request.form.get("username") or "").strip()
