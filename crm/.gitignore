@@ -17,6 +17,9 @@ build/
 __pycache__/
 *.pyc
 
+# Signing keystore (NEVER commit — losing it means new app id on Android)
+dist/signing/
+
 # Editor / OS
 .vscode/
 .idea/

@@ -48,13 +48,45 @@ def get_crm_url() -> str:
 
 REFRESH_JS = r"""
 (function() {
-  // F5, Ctrl+R, Cmd+R → reload
+  // Block keys that open developer tools or expose source
+  var BLOCKED_KEYS = ['F12'];
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'F5' ||
-        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) {
+    var k = e.key;
+    var lk = (k || '').toLowerCase();
+    // F5 / Ctrl+R / Cmd+R → reload
+    if (k === 'F5' ||
+        ((e.ctrlKey || e.metaKey) && lk === 'r')) {
       e.preventDefault();
       window.location.reload();
+      return;
     }
+    // F12 → block
+    if (BLOCKED_KEYS.indexOf(k) !== -1) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+    // Ctrl+Shift+I (devtools), Ctrl+Shift+J (console), Ctrl+Shift+C (inspect),
+    // Ctrl+U (view-source), Ctrl+S (save page)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey &&
+        ['i', 'j', 'c'].indexOf(lk) !== -1) {
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+    if ((e.ctrlKey || e.metaKey) && (lk === 'u' || lk === 's')) {
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+  }, true);
+
+  // Block right-click context menu (which exposes "View source" / "Inspect")
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  }, true);
+
+  // Block drag-selecting & dragging links/images (mild deterrent)
+  document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
   }, true);
 
   // Floating reload button (top-right, only inside the desktop wrapper).
@@ -113,10 +145,13 @@ def main():
     # (covers login → app navigation, full reloads, etc.)
     window.events.loaded += lambda: _on_loaded(window)
 
+    # debug=False keeps WebView2 DevTools (F12 / right-click → Inspect)
+    # disabled. Combined with the JS keybind blockers above this hides the
+    # source from end users.
     if icon_path.exists():
-        webview.start(icon=str(icon_path))
+        webview.start(icon=str(icon_path), debug=False)
     else:
-        webview.start()
+        webview.start(debug=False)
 
 
 if __name__ == "__main__":

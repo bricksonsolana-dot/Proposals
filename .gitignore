@@ -30,6 +30,9 @@ crm/dist/*
 !crm/dist/DevoxSales-Setup.exe
 !crm/dist/DevoxSales.apk
 
+# Never commit the Android signing keystore
+crm/dist/signing/
+
 # Editor / OS
 .vscode/
 .idea/
