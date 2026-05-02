@@ -2632,13 +2632,9 @@ document.getElementById('prop-download').onclick = async () => {
   notify('Downloaded');
 };
 
-// Init — sales users with assigned regions default to "My Leads" mode
-// because their assigned regions auto-populate that list.
-if (ME.role !== 'admin' && (ME.regions || []).length) {
-  myMode = 1;
-  document.getElementById('t-mine').classList.add('active');
-  document.getElementById('t-all').classList.remove('active');
-}
+// Init — every user lands in All Leads by default. The My Leads tab
+// shows only the leads that admin has assigned to them via regions
+// or one-by-one. Switching is one click from the sidebar.
 loadUsers();
 refreshLeads();
 refreshDailyCounter();
