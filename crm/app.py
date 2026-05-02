@@ -100,7 +100,7 @@ def events():
 # ---------- Auth routes ----------
 
 LOGIN_HTML = """<!doctype html>
-<html><head><meta charset="utf-8">
+<html lang="el"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Devox Sales">
@@ -109,46 +109,121 @@ LOGIN_HTML = """<!doctype html>
 <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
 <link rel="shortcut icon" href="/static/logo.ico">
-<title>Login - CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<title>Sign in — Devox Sales</title>
 <style>
-body { font-family: -apple-system, Segoe UI, sans-serif; background: #0f1117;
-       color: #e8eaf0; margin: 0; min-height: 100vh; display: flex;
-       align-items: center; justify-content: center; padding: 16px; }
-.box { background: #1a1d27; padding: 32px; border-radius: 12px;
-       width: 100%; max-width: 360px; border: 1px solid #2a2f3d; }
-input { font-size: 16px !important; }
-.logo { display: flex; align-items: center; justify-content: center;
-        margin-bottom: 20px; }
-.logo img { height: 56px; width: auto;
-            filter: brightness(0) invert(1); }
-h1 { font-size: 18px; margin: 0 0 24px; text-align: center;
-     color: #8b92a6; font-weight: 500; letter-spacing: 0.5px; }
-label { display: block; font-size: 12px; color: #8b92a6; margin-bottom: 6px;
-        text-transform: uppercase; letter-spacing: 0.5px; }
-input { width: 100%; padding: 10px 12px; background: #0a0c12; color: #e8eaf0;
-        border: 1px solid #2a2f3d; border-radius: 6px; font-size: 14px;
-        margin-bottom: 16px; box-sizing: border-box; }
-button { width: 100%; padding: 12px; background: #2563eb; color: white;
-         border: 0; border-radius: 6px; font-weight: 600; cursor: pointer;
-         font-size: 14px; }
-button:hover { background: #1d4ed8; }
-.err { color: #fca5a5; font-size: 13px; margin-top: 8px; }
-.hint { color: #6b7280; font-size: 11px; margin-top: 16px; text-align: center; }
-.download-link { display: block; text-align: center; margin-top: 18px;
-                 color: #60a5fa; text-decoration: none; font-size: 13px; }
-.download-link:hover { color: #93c5fd; text-decoration: underline; }
+:root {
+  --bg: #0a0b0f; --surface: #12141b; --border: #232733;
+  --border-strong: #2f3445; --text: #f4f5f7; --text-2: #b6bac6;
+  --text-3: #7c818f; --text-4: #555b6a;
+  --brand: #4f7cff; --brand-hover: #6c8fff;
+  --danger: #ff5c6f; --danger-soft: rgba(255,92,111,0.12);
+  --r-2: 6px; --r-3: 10px; --r-4: 14px;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(at 20% 0%, rgba(79,124,255,0.06) 0%, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(79,124,255,0.04) 0%, transparent 50%);
+}
+.box {
+  background: var(--surface);
+  padding: 36px 32px 28px;
+  border-radius: var(--r-4);
+  width: 100%; max-width: 380px;
+  border: 1px solid var(--border);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+}
+.logo {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 6px;
+}
+.logo img {
+  height: 48px; width: auto;
+  filter: brightness(0) invert(1);
+}
+h1 {
+  font-size: 13px; margin: 0 0 28px; text-align: center;
+  color: var(--text-3);
+  font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+label {
+  display: block; font-size: 11px;
+  color: var(--text-3); margin-bottom: 6px;
+  font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+input {
+  width: 100%;
+  padding: 0 14px;
+  height: 44px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  font-family: inherit; font-size: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.12s, background 0.12s;
+}
+input:hover { border-color: var(--border-strong); }
+input:focus {
+  outline: 0; border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(79,124,255,0.12);
+}
+button {
+  width: 100%; padding: 0;
+  height: 46px;
+  background: var(--brand);
+  color: white;
+  border: 0; border-radius: var(--r-2);
+  font-family: inherit; font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.08s;
+  margin-top: 4px;
+}
+button:hover { background: var(--brand-hover); }
+button:active { transform: scale(0.99); }
+.err {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid rgba(255,92,111,0.3);
+  padding: 10px 14px;
+  border-radius: var(--r-2);
+  font-size: 13px; margin-top: 14px;
+}
+.download-link {
+  display: block; text-align: center;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  text-decoration: none; font-size: 13px;
+  font-weight: 500;
+}
+.download-link:hover { color: var(--brand); }
 </style></head>
 <body>
 <form class="box" method="POST">
   <div class="logo"><img src="/static/logo.png" alt="Devox"></div>
-  <h1>CRM Workspace</h1>
+  <h1>Sales · Sign in</h1>
   <label>Username</label>
-  <input name="username" autofocus required>
+  <input name="username" autofocus required autocomplete="username">
   <label>Password</label>
-  <input name="password" type="password" required>
-  <button type="submit">Sign In</button>
+  <input name="password" type="password" required autocomplete="current-password">
+  <button type="submit">Sign in</button>
   {% if error %}<div class="err">{{ error }}</div>{% endif %}
-  <a class="download-link" href="/download">⬇ Download desktop / mobile app</a>
+  <a class="download-link" href="/download">↓ Download for Windows or Android</a>
 </form>
 </body></html>"""
 
@@ -924,74 +999,175 @@ DOWNLOAD_HTML = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Download Devox Sales</title>
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+<link rel="shortcut icon" href="/static/logo.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap">
+<title>Download — Devox Sales</title>
 <style>
+:root {
+  --bg: #0a0b0f; --surface: #12141b; --surface-2: #1a1d26;
+  --surface-3: #232733; --hover: #1e222c;
+  --border: #232733; --border-strong: #2f3445;
+  --text: #f4f5f7; --text-2: #b6bac6; --text-3: #7c818f;
+  --text-4: #555b6a;
+  --brand: #4f7cff; --brand-hover: #6c8fff;
+  --brand-soft: rgba(79,124,255,0.12);
+  --warning: #ffb547; --warning-soft: rgba(255,181,71,0.12);
+  --r-2: 6px; --r-3: 10px; --r-4: 14px;
+}
 * { box-sizing: border-box; }
-body { font-family: -apple-system, Segoe UI, sans-serif; margin: 0;
-       background: #0f1117; color: #e8eaf0; padding: 20px;
-       min-height: 100vh; }
-.wrap { max-width: 720px; margin: 40px auto; }
-.logo { display: flex; align-items: center; justify-content: center;
-        margin-bottom: 24px; }
-.logo img { height: 56px; filter: brightness(0) invert(1); }
-h1 { text-align: center; font-size: 26px; margin: 0 0 8px; }
-.sub { text-align: center; color: #8b92a6; margin-bottom: 32px;
-       font-size: 15px; }
-.card { background: #1a1d27; border: 1px solid #2a2f3d;
-        border-radius: 14px; padding: 28px; margin-bottom: 18px; }
-.card h2 { margin: 0 0 14px; font-size: 18px; display: flex;
-           align-items: center; gap: 10px; }
-.dl-btn { display: inline-flex; align-items: center; justify-content: center;
-          gap: 10px; background: #2563eb; color: white !important;
-          text-decoration: none; padding: 16px 28px; border-radius: 10px;
-          font-weight: 700; font-size: 16px; width: 100%;
-          transition: background 0.15s; }
-.dl-btn:hover { background: #1d4ed8; }
-.dl-btn.secondary { background: #2a2f3d; }
-.dl-btn.secondary:hover { background: #3a3f4d; }
-.size { font-size: 12px; color: #8b92a6; margin-top: 8px;
-        text-align: center; }
-ol { margin: 12px 0 0 0; padding-left: 24px; line-height: 1.8;
-     font-size: 14px; }
-ol li { margin-bottom: 4px; }
-code { background: #0a0c12; padding: 2px 6px; border-radius: 4px;
-       font-family: Consolas, monospace; font-size: 13px; }
-.platform-tabs { display: flex; gap: 4px; background: #0a0c12;
-                 padding: 4px; border-radius: 10px; margin-bottom: 16px; }
-.platform-tabs button { flex: 1; background: transparent; border: 0;
-                        color: #8b92a6; padding: 12px; border-radius: 7px;
-                        font-weight: 700; cursor: pointer; font-size: 14px; }
-.platform-tabs button.active { background: #2563eb; color: white; }
+body {
+  font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  padding: 24px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(at 50% 0%, rgba(79,124,255,0.05) 0%, transparent 60%);
+}
+.wrap { max-width: 640px; margin: 32px auto; }
+.logo {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+}
+.logo img { height: 40px; filter: brightness(0) invert(1); }
+h1 {
+  text-align: center; font-size: 28px;
+  margin: 0 0 6px;
+  font-weight: 700; letter-spacing: -0.02em;
+}
+.sub {
+  text-align: center; color: var(--text-3);
+  margin-bottom: 32px; font-size: 14px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-4);
+  padding: 28px;
+  margin-bottom: 16px;
+}
+.card h2 {
+  margin: 0 0 18px; font-size: 17px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 10px;
+  letter-spacing: -0.01em;
+}
+.card h2 .pill {
+  font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 999px;
+  background: var(--surface-3); color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.dl-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 10px; background: var(--brand);
+  color: white !important; text-decoration: none;
+  height: 52px; padding: 0 28px;
+  border-radius: var(--r-3);
+  font-family: inherit;
+  font-weight: 600; font-size: 15px;
+  width: 100%;
+  transition: background 0.12s, transform 0.08s;
+}
+.dl-btn:hover { background: var(--brand-hover); }
+.dl-btn:active { transform: scale(0.99); }
+.dl-btn.secondary {
+  background: var(--surface-3); color: var(--text) !important;
+}
+.dl-btn.secondary:hover { background: var(--border-strong); }
+.size {
+  font-size: 12px; color: var(--text-3);
+  margin-top: 10px; text-align: center;
+  font-weight: 500;
+}
+ol {
+  margin: 18px 0 0 0; padding-left: 22px;
+  line-height: 1.7; font-size: 13px;
+  color: var(--text-2);
+}
+ol li {
+  margin-bottom: 6px;
+  padding-left: 6px;
+}
+ol li b, ol li strong { color: var(--text); font-weight: 600; }
+code {
+  background: var(--bg);
+  padding: 3px 7px;
+  border-radius: var(--r-2);
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 12px;
+  color: var(--brand);
+  border: 1px solid var(--border);
+}
+.platform-tabs {
+  display: flex; gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: var(--r-3);
+  margin-bottom: 18px;
+}
+.platform-tabs button {
+  flex: 1; background: transparent;
+  border: 0;
+  color: var(--text-3);
+  padding: 12px;
+  border-radius: var(--r-2);
+  font-family: inherit; font-weight: 600;
+  cursor: pointer; font-size: 14px;
+  transition: all 0.12s;
+}
+.platform-tabs button:hover { color: var(--text); }
+.platform-tabs button.active {
+  background: var(--brand); color: white;
+}
 .platform-content { display: none; }
 .platform-content.active { display: block; }
-.notice { background: #422006; color: #fbbf24; padding: 10px 14px;
-          border-radius: 8px; font-size: 13px; margin-top: 12px;
-          line-height: 1.5; }
-.back { display: block; text-align: center; color: #60a5fa;
-        text-decoration: none; margin-top: 20px; font-size: 14px; }
-.back:hover { text-decoration: underline; }
+.notice {
+  background: var(--warning-soft);
+  border: 1px solid rgba(255,181,71,0.25);
+  color: var(--warning);
+  padding: 12px 14px;
+  border-radius: var(--r-3);
+  font-size: 12px; margin-top: 18px;
+  line-height: 1.6;
+}
+.back {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 24px;
+  color: var(--text-3); text-decoration: none;
+  font-size: 13px; font-weight: 500;
+}
+.back:hover { color: var(--brand); }
+.back-wrap { text-align: center; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="logo"><img src="/static/logo.png" alt="Devox"></div>
   <h1>Devox Sales</h1>
-  <p class="sub">Κατέβασε την εφαρμογή στη συσκευή σου</p>
+  <p class="sub">Κατέβασε την εφαρμογή για τη συσκευή σου</p>
 
   <div class="platform-tabs">
-    <button id="tab-desktop" class="active">💻 Windows</button>
-    <button id="tab-mobile">📱 Κινητό</button>
+    <button id="tab-desktop" class="active">Windows</button>
+    <button id="tab-mobile">Mobile</button>
   </div>
 
   <div id="content-desktop" class="platform-content active">
     <div class="card">
-      <h2>💻 Windows Desktop App</h2>
+      <h2>Windows desktop app <span class="pill">{{ desktop_size }}</span></h2>
       <a class="dl-btn" href="/download/desktop">
-        ⬇ Download DevoxSales-Setup.exe
+        Download installer
       </a>
-      <div class="size">{{ desktop_size }} • Windows 10 / 11</div>
+      <div class="size">DevoxSales-Setup.exe · Windows 10 / 11</div>
       <ol>
-        <li>Πάτα το κουμπί παραπάνω και κατέβασε το αρχείο</li>
+        <li>Πάτα το κουμπί download παραπάνω</li>
         <li>Κάνε διπλό κλικ στο <code>DevoxSales-Setup.exe</code></li>
         <li>Πάτα <b>Next</b> → <b>Install</b> → <b>Finish</b></li>
         <li>Η εφαρμογή θα έχει εικονίδιο στην επιφάνεια εργασίας
@@ -999,9 +1175,8 @@ code { background: #0a0c12; padding: 2px 6px; border-radius: 4px;
         <li>Login με τα στοιχεία που σου έδωσε ο admin</li>
       </ol>
       <div class="notice">
-        ⚠️ Την πρώτη φορά το Windows SmartScreen ίσως εμφανίσει warning
-        γιατί η εφαρμογή δεν είναι code-signed. Πάτησε
-        <b>"More info"</b> → <b>"Run anyway"</b>.
+        Την πρώτη φορά το Windows SmartScreen ίσως εμφανίσει warning.
+        Πάτησε <b>"More info"</b> → <b>"Run anyway"</b>.
       </div>
     </div>
   </div>
@@ -1009,61 +1184,63 @@ code { background: #0a0c12; padding: 2px 6px; border-radius: 4px;
   <div id="content-mobile" class="platform-content">
     {% if apk_available %}
     <div class="card">
-      <h2>🤖 Android APK</h2>
+      <h2>Android <span class="pill">{{ apk_size }}</span></h2>
       <a class="dl-btn" href="/download/android">
-        ⬇ Download DevoxSales.apk
+        Download DevoxSales.apk
       </a>
-      <div class="size">{{ apk_size }} • Android 7.0+</div>
+      <div class="size">Android 7.0+</div>
       <ol>
         <li>Πάτα το κουμπί download παραπάνω</li>
         <li>Όταν τελειώσει, άνοιξε το αρχείο <code>DevoxSales.apk</code></li>
-        <li>Αν εμφανιστεί προειδοποίηση
-          <b>"Install unknown apps"</b>, πάτα <b>Settings</b>
-          → ενεργοποίησε <b>"Allow from this source"</b> για τον browser σου
-          → πίσω και πάτα <b>Install</b></li>
+        <li>Αν εμφανιστεί <b>"Install unknown apps"</b>, πάτα
+          <b>Settings</b> → ενεργοποίησε
+          <b>"Allow from this source"</b> για τον browser σου</li>
+        <li>Πίσω και πάτα <b>Install</b></li>
         <li>Άνοιξε την εφαρμογή και κάνε login</li>
       </ol>
       <div class="notice">
-        ⚠️ Επειδή το APK δεν διανέμεται μέσω Google Play, το Android
+        Επειδή το APK δεν διανέμεται μέσω Google Play, το Android
         ζητά μία φορά άδεια ότι εμπιστεύεσαι την πηγή.
       </div>
     </div>
     {% endif %}
 
     <div class="card">
-      <h2>📱 iPhone / iPad</h2>
-      <p style="color:#d6d3d1;font-size:14px;line-height:1.6;margin:0 0 14px">
+      <h2>iPhone / iPad</h2>
+      <p style="color:var(--text-2);font-size:13px;line-height:1.6;margin:0 0 14px">
         Δεν υπάρχει .apk για iOS. Πρόσθεσε την εφαρμογή στην αρχική οθόνη
         και ανοίγει σαν native app.
       </p>
       <ol>
         <li>Άνοιξε το <code>{{ host_url }}</code> στο <b>Safari</b></li>
-        <li>Πάτα το κουμπί Share <b>⬆️</b> κάτω-κέντρο</li>
+        <li>Πάτα το κουμπί Share κάτω-κέντρο</li>
         <li>Επίλεξε <b>"Add to Home Screen"</b></li>
         <li>Πάτα <b>Add</b> πάνω δεξιά</li>
       </ol>
-      <a class="dl-btn secondary" href="/" style="margin-top:14px">
-        🔗 Άνοιξε στον browser
+      <a class="dl-btn secondary" href="/" style="margin-top:18px;height:44px;font-size:14px">
+        Open in browser
       </a>
     </div>
 
     {% if not apk_available %}
     <div class="card">
-      <h2>🤖 Android — Add to Home Screen</h2>
-      <p style="color:#d6d3d1;font-size:14px;line-height:1.6;margin:0 0 14px">
+      <h2>Android — Install as PWA</h2>
+      <p style="color:var(--text-2);font-size:13px;line-height:1.6;margin:0 0 14px">
         Μέχρι να γίνει διαθέσιμο το APK, μπορείς να εγκαταστήσεις
         την εφαρμογή σαν Progressive Web App.
       </p>
       <ol>
         <li>Άνοιξε το <code>{{ host_url }}</code> στο Chrome</li>
-        <li>Πάτα τις 3 τελείες <b>⋮</b> πάνω δεξιά</li>
+        <li>Πάτα τις 3 τελείες πάνω δεξιά</li>
         <li>Επίλεξε <b>"Install app"</b> ή <b>"Add to Home screen"</b></li>
       </ol>
     </div>
     {% endif %}
   </div>
 
-  <a class="back" href="/">← Πίσω στο login</a>
+  <div class="back-wrap">
+    <a class="back" href="/">← Back to sign in</a>
+  </div>
 </div>
 
 <script>
@@ -1076,7 +1253,6 @@ function pickPlatform(p) {
 document.getElementById('tab-desktop').onclick = () => pickPlatform('desktop');
 document.getElementById('tab-mobile').onclick = () => pickPlatform('mobile');
 
-// Auto-pick mobile tab if accessed from a phone
 const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 if (isMobile) pickPlatform('mobile');
 </script>
