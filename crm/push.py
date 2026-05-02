@@ -26,8 +26,11 @@ ROOT = Path(__file__).parent
 
 _vapid_lock = threading.Lock()
 _vapid = None  # cached dict {public_b64, private_pem, claims_email}
-_vapid_ts = 0  # epoch seconds; cache expires after 60s
-_VAPID_CACHE_TTL = 60
+_vapid_ts = 0  # epoch seconds
+# Cache for 5 seconds only — long enough to batch a request's needs,
+# short enough that worker processes converge on the canonical DB
+# value almost immediately. Avoids the multi-worker divergence bug.
+_VAPID_CACHE_TTL = 5
 
 
 def _b64url_encode(b: bytes) -> str:
@@ -122,32 +125,27 @@ def _config_set(key: str, value: str):
 def _load_or_generate() -> dict:
     """Load VAPID keys from env or DB config table; generate if missing.
 
-    Cached for 60s in-process. We deliberately re-read from the DB on
-    expiry so multiple gunicorn workers eventually converge on the
-    same key (Render gives us 2 workers, each had its own cache, and
-    if they both regenerated at startup we'd have two divergent keys
-    until the loser was overwritten — re-reading fixes that)."""
+    NO in-process caching. Each call hits the DB. With the connection
+    pool this costs ~5ms and avoids the multi-worker bug where
+    Worker A would regenerate keys but Worker B would keep signing
+    with its stale cached private key — push gateway then rejects
+    everything because the subscription's public key doesn't match
+    the signing private key."""
     global _vapid, _vapid_ts
     import time as _t
     now = _t.time()
-    if _vapid is not None and (now - _vapid_ts) < _VAPID_CACHE_TTL:
-        return _vapid
     with _vapid_lock:
-        if _vapid is not None and (now - _vapid_ts) < _VAPID_CACHE_TTL:
-            return _vapid
         # Env override (highest priority)
         env_pub = os.environ.get("VAPID_PUBLIC_KEY")
         env_priv = os.environ.get("VAPID_PRIVATE_KEY")
         claims_email = os.environ.get(
             "VAPID_CLAIM_EMAIL", "mailto:noreply@devox.gr")
         if env_pub and env_priv:
-            _vapid = {
+            return {
                 "public_b64": env_pub,
                 "private_pem": env_priv.replace("\\n", "\n"),
                 "claims_email": claims_email,
             }
-            _vapid_ts = now
-            return _vapid
         # DB-backed (persists across Render deploys)
         try:
             db_pub = _config_get("vapid_public")
@@ -168,15 +166,13 @@ def _load_or_generate() -> dict:
                                   "as SEC1", flush=True)
                         except Exception:
                             pass
-                    _vapid = {
+                    print(f"[push] loaded VAPID keys from DB "
+                          f"(public={db_pub[:12]}...)", flush=True)
+                    return {
                         "public_b64": db_pub,
                         "private_pem": normalized,
                         "claims_email": claims_email,
                     }
-                    _vapid_ts = now
-                    print(f"[push] loaded VAPID keys from DB "
-                          f"(public={db_pub[:12]}...)", flush=True)
-                    return _vapid
                 else:
                     print("[push] DB-stored VAPID private key did "
                           "not parse, regenerating", flush=True)
@@ -217,8 +213,6 @@ def _load_or_generate() -> dict:
             pass
 
         keys["claims_email"] = claims_email
-        _vapid = keys
-        _vapid_ts = now
         # Wipe stale subs (signed against any older key)
         try:
             import db as _db
@@ -231,7 +225,7 @@ def _load_or_generate() -> dict:
                       f"VAPID key rotation", flush=True)
         except Exception as e:
             print(f"[push] could not wipe stale subs: {e}", flush=True)
-        return _vapid
+        return keys
 
 
 def public_key() -> str:
@@ -267,10 +261,18 @@ def _send_to_subscriptions(subs, payload: dict) -> int:
         return 0
     try:
         from pywebpush import webpush, WebPushException
+        import pywebpush as _pwp_mod
+        _pwp_ver = getattr(_pwp_mod, "__version__", "unknown")
     except ImportError as e:
         print(f"[push] pywebpush not installed: {e}", flush=True)
         return 0
     cfg = _load_or_generate()
+    pem = cfg["private_pem"]
+    pem_first_line = pem.split("\n", 1)[0] if pem else ""
+    print(f"[push] using pywebpush={_pwp_ver}, PEM starts: "
+          f"{pem_first_line!r} (len={len(pem)}, "
+          f"public_b64_prefix={cfg['public_b64'][:12]})",
+          flush=True)
     body = json.dumps(payload, ensure_ascii=False)
     sent = 0
     dead = []
