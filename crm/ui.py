@@ -2784,6 +2784,24 @@ tr.lead-row.selected td { background: var(--brand-soft); }
                stroke-linejoin="round" class="account-chevron">
                <polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
+        <button class="account-row" id="acc-diagnose-push"
+                style="display:none">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+               <circle cx="12" cy="12" r="10"></circle>
+               <line x1="12" y1="8" x2="12" y2="12"></line>
+               <line x1="12" y1="16" x2="12.01" y2="16"></line>
+               </svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Push diagnostics</div>
+            <div class="account-row-sub">Show server's last error from the push gateway</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round" class="account-chevron">
+               <polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
         <button class="account-row danger" id="acc-rotate-keys"
                 style="display:none">
           <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -5812,6 +5830,32 @@ function updatePushUI() {
         await autoRecoverPush();
       };
     }
+    const diag = document.getElementById('acc-diagnose-push');
+    if (diag) {
+      diag.style.display = '';
+      diag.onclick = async () => {
+        const r = await fetch('/api/push/diagnose');
+        if (!r.ok) { notify('Could not load diagnostics'); return; }
+        const d = await r.json();
+        const lines = [
+          `pywebpush: ${d.pywebpush_version}`,
+          `py_vapid: ${d.py_vapid_version}`,
+          `Public key prefix: ${d.vapid_public_key_prefix || '(not set)'}`,
+          `Subscriptions: ${(d.subscriptions || []).length}`,
+        ];
+        for (const s of (d.subscriptions || [])) {
+          lines.push('---');
+          lines.push(`Via: ${s.endpoint_host}`);
+          if (s.last_error) {
+            lines.push(`Last error (${s.last_error_at}):`);
+            lines.push(s.last_error);
+          } else {
+            lines.push('No errors recorded');
+          }
+        }
+        alert(lines.join('\n'));
+      };
+    }
     const rotate = document.getElementById('acc-rotate-keys');
     if (rotate) {
       rotate.style.display = ME.role === 'admin' ? '' : 'none';
@@ -5832,6 +5876,8 @@ function updatePushUI() {
     if (helpText) helpText.textContent = pushHelpText('denied');
     if (test) test.style.display = 'none';
     if (reset) reset.style.display = 'none';
+    const diag2 = document.getElementById('acc-diagnose-push');
+    if (diag2) diag2.style.display = 'none';
   } else {
     pill.textContent = 'Off';
     pill.className = 'account-pill';
@@ -5839,6 +5885,8 @@ function updatePushUI() {
     if (help) help.style.display = 'none';
     if (test) test.style.display = 'none';
     if (reset) reset.style.display = 'none';
+    const diag2 = document.getElementById('acc-diagnose-push');
+    if (diag2) diag2.style.display = 'none';
   }
 
   btn.onclick = () => {

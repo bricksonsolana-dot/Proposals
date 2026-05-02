@@ -26,6 +26,8 @@ ROOT = Path(__file__).parent
 
 _vapid_lock = threading.Lock()
 _vapid = None  # cached dict {public_b64, private_pem, claims_email}
+_vapid_ts = 0  # epoch seconds; cache expires after 60s
+_VAPID_CACHE_TTL = 60
 
 
 def _b64url_encode(b: bytes) -> str:
@@ -118,12 +120,20 @@ def _config_set(key: str, value: str):
 
 
 def _load_or_generate() -> dict:
-    """Load VAPID keys from env or DB config table; generate if missing."""
-    global _vapid
-    if _vapid is not None:
+    """Load VAPID keys from env or DB config table; generate if missing.
+
+    Cached for 60s in-process. We deliberately re-read from the DB on
+    expiry so multiple gunicorn workers eventually converge on the
+    same key (Render gives us 2 workers, each had its own cache, and
+    if they both regenerated at startup we'd have two divergent keys
+    until the loser was overwritten — re-reading fixes that)."""
+    global _vapid, _vapid_ts
+    import time as _t
+    now = _t.time()
+    if _vapid is not None and (now - _vapid_ts) < _VAPID_CACHE_TTL:
         return _vapid
     with _vapid_lock:
-        if _vapid is not None:
+        if _vapid is not None and (now - _vapid_ts) < _VAPID_CACHE_TTL:
             return _vapid
         # Env override (highest priority)
         env_pub = os.environ.get("VAPID_PUBLIC_KEY")
@@ -136,6 +146,7 @@ def _load_or_generate() -> dict:
                 "private_pem": env_priv.replace("\\n", "\n"),
                 "claims_email": claims_email,
             }
+            _vapid_ts = now
             return _vapid
         # DB-backed (persists across Render deploys)
         try:
@@ -162,8 +173,9 @@ def _load_or_generate() -> dict:
                         "private_pem": normalized,
                         "claims_email": claims_email,
                     }
-                    print("[push] loaded VAPID keys from DB",
-                          flush=True)
+                    _vapid_ts = now
+                    print(f"[push] loaded VAPID keys from DB "
+                          f"(public={db_pub[:12]}...)", flush=True)
                     return _vapid
                 else:
                     print("[push] DB-stored VAPID private key did "
@@ -176,23 +188,38 @@ def _load_or_generate() -> dict:
 
         # First run OR previous keys broken — generate fresh, persist
         keys = _generate_keys()
-        # Sanity check before storing
         if not _validate_pem(keys["private_pem"]):
             print("[push] FATAL: freshly generated PEM failed to "
                   "validate — pywebpush will not work", flush=True)
         try:
             _config_set("vapid_public", keys["public_b64"])
             _config_set("vapid_private", keys["private_pem"])
-            print("[push] generated and persisted new VAPID keys",
-                  flush=True)
+            print(f"[push] generated and persisted new VAPID keys "
+                  f"(public={keys['public_b64'][:12]}...)", flush=True)
         except Exception as e:
             print(f"[push] DB write failed, keys won't persist: {e}",
                   flush=True)
+
+        # Re-read from DB so we use the canonical version (in case a
+        # sibling worker already generated a different key and
+        # raced us — the LAST writer wins, and we want every worker
+        # to converge on whatever ended up persisted).
+        try:
+            db_pub = _config_get("vapid_public")
+            db_priv = _config_get("vapid_private")
+            normalized = _normalize_pem(db_priv) if db_priv else None
+            if db_pub and normalized:
+                keys = {"public_b64": db_pub, "private_pem": normalized}
+                if db_pub != keys.get("public_b64"):
+                    print("[push] race detected — using sibling "
+                          "worker's keys", flush=True)
+        except Exception:
+            pass
+
         keys["claims_email"] = claims_email
         _vapid = keys
-        # When keys rotate, every existing subscription is now stale
-        # because they're signed against the OLD public key. Wipe them
-        # so users get a clean re-subscribe on next enable.
+        _vapid_ts = now
+        # Wipe stale subs (signed against any older key)
         try:
             import db as _db
             row = _db.query_one(

@@ -1754,23 +1754,46 @@ def api_admin_rotate_vapid_keys():
 @app.route("/api/push/diagnose")
 @auth.login_required
 def api_push_diagnose():
-    """Snapshot of push state for the current user."""
+    """Snapshot of push state for the current user — surfaces the
+    actual pywebpush error so the user can show us what's wrong
+    without digging into Render logs."""
+    from urllib.parse import urlparse
     subs = db.query(
-        "SELECT endpoint, user_agent, created_at "
+        "SELECT endpoint, user_agent, created_at, last_error, "
+        "       last_error_at "
         "FROM push_subscriptions WHERE user_id = ? ORDER BY id DESC",
         (g.user["id"],))
-    public = ""
+    public_b64 = ""
+    public_prefix = ""
     try:
-        public = _push.public_key()
+        public_b64 = _push.public_key()
+        public_prefix = public_b64[:16]
     except Exception:
         pass
+    pywebpush_version = ""
+    try:
+        import pywebpush
+        pywebpush_version = getattr(pywebpush, "__version__", "unknown")
+    except ImportError:
+        pywebpush_version = "NOT INSTALLED"
+    py_vapid_version = ""
+    try:
+        import py_vapid
+        py_vapid_version = getattr(py_vapid, "__version__", "unknown")
+    except ImportError:
+        py_vapid_version = "NOT INSTALLED"
     return jsonify({
-        "vapid_public_key_set": bool(public),
+        "vapid_public_key_set": bool(public_b64),
+        "vapid_public_key_prefix": public_prefix,
+        "pywebpush_version": pywebpush_version,
+        "py_vapid_version": py_vapid_version,
         "subscriptions": [{
-            "endpoint_host": __import__('urllib.parse').parse.urlparse(
-                s["endpoint"]).netloc if s.get("endpoint") else "",
-            "user_agent": s.get("user_agent") or "",
+            "endpoint_host": urlparse(s["endpoint"]).netloc
+                if s.get("endpoint") else "",
+            "user_agent": (s.get("user_agent") or "")[:80],
             "created_at": str(s.get("created_at") or ""),
+            "last_error": s.get("last_error"),
+            "last_error_at": str(s.get("last_error_at") or ""),
         } for s in subs],
     })
 
