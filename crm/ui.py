@@ -168,6 +168,100 @@ a:hover { color: var(--brand-hover); }
   background: var(--success-soft); color: var(--success);
 }
 
+/* ---------- User avatar + menu (desktop) ---------- */
+.user-avatar {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand) 0%, #7c5dff 100%);
+  color: white;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+.user-avatar.lg {
+  width: 44px; height: 44px;
+  font-size: 16px;
+}
+.user-menu-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: 0;
+  color: var(--text-2);
+  padding: 4px 6px 4px 4px;
+  margin-left: 8px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  transition: background 0.12s;
+}
+.user-menu-btn:hover { background: var(--hover); color: var(--text); }
+.user-menu-btn .user-name {
+  max-width: 140px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.user-menu {
+  position: fixed;
+  top: calc(var(--header-h) + 6px);
+  right: 16px;
+  min-width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  padding: 8px;
+  z-index: 60;
+  display: none;
+  animation: menuSlide 0.16s ease;
+}
+@keyframes menuSlide {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.user-menu.open { display: block; }
+.user-menu-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.user-menu-name {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  letter-spacing: -0.01em;
+}
+.user-menu-role {
+  font-size: 12px; color: var(--text-3);
+  text-transform: capitalize;
+  margin-top: 2px;
+}
+.user-menu-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.user-menu-item:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.user-menu-item .ic {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.user-menu-item:hover .ic { color: var(--brand); }
+.user-menu-item.danger { color: var(--danger); }
+.user-menu-item.danger:hover { background: var(--danger-soft); color: var(--danger); }
+.user-menu-item.danger .ic { color: var(--danger); }
+.user-menu-divider {
+  height: 1px; background: var(--border);
+  margin: 6px 0;
+}
+
 /* ---------- Layout ---------- */
 .container {
   display: grid;
@@ -844,6 +938,181 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   margin-top: 6px;
 }
 
+/* ---------- Proposal view ---------- */
+.proposal-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 18px;
+  align-items: flex-start;
+}
+.proposal-form {
+  display: flex; flex-direction: column;
+  gap: 14px;
+}
+.proposal-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+.proposal-section-title {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin-bottom: 14px;
+}
+.proposal-actions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.proposal-actions .btn { height: 44px; }
+.proposal-preview {
+  background: white;
+  border-radius: 14px;
+  min-height: 600px;
+  overflow: auto;
+  border: 1px solid var(--border);
+}
+.proposal-preview-empty {
+  color: var(--text-4);
+  padding: 60px 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Mobile proposal */
+@media (max-width: 768px) {
+  .proposal-layout {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  .proposal-section {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .proposal-section input, .proposal-section select {
+    height: 44px !important;
+  }
+  .proposal-actions {
+    position: sticky; bottom: calc(var(--bottom-tabs-h) + 8px);
+    z-index: 5;
+    background: var(--bg);
+    padding: 8px 0;
+    margin-top: 4px;
+  }
+  .proposal-actions .btn { height: 48px; font-size: 15px; }
+  .proposal-preview { min-height: 320px; }
+}
+
+/* ---------- Account view ---------- */
+.account-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+  max-width: 720px;
+}
+.account-head {
+  display: flex; align-items: center; gap: 16px;
+}
+.account-name {
+  font-size: 20px; font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.account-meta {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 4px;
+  font-size: 13px; color: var(--text-3);
+}
+.account-meta .dot { color: var(--text-4); }
+.account-meta .role {
+  text-transform: capitalize;
+  background: var(--surface-3);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+}
+.account-regions {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-2);
+  flex-wrap: wrap;
+}
+.account-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+
+.account-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 14px;
+  max-width: 720px;
+  overflow: hidden;
+}
+.account-section-title {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding: 14px 18px 6px;
+}
+.account-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  text-decoration: none; color: inherit;
+  border: 0; background: transparent;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+  border-top: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.account-row:first-of-type { border-top: 0; }
+.account-row:not(.static):hover { background: var(--hover); }
+.account-row.static { cursor: default; }
+.account-row .ic {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.account-row.danger .ic {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.account-row.danger .account-row-title { color: var(--danger); }
+.account-row-text { flex: 1; min-width: 0; }
+.account-row-title {
+  font-size: 14px; font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+.account-row-sub {
+  font-size: 12px; color: var(--text-3);
+  margin-top: 2px;
+}
+.account-chevron { color: var(--text-4); }
+.account-pill {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3); color: var(--text-3);
+}
+.account-pill.on {
+  background: var(--success-soft); color: var(--success);
+}
+
 /* ---------- Admin ---------- */
 .user-row {
   display: flex; align-items: center; gap: 12px;
@@ -887,15 +1156,14 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   .top h1 img { height: 18px; }
 
   .top .user-info { font-size: 12px; gap: 4px; }
-  .top .user-info .badge { display: none; }
-  .top .user-info > a { padding: 4px 6px; font-size: 11px; }
-  /* Hide everything from top bar except logo + calls counter on phone */
-  #calls-today-badge { font-size: 10px; padding: 2px 8px; }
+  /* Hide all desktop user-menu chrome; mobile uses More tab */
+  .user-menu-btn,
+  .user-menu,
+  .target-badge { display: none !important; }
+  #calls-today-badge { display: inline-flex !important;
+    font-size: 10px; padding: 2px 8px; }
   #online-now { display: none; }
   #my-regions-badge { display: none !important; }
-  #link-change-pw, .user-info > a[href="/download"],
-  .user-info > a[href="/logout"] { display: none; }
-  /* These are reachable from the More tab on mobile */
 
   /* Bottom tab bar — iOS-style with proper hit area */
   .bottom-tabs {
@@ -920,9 +1188,16 @@ tr.lead-row.selected td { background: var(--brand-soft); }
     cursor: pointer;
     transition: color 0.15s;
   }
-  .bottom-tabs a .tab-icon { font-size: 22px; line-height: 1; }
+  .bottom-tabs a .tab-icon {
+    font-size: 22px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 24px;
+  }
+  .bottom-tabs a .tab-icon svg {
+    stroke-width: 1.8;
+  }
   .bottom-tabs a.active { color: var(--brand); }
-  .bottom-tabs a.active .tab-icon { transform: scale(1.05); }
+  .bottom-tabs a.active .tab-icon svg { stroke-width: 2.2; }
 
   /* Layout */
   .container { grid-template-columns: 1fr !important; height: auto; }
@@ -1181,6 +1456,79 @@ tr.lead-row.selected td { background: var(--brand-soft); }
     margin-left: auto;
   }
 
+  /* More menu — iOS settings style */
+  .more-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 8px 6px 18px;
+  }
+  .more-header-name {
+    font-size: 18px; font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .more-header-meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-3);
+    margin-top: 2px;
+  }
+  .more-header-meta .role {
+    text-transform: capitalize;
+    background: var(--surface-3);
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    font-size: 11px; font-weight: 600;
+    color: var(--text-2);
+  }
+  .more-header-meta .dot { color: var(--text-4); }
+
+  .more-list {
+    background: var(--surface-2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .more-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--border);
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit; text-align: left;
+    color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s;
+  }
+  .more-row:first-child { border-top: 0; }
+  .more-row:active { background: var(--hover); }
+  .more-row .ic {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--surface-3);
+    color: var(--text-2);
+    flex-shrink: 0;
+  }
+  .more-row.danger .ic {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+  .more-row.danger .more-row-title { color: var(--danger); }
+  .more-row-text {
+    flex: 1; display: flex; flex-direction: column;
+    min-width: 0;
+  }
+  .more-row-title {
+    font-size: 15px; font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .more-row-sub {
+    font-size: 12px; color: var(--text-3);
+    margin-top: 2px;
+  }
+  .more-chevron { color: var(--text-4); flex-shrink: 0; }
+
   /* Daily plan / proposal layout */
   #view-plan, #view-feed, #view-resources, #view-proposal, #view-admin {
     padding: 0;
@@ -1322,41 +1670,122 @@ tr.lead-row.selected td { background: var(--brand-soft); }
     <a id="nav-leads" class="active" data-view="leads">Leads</a>
     <a id="nav-plan" data-view="plan">My Day</a>
     <a id="nav-feed" data-view="feed">Activity</a>
-    <a id="nav-resources" data-view="resources">📚 Resources</a>
-    <a id="nav-proposal" data-view="proposal">📄 Proposal</a>
+    <a id="nav-resources" data-view="resources">Resources</a>
+    <a id="nav-proposal" data-view="proposal">Proposal</a>
     <a id="nav-admin" data-view="admin" style="display:none">Admin</a>
   </div>
   <div class="spacer"></div>
   <div class="user-info">
     <span id="online-now" class="live"></span>
-    <span class="badge">Hi, {{ user.full_name }}</span>
     <span id="my-regions-badge" class="target-badge"
           title="Regions assigned to you" style="display:none;cursor:pointer">
-      📍 <span id="my-regions-count">0</span> regions
+      <span id="my-regions-count">0</span> regions
     </span>
-    <span id="calls-today-badge" class="target-badge">0/20 calls today</span>
-    <a href="/download" target="_blank" title="Download desktop / mobile app">⬇ Download</a>
-    <a href="#" id="link-change-pw" title="Change password">🔑 Password</a>
-    <a href="/logout">Logout</a>
+    <span id="calls-today-badge" class="target-badge">0/20 today</span>
+    <button class="user-menu-btn" id="user-menu-btn" type="button">
+      <span class="user-avatar" id="user-avatar"></span>
+      <span class="user-name">{{ user.full_name }}</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" style="opacity:0.5">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
   </div>
+</div>
+
+<!-- User dropdown menu -->
+<div class="user-menu" id="user-menu">
+  <div class="user-menu-header">
+    <span class="user-avatar lg" id="user-avatar-lg"></span>
+    <div>
+      <div class="user-menu-name">{{ user.full_name }}</div>
+      <div class="user-menu-role">{{ user.role }}</div>
+    </div>
+  </div>
+  <a href="#" class="user-menu-item" data-action="account">
+    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle>
+         <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"></path></svg></span>
+    Account
+  </a>
+  <a href="/download" target="_blank" class="user-menu-item">
+    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+         <polyline points="7 10 12 15 17 10"></polyline>
+         <line x1="12" y1="15" x2="12" y2="3"></line></svg></span>
+    Download apps
+  </a>
+  <div class="user-menu-divider"></div>
+  <a href="/logout" class="user-menu-item danger">
+    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+         <polyline points="16 17 21 12 16 7"></polyline>
+         <line x1="21" y1="12" x2="9" y2="12"></line></svg></span>
+    Sign out
+  </a>
 </div>
 
 <!-- Bottom tab bar (mobile only) -->
 <nav class="bottom-tabs">
   <a id="btab-leads" class="active" data-view="leads">
-    <span class="tab-icon">📋</span><span>Leads</span>
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round">
+        <path d="M9 11H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+        <path d="M17 11h-2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+        <path d="M9 21H7a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+        <path d="M17 21h-2a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+      </svg>
+    </span><span>Leads</span>
   </a>
   <a id="btab-plan" data-view="plan">
-    <span class="tab-icon">📅</span><span>My Day</span>
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+    </span><span>My Day</span>
   </a>
   <a id="btab-feed" data-view="feed">
-    <span class="tab-icon">📡</span><span>Activity</span>
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+      </svg>
+    </span><span>Activity</span>
   </a>
   <a id="btab-proposal" data-view="proposal">
-    <span class="tab-icon">📄</span><span>Proposal</span>
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+      </svg>
+    </span><span>Proposal</span>
   </a>
   <a id="btab-more" data-view="more">
-    <span class="tab-icon">⋯</span><span>More</span>
+    <span class="tab-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round">
+        <circle cx="12" cy="12" r="1"></circle>
+        <circle cx="19" cy="12" r="1"></circle>
+        <circle cx="5" cy="12" r="1"></circle>
+      </svg>
+    </span><span>More</span>
   </a>
 </nav>
 
@@ -1548,65 +1977,75 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 
     <!-- PROPOSAL VIEW -->
     <div id="view-proposal" class="hidden">
-      <h2>Proposal Generator</h2>
-      <div style="display:grid;grid-template-columns:380px 1fr;gap:18px">
-        <div style="background:#1a1d27;padding:18px;border-radius:8px">
-          <div class="filter-group">
-            <label>Lead (optional — autofills from selected lead)</label>
-            <select id="prop-lead-select">
-              <option value="">— Manual entry —</option>
-            </select>
+      <h2>Proposal</h2>
+      <div class="proposal-layout">
+        <div class="proposal-form">
+          <div class="proposal-section">
+            <div class="proposal-section-title">Property</div>
+            <div class="filter-group">
+              <label>Pre-fill from lead</label>
+              <select id="prop-lead-select">
+                <option value="">— Manual entry —</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Property name</label>
+              <input id="prop-name" type="text" placeholder="e.g. Hotel Cyclades">
+            </div>
+            <div class="filter-group">
+              <label>Type</label>
+              <select id="prop-type">
+                <option value="villa">Villa / House</option>
+                <option value="hotel">Hotel</option>
+                <option value="apartments">Apartments / Studios</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Location</label>
+              <input id="prop-location" type="text" placeholder="e.g. Naoussa, Paros">
+            </div>
+            <div class="filter-group">
+              <label>Date</label>
+              <input id="prop-date" type="text" placeholder="DD/MM/YYYY">
+            </div>
           </div>
-          <div class="filter-group">
-            <label>Hotel / Property name</label>
-            <input id="prop-name" type="text" placeholder="e.g. Hotel Cyclades">
+
+          <div class="proposal-section">
+            <div class="proposal-section-title">Author</div>
+            <div class="filter-group">
+              <label>Names</label>
+              <input id="prop-authors" type="text"
+                     placeholder="Οδυσσέας Στάβερης & Γιώργος Σπύρου">
+            </div>
+            <div class="filter-group">
+              <label>Phone</label>
+              <input id="prop-phone" type="text" value="+30 694 792 0875">
+            </div>
+            <div class="filter-group">
+              <label>Email</label>
+              <input id="prop-email" type="text" value="info@devox.gr">
+            </div>
           </div>
-          <div class="filter-group">
-            <label>Property type</label>
-            <select id="prop-type">
-              <option value="villa">Villa / House</option>
-              <option value="hotel">Hotel</option>
-              <option value="apartments">Apartments / Studios</option>
-            </select>
+
+          <div class="proposal-section">
+            <div class="proposal-section-title">Pricing</div>
+            <div class="filter-group">
+              <label>Option A</label>
+              <input id="prop-price-a" type="text" value="€700 – €900">
+            </div>
+            <div class="filter-group">
+              <label>Option B</label>
+              <input id="prop-price-b" type="text" value="€1.500 – €2.000">
+            </div>
           </div>
-          <div class="filter-group">
-            <label>Location (full)</label>
-            <input id="prop-location" type="text" placeholder="e.g. Naoussa, Paros">
-          </div>
-          <div class="filter-group">
-            <label>Date</label>
-            <input id="prop-date" type="text" placeholder="DD/MM/YYYY">
-          </div>
-          <div class="filter-group">
-            <label>Author names</label>
-            <input id="prop-authors" type="text"
-                   placeholder="e.g. Οδυσσέας Στάβερης & Γιώργος Σπύρου">
-          </div>
-          <div class="filter-group">
-            <label>Author phone</label>
-            <input id="prop-phone" type="text" value="+30 694 792 0875">
-          </div>
-          <div class="filter-group">
-            <label>Author email</label>
-            <input id="prop-email" type="text" value="info@devox.gr">
-          </div>
-          <div class="filter-group">
-            <label>Option A price</label>
-            <input id="prop-price-a" type="text" value="€700 – €900">
-          </div>
-          <div class="filter-group">
-            <label>Option B price</label>
-            <input id="prop-price-b" type="text" value="€1.500 – €2.000">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <button class="btn" id="prop-preview">👁 Preview</button>
-            <button class="btn success" id="prop-download">⬇ Download HTML</button>
+
+          <div class="proposal-actions">
+            <button class="btn ghost" id="prop-preview">Preview</button>
+            <button class="btn" id="prop-download">Download HTML</button>
           </div>
         </div>
-        <div id="prop-preview-area"
-             style="background:white;border-radius:8px;
-                    min-height:600px;overflow:auto">
-          <div style="color:#6b7280;padding:40px;text-align:center">
+        <div id="prop-preview-area" class="proposal-preview">
+          <div class="proposal-preview-empty">
             Fill the form and click Preview to see the proposal here.
           </div>
         </div>
@@ -1617,6 +2056,89 @@ tr.lead-row.selected td { background: var(--brand-soft); }
     <div id="view-admin" class="hidden">
       <h2>User Management</h2>
       <div id="admin-users"></div>
+    </div>
+
+    <!-- ACCOUNT VIEW -->
+    <div id="view-account" class="hidden">
+      <h2>Account</h2>
+      <div class="account-card">
+        <div class="account-head">
+          <span class="user-avatar lg" id="account-avatar"></span>
+          <div>
+            <div class="account-name">{{ user.full_name }}</div>
+            <div class="account-meta">
+              <span>@{{ user.username }}</span>
+              <span class="dot">·</span>
+              <span class="role">{{ user.role }}</span>
+            </div>
+          </div>
+        </div>
+        <div id="account-regions-line" class="account-regions" style="display:none">
+          <span class="account-label">Assigned regions</span>
+          <span id="account-regions-list"></span>
+        </div>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Security</div>
+        <button class="account-row" id="acc-change-pw">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Change password</div>
+            <div class="account-row-sub">At least 6 characters</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round" class="account-chevron">
+               <polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+
+      <div class="account-section">
+        <div class="account-section-title">Notifications</div>
+        <div class="account-row static">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+               <path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Live activity</div>
+            <div class="account-row-sub">You'll see live updates from the team</div>
+          </div>
+          <span class="account-pill on">On</span>
+        </div>
+      </div>
+
+      <div class="account-section">
+        <a class="account-row" href="/download" target="_blank">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+               <polyline points="7 10 12 15 17 10"></polyline>
+               <line x1="12" y1="15" x2="12" y2="3"></line></svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Download apps</div>
+            <div class="account-row-sub">Windows installer & Android APK</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round" class="account-chevron">
+               <polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+        <a class="account-row danger" href="/logout">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+               <polyline points="16 17 21 12 16 7"></polyline>
+               <line x1="21" y1="12" x2="9" y2="12"></line></svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Sign out</div>
+          </div>
+        </a>
+      </div>
     </div>
   </main>
 </div>
@@ -1691,7 +2213,8 @@ function setView(v) {
     return;
   }
   currentView = v;
-  for (const id of ['leads', 'plan', 'feed', 'admin', 'resources', 'proposal']) {
+  for (const id of ['leads', 'plan', 'feed', 'admin', 'resources',
+                     'proposal', 'account']) {
     const view = document.getElementById('view-' + id);
     if (view) view.classList.toggle('hidden', id !== v);
     const link = document.getElementById('nav-' + id);
@@ -1709,31 +2232,93 @@ function setView(v) {
   if (v === 'feed') loadRecentActivity();
   if (v === 'resources') loadResources();
   if (v === 'proposal') initProposalForm();
+  if (v === 'account') refreshAccountView();
+}
+
+function refreshAccountView() {
+  const av = document.getElementById('account-avatar');
+  if (av) av.textContent = initials(ME.full_name);
+  const regs = ME.regions || [];
+  const line = document.getElementById('account-regions-line');
+  const list = document.getElementById('account-regions-list');
+  if (line && list) {
+    if (regs.length) {
+      line.style.display = '';
+      list.innerHTML = regs.map(r =>
+        `<span class="assigned-pill">${escapeHtml(r)}</span>`).join(' ');
+    } else {
+      line.style.display = 'none';
+    }
+  }
+  const pwBtn = document.getElementById('acc-change-pw');
+  if (pwBtn) pwBtn.onclick = () => openChangePasswordModal();
 }
 
 function showMoreMenu() {
-  const opts = [
-    { v: 'resources', label: '📚 Resources' },
-    { v: '__download', label: '⬇ Download app' },
-    { v: '__change_pw', label: '🔑 Change password' },
-  ];
-  if (ME.role === 'admin') opts.push({ v: 'admin', label: '⚙️ Admin' });
-  opts.push({ v: '__logout', label: '🚪 Logout' });
-  // Reuse filter drawer markup as a generic bottom sheet
+  // iOS-style "More" sheet: profile header + sectioned list of rows
   const drawer = document.getElementById('filter-drawer');
   const inner = drawer.querySelector('.filter-drawer-inner');
+  const av = initials(ME.full_name);
+  const regs = (ME.regions || []).length;
+  const opts = [
+    { v: 'account', label: 'Account', sub: 'Profile, password',
+      icon: '<circle cx="12" cy="8" r="4"></circle><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"></path>' },
+    { v: 'resources', label: 'Resources', sub: 'Sales playbook & guides',
+      icon: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>' },
+  ];
+  if (ME.role === 'admin') {
+    opts.push({ v: 'admin', label: 'Admin', sub: 'Manage users & regions',
+      icon: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>' });
+  }
+  opts.push({ v: '__download', label: 'Download apps', sub: 'Windows & Android',
+    icon: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>' });
+
   inner.innerHTML = `
-    <button class="filter-drawer-close" id="more-close">✕</button>
-    <h3>More</h3>
-    ${opts.map(o => `
-      <button class="btn secondary" style="width:100%;padding:14px;margin-bottom:8px;
-              text-align:left;font-size:15px" data-more="${o.v}">${o.label}</button>
-    `).join('')}
+    <div class="more-header">
+      <span class="user-avatar lg">${escapeHtml(av)}</span>
+      <div class="more-header-text">
+        <div class="more-header-name">${escapeHtml(ME.full_name || '')}</div>
+        <div class="more-header-meta">
+          <span class="role">${escapeHtml(ME.role || 'sales')}</span>
+          ${regs ? `<span class="dot">·</span><span>${regs} regions</span>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="more-list">
+      ${opts.map(o => `
+        <button class="more-row" data-more="${o.v}">
+          <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">${o.icon}</svg></span>
+          <span class="more-row-text">
+            <span class="more-row-title">${o.label}</span>
+            ${o.sub ? `<span class="more-row-sub">${o.sub}</span>` : ''}
+          </span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round" class="more-chevron">
+               <polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      `).join('')}
+      <button class="more-row danger" data-more="__logout">
+        <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+             <polyline points="16 17 21 12 16 7"></polyline>
+             <line x1="21" y1="12" x2="9" y2="12"></line></svg></span>
+        <span class="more-row-text">
+          <span class="more-row-title">Sign out</span>
+        </span>
+      </button>
+    </div>
   `;
   drawer.classList.add('open');
-  inner.querySelector('#more-close').onclick = () => {
-    drawer.classList.remove('open');
-    rebuildFilterDrawer();
+  // Backdrop click closes
+  drawer.onclick = (e) => {
+    if (e.target === drawer) {
+      drawer.classList.remove('open');
+      rebuildFilterDrawer();
+    }
   };
   for (const b of inner.querySelectorAll('button[data-more]')) {
     b.onclick = () => {
@@ -1741,7 +2326,6 @@ function showMoreMenu() {
       const v = b.dataset.more;
       if (v === '__logout') { window.location.href = '/logout'; return; }
       if (v === '__download') { window.open('/download', '_blank'); rebuildFilterDrawer(); return; }
-      if (v === '__change_pw') { openChangePasswordModal(); rebuildFilterDrawer(); return; }
       rebuildFilterDrawer();
       setView(v);
     };
@@ -1841,12 +2425,36 @@ for (const link of document.querySelectorAll('.nav a, .bottom-tabs a')) {
   link.onclick = () => setView(link.dataset.view);
 }
 
-const linkChangePw = document.getElementById('link-change-pw');
-if (linkChangePw) {
-  linkChangePw.onclick = (e) => {
-    e.preventDefault();
-    openChangePasswordModal();
+// User dropdown menu (desktop)
+function initials(name) {
+  return (name || '').trim().split(/\s+/)
+    .slice(0, 2).map(s => s[0] || '').join('').toUpperCase() || '?';
+}
+const _avatarText = initials(ME.full_name);
+for (const el of document.querySelectorAll('#user-avatar, #user-avatar-lg')) {
+  if (el) el.textContent = _avatarText;
+}
+const userMenuBtn = document.getElementById('user-menu-btn');
+const userMenu = document.getElementById('user-menu');
+if (userMenuBtn && userMenu) {
+  userMenuBtn.onclick = (e) => {
+    e.stopPropagation();
+    userMenu.classList.toggle('open');
   };
+  document.addEventListener('click', (e) => {
+    if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
+      userMenu.classList.remove('open');
+    }
+  });
+  for (const item of userMenu.querySelectorAll('.user-menu-item')) {
+    const action = item.dataset.action;
+    if (!action) continue;
+    item.onclick = (e) => {
+      e.preventDefault();
+      userMenu.classList.remove('open');
+      if (action === 'account') setView('account');
+    };
+  }
 }
 
 if (ME.role === 'admin') {
@@ -1892,24 +2500,19 @@ async function refreshLeads() {
 
   const allStatuses = ['new','called','reached','interested','follow_up',
                         'not_interested','closed_won','closed_lost','disqualified'];
-  const STATUS_ICONS = {
-    new: '🆕', called: '📞', reached: '💬', interested: '✅',
-    follow_up: '📅', not_interested: '❌', closed_won: '🤝',
-    closed_lost: '🚫', disqualified: '🗑️',
-  };
 
   // Sidebar quick stats (compact list)
   const statusEl = document.getElementById('status-counts');
   let html = '';
   if (activeStatus) {
     html += `<button class="clear-filter-btn" id="clear-status-filter">
-      ✕ Clear status filter</button>`;
+      Clear status filter</button>`;
   }
   html += allStatuses.map(s => {
     const n = data.by_status[s] || 0;
     const cls = s === activeStatus ? 'row active' : 'row';
     return `<div class="${cls} dot-${s}" data-status="${s}">
-      <span class="label">${STATUS_ICONS[s]||''} ${STATUS_LABEL[s]}</span>
+      <span class="label">${STATUS_LABEL[s]}</span>
       <span class="count">${n}</span>
     </div>`;
   }).join('');
@@ -1933,7 +2536,7 @@ async function refreshLeads() {
         ? `quick-filter-pill dot-${s} active`
         : `quick-filter-pill dot-${s}`;
       return `<span class="${cls}" data-status="${s}">
-        ${STATUS_ICONS[s]||''} ${STATUS_LABEL[s]}
+        ${STATUS_LABEL[s]}
         <span class="count">${n}</span>
       </span>`;
     }).join('');
