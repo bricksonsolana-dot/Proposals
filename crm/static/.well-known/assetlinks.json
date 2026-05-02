@@ -1,10 +1,22 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.onrender.devox_crm.twa",
-    "sha256_cert_fingerprints": [
-      "E9:7B:9B:FB:6F:EE:61:A9:CE:5C:4D:81:25:A7:1D:CA:95:E1:17:6D:50:DF:CC:3F:82:6B:B0:5D:89:BD:98:C3"
-    ]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "gr.devox.sales",
+      "sha256_cert_fingerprints": [
+        "E9:7B:9B:FB:6F:EE:61:A9:CE:5C:4D:81:25:A7:1D:CA:95:E1:17:6D:50:DF:CC:3F:82:6B:B0:5D:89:BD:98:C3"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.onrender.devox_crm.twa",
+      "sha256_cert_fingerprints": [
+        "E9:7B:9B:FB:6F:EE:61:A9:CE:5C:4D:81:25:A7:1D:CA:95:E1:17:6D:50:DF:CC:3F:82:6B:B0:5D:89:BD:98:C3"
+      ]
+    }
   }
-}]
+]

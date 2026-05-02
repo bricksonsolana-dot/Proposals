@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Devox Sales</string>
+    <string name="title_activity_main">Devox Sales</string>
+    <string name="package_name">gr.devox.sales</string>
+    <string name="custom_url_scheme">gr.devox.sales</string>
+</resources>

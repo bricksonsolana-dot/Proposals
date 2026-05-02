@@ -1,0 +1,14 @@
+{
+  "name": "devox-sales-native",
+  "version": "1.0.0",
+  "description": "Devox Sales native Android wrapper",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0"
+  }
+}
