@@ -216,6 +216,16 @@ def api_leads():
         where.append("ls.assigned_to = ?")
         params.append(user["id"])
 
+    if args.get("my_regions") == "1":
+        my_regions = get_user_regions(user["id"])
+        if my_regions:
+            placeholders = ",".join("?" * len(my_regions))
+            where.append(f"l.region IN ({placeholders})")
+            params.extend(my_regions)
+        else:
+            # User has no regions assigned -> return zero leads
+            where.append("1 = 0")
+
     if args.get("favorites") == "1":
         where.append("f.user_id IS NOT NULL")
 
@@ -663,18 +673,77 @@ def api_sync_leads():
     return jsonify({"ok": True, "upserted": upserted})
 
 
+# ---------- User regions (admin assigns regions to sales users) ----------
+
+def get_user_regions(user_id: int) -> list[str]:
+    rows = db.query(
+        "SELECT region FROM user_regions WHERE user_id = ? ORDER BY region",
+        (user_id,))
+    return [r["region"] for r in rows]
+
+
+@app.route("/api/users/<int:uid>/regions")
+@auth.login_required
+def api_get_user_regions(uid):
+    # Admin can see anyone's regions; non-admin only their own.
+    if g.user["role"] != "admin" and uid != g.user["id"]:
+        return jsonify({"error": "forbidden"}), 403
+    return jsonify({"regions": get_user_regions(uid)})
+
+
+@app.route("/api/users/<int:uid>/regions", methods=["POST"])
+@auth.admin_required
+def api_set_user_regions(uid):
+    data = request.get_json(force=True) or {}
+    regions = data.get("regions") or []
+    if not isinstance(regions, list):
+        return jsonify({"error": "regions must be a list"}), 400
+    regions = [str(r).strip() for r in regions if str(r).strip()]
+    # Replace the full set
+    db.execute("DELETE FROM user_regions WHERE user_id = ?", (uid,))
+    if regions:
+        db.execute_many(
+            "INSERT INTO user_regions (user_id, region) VALUES (?, ?)",
+            [(uid, r) for r in regions])
+    user = db.query_one(
+        "SELECT username, full_name FROM users WHERE id = ?", (uid,))
+    broadcast({
+        "type": "regions_assigned",
+        "user_id": uid,
+        "username": user["username"] if user else "",
+        "full_name": user["full_name"] if user else "",
+        "regions": regions,
+    })
+    return jsonify({"ok": True, "regions": regions})
+
+
+@app.route("/api/regions/all")
+@auth.login_required
+def api_all_regions():
+    """Distinct regions present in the leads table."""
+    rows = db.query(
+        "SELECT region, COUNT(*) AS lead_count FROM leads "
+        "WHERE region IS NOT NULL AND region <> '' "
+        "GROUP BY region ORDER BY region", ())
+    return jsonify(rows)
+
+
 # ---------- Main UI ----------
 
 @app.route("/")
 @auth.login_required
 def index():
-    return render_template_string(INDEX_HTML, user=g.user)
+    user = dict(g.user)
+    user["regions"] = get_user_regions(user["id"])
+    return render_template_string(INDEX_HTML, user=user)
 
 
 @app.route("/api/me")
 @auth.login_required
 def api_me():
-    return jsonify(g.user)
+    user = dict(g.user)
+    user["regions"] = get_user_regions(user["id"])
+    return jsonify(user)
 
 
 PROPOSAL_TEMPLATE = ROOT / "templates" / "proposal_template.html"

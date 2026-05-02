@@ -603,6 +603,10 @@ tr.lead-row.selected td { background: #1e293b; }
   <div class="user-info">
     <span id="online-now" class="live"></span>
     <span class="badge">Hi, {{ user.full_name }}</span>
+    <span id="my-regions-badge" class="target-badge"
+          title="Regions assigned to you" style="display:none;cursor:pointer">
+      📍 <span id="my-regions-count">0</span> regions
+    </span>
     <span id="calls-today-badge" class="target-badge">0/20 calls today</span>
     <a href="/logout">Logout</a>
   </div>
@@ -667,6 +671,12 @@ tr.lead-row.selected td { background: #1e293b; }
           <button id="t-mine" data-mine="1">My Leads</button>
           <button id="t-all" class="active" data-mine="0">All Leads</button>
         </div>
+      </div>
+      <div class="filter-group" id="my-regions-toggle-row" style="display:none">
+        <label class="fav-toggle-label" style="width:100%">
+          <input id="filter-my-regions" type="checkbox">
+          <span>📍 Only my regions (<span id="my-regions-list-inline">—</span>)</span>
+        </label>
       </div>
 
       <h2>Quick Stats</h2>
@@ -885,6 +895,7 @@ let allLeads = [];
 let activeStatus = null;
 let myMode = 0;
 let favOnly = false;
+let myRegionsOnly = 0;
 let users = [];
 let activeFilterRegion = '';
 let activeFilterAssignee = '';
@@ -892,6 +903,41 @@ let filterText = '';
 let searchTimer = null;
 let selectedPhone = null;
 let currentView = 'leads';
+
+// Render assigned-regions UI bits based on what the server gave us in ME.
+function renderMyRegionsUI() {
+  const regs = (ME.regions || []);
+  const badge = document.getElementById('my-regions-badge');
+  const cnt = document.getElementById('my-regions-count');
+  const row = document.getElementById('my-regions-toggle-row');
+  const inline = document.getElementById('my-regions-list-inline');
+  if (regs.length) {
+    if (badge) {
+      badge.style.display = '';
+      badge.title = 'Assigned regions: ' + regs.join(', ');
+    }
+    if (cnt) cnt.textContent = regs.length;
+    if (row) row.style.display = '';
+    if (inline) {
+      inline.textContent = regs.length <= 2
+        ? regs.join(', ')
+        : regs.slice(0, 2).join(', ') + ' +' + (regs.length - 2);
+    }
+  } else {
+    if (badge) badge.style.display = 'none';
+    if (row) row.style.display = 'none';
+  }
+  // Clicking the badge toggles the "only my regions" filter
+  if (badge) {
+    badge.onclick = () => {
+      const cb = document.getElementById('filter-my-regions');
+      if (!cb) return;
+      cb.checked = !cb.checked;
+      cb.dispatchEvent(new Event('change'));
+    };
+  }
+}
+renderMyRegionsUI();
 
 // ----------------- View switching -----------------
 function setView(v) {
@@ -987,6 +1033,7 @@ function notify(msg) {
 async function refreshLeads() {
   const params = new URLSearchParams();
   if (myMode) params.set('mine', '1');
+  if (myRegionsOnly) params.set('my_regions', '1');
   if (favOnly) params.set('favorites', '1');
   if (activeStatus) params.set('status', activeStatus);
   if (activeFilterRegion) params.set('region', activeFilterRegion);
@@ -1223,6 +1270,18 @@ document.getElementById('filter-assignee-top').onchange = e => {
 document.getElementById('filter-fav-top').onchange = e => {
   favOnly = e.target.checked; refreshLeads();
 };
+
+// "Only my regions" filter (sidebar toggle)
+const filterMyRegionsCb = document.getElementById('filter-my-regions');
+if (filterMyRegionsCb) {
+  filterMyRegionsCb.onchange = e => {
+    myRegionsOnly = e.target.checked ? 1 : 0;
+    // Visual feedback on the badge in the top bar
+    const badge = document.getElementById('my-regions-badge');
+    if (badge) badge.classList.toggle('met', !!myRegionsOnly);
+    refreshLeads();
+  };
+}
 
 // ----------------- Mobile filter drawer -----------------
 function rebuildFilterDrawer() {
@@ -1741,19 +1800,161 @@ async function loadUsers() {
 
 async function refreshUsers() {
   await loadUsers();
+  // Fetch each user's assigned regions for the admin list
+  const regionsByUser = {};
+  await Promise.all(users.map(async u => {
+    try {
+      const r = await fetch('/api/users/' + u.id + '/regions');
+      if (r.ok) {
+        const d = await r.json();
+        regionsByUser[u.id] = d.regions || [];
+      }
+    } catch {}
+  }));
   const list = document.getElementById('admin-users');
-  list.innerHTML = users.map(u => `
-    <div class="user-row">
-      <div class="name"><b>${escapeHtml(u.full_name)}</b>
-        <span style="color:#8b92a6"> · @${escapeHtml(u.username)}</span></div>
+  list.innerHTML = users.map(u => {
+    const regs = regionsByUser[u.id] || [];
+    const regSummary = regs.length === 0
+      ? '<span style="color:#6b7280;font-style:italic">no regions</span>'
+      : (regs.length <= 3
+          ? regs.map(r => `<span class="assigned-pill">${escapeHtml(r)}</span>`).join(' ')
+          : `<span class="assigned-pill">${regs.length} regions</span>`);
+    return `
+    <div class="user-row" style="flex-wrap:wrap">
+      <div class="name" style="flex:1 1 200px">
+        <b>${escapeHtml(u.full_name)}</b>
+        <span style="color:#8b92a6"> · @${escapeHtml(u.username)}</span>
+        <div style="margin-top:4px; font-size:11px">${regSummary}</div>
+      </div>
       <span class="role ${u.role}">${escapeHtml(u.role)}</span>
+      <button class="btn secondary" onclick="openRegionPicker(${u.id})">📍 Regions</button>
       ${u.id !== ME.id ? `
         <button class="btn secondary" onclick="resetPwd(${u.id})">Reset PW</button>
         <button class="btn danger" onclick="deactivateUser(${u.id})">Deactivate</button>
       ` : ''}
     </div>
-  `).join('');
+  `;}).join('');
 }
+
+// ----------------- Region picker (admin only) -----------------
+let _regionPickerCache = null;
+
+async function loadAllRegions() {
+  if (_regionPickerCache) return _regionPickerCache;
+  const r = await fetch('/api/regions/all');
+  _regionPickerCache = await r.json();
+  return _regionPickerCache;
+}
+
+async function openRegionPicker(uid) {
+  const target = users.find(u => u.id === uid);
+  if (!target) return;
+  // Fetch current regions + full region list in parallel
+  const [allRegions, currentResp] = await Promise.all([
+    loadAllRegions(),
+    fetch('/api/users/' + uid + '/regions'),
+  ]);
+  const currentData = currentResp.ok ? await currentResp.json() : { regions: [] };
+  const current = new Set(currentData.regions || []);
+
+  let modal = document.getElementById('region-picker-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'region-picker-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);'+
+    'z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#14171f;border:1px solid #2a2f3d;border-radius:12px;
+                width:680px;max-width:100%;max-height:85vh;display:flex;
+                flex-direction:column">
+      <div style="padding:18px 22px;border-bottom:1px solid #2a2f3d;
+                  display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:17px;font-weight:700">📍 Assign regions</div>
+          <div style="font-size:13px;color:#8b92a6;margin-top:2px">
+            ${escapeHtml(target.full_name)} · @${escapeHtml(target.username)}
+          </div>
+        </div>
+        <button id="rp-close" style="background:transparent;border:0;
+                color:#8b92a6;font-size:22px;cursor:pointer;padding:4px 8px">✕</button>
+      </div>
+      <div style="padding:14px 22px;border-bottom:1px solid #2a2f3d;
+                  display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="rp-search" type="text" placeholder="🔍 Filter regions..."
+               style="flex:1;min-width:200px">
+        <button class="btn secondary" id="rp-select-all">Select all</button>
+        <button class="btn secondary" id="rp-clear">Clear</button>
+        <span id="rp-count" style="color:#8b92a6;font-size:12px">
+          ${current.size} selected
+        </span>
+      </div>
+      <div id="rp-list" style="padding:12px 22px;overflow-y:auto;flex:1;
+                                display:grid;
+                                grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+                                gap:6px"></div>
+      <div style="padding:14px 22px;border-top:1px solid #2a2f3d;
+                  display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn secondary" id="rp-cancel">Cancel</button>
+        <button class="btn" id="rp-save">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  function renderList(filter) {
+    const f = (filter || '').trim().toLowerCase();
+    const list = document.getElementById('rp-list');
+    list.innerHTML = allRegions.filter(r =>
+      !f || r.region.toLowerCase().includes(f)
+    ).map(r => {
+      const checked = current.has(r.region) ? 'checked' : '';
+      return `<label style="display:flex;align-items:center;gap:8px;
+                            padding:8px 10px;background:#1a1d27;
+                            border-radius:6px;cursor:pointer;font-size:13px">
+        <input type="checkbox" data-region="${escapeHtml(r.region)}" ${checked}>
+        <span style="flex:1">${escapeHtml(r.region)}</span>
+        <span style="color:#6b7280;font-size:11px">${r.lead_count}</span>
+      </label>`;
+    }).join('');
+    for (const cb of list.querySelectorAll('input[type=checkbox]')) {
+      cb.onchange = () => {
+        if (cb.checked) current.add(cb.dataset.region);
+        else current.delete(cb.dataset.region);
+        document.getElementById('rp-count').textContent = current.size + ' selected';
+      };
+    }
+  }
+  renderList('');
+
+  document.getElementById('rp-search').oninput = e => renderList(e.target.value);
+  document.getElementById('rp-select-all').onclick = () => {
+    for (const r of allRegions) current.add(r.region);
+    document.getElementById('rp-count').textContent = current.size + ' selected';
+    renderList(document.getElementById('rp-search').value);
+  };
+  document.getElementById('rp-clear').onclick = () => {
+    current.clear();
+    document.getElementById('rp-count').textContent = '0 selected';
+    renderList(document.getElementById('rp-search').value);
+  };
+  const close = () => modal.remove();
+  document.getElementById('rp-close').onclick = close;
+  document.getElementById('rp-cancel').onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+  document.getElementById('rp-save').onclick = async () => {
+    const r = await fetch('/api/users/' + uid + '/regions', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ regions: Array.from(current) }),
+    });
+    if (r.ok) {
+      notify(`Saved ${current.size} regions for ${target.full_name}`);
+      close();
+      refreshUsers();
+    } else {
+      alert('Failed to save regions');
+    }
+  };
+}
+window.openRegionPicker = openRegionPicker;
 
 async function resetPwd(uid) {
   const pw = prompt('New password:');
@@ -1826,6 +2027,18 @@ evt.onmessage = (e) => {
     if (data.type === 'leads_synced') {
       notify(`${data.count} new leads imported`);
       refreshLeads();
+      return;
+    }
+    if (data.type === 'regions_assigned') {
+      // If admin reassigned MY regions, refresh ME and the badge
+      if (data.user_id === ME.id) {
+        ME.regions = data.regions || [];
+        renderMyRegionsUI();
+        notify(`Your regions updated (${ME.regions.length})`);
+        refreshLeads();
+      } else if (currentView === 'admin') {
+        refreshUsers();
+      }
       return;
     }
     if (data.type === 'activity') {
@@ -2089,7 +2302,14 @@ document.getElementById('prop-download').onclick = async () => {
   notify('Downloaded');
 };
 
-// Init
+// Init — sales users with assigned regions default to "my regions only"
+if (ME.role !== 'admin' && (ME.regions || []).length) {
+  myRegionsOnly = 1;
+  const cb = document.getElementById('filter-my-regions');
+  if (cb) cb.checked = true;
+  const badge = document.getElementById('my-regions-badge');
+  if (badge) badge.classList.add('met');
+}
 loadUsers();
 refreshLeads();
 refreshDailyCounter();

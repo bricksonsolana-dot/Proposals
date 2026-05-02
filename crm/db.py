@@ -183,11 +183,21 @@ CREATE TABLE IF NOT EXISTS favorites (
     FOREIGN KEY (lead_phone) REFERENCES leads(phone) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS user_regions (
+    user_id INTEGER NOT NULL,
+    region TEXT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, region),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
 CREATE INDEX IF NOT EXISTS idx_activity_user_date ON activity(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
 """
 
 SCHEMA_POSTGRES = """
@@ -242,11 +252,20 @@ CREATE TABLE IF NOT EXISTS favorites (
     PRIMARY KEY (user_id, lead_phone)
 );
 
+CREATE TABLE IF NOT EXISTS user_regions (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    region TEXT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, region)
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
 CREATE INDEX IF NOT EXISTS idx_activity_user_date ON activity(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
 """
 
 
