@@ -608,6 +608,7 @@ tr.lead-row.selected td { background: #1e293b; }
       📍 <span id="my-regions-count">0</span> regions
     </span>
     <span id="calls-today-badge" class="target-badge">0/20 calls today</span>
+    <a href="#" id="link-change-pw" title="Change password">🔑 Password</a>
     <a href="/logout">Logout</a>
   </div>
 </div>
@@ -969,6 +970,7 @@ function setView(v) {
 function showMoreMenu() {
   const opts = [
     { v: 'resources', label: '📚 Resources' },
+    { v: '__change_pw', label: '🔑 Change password' },
   ];
   if (ME.role === 'admin') opts.push({ v: 'admin', label: '⚙️ Admin' });
   opts.push({ v: '__logout', label: '🚪 Logout' });
@@ -993,14 +995,112 @@ function showMoreMenu() {
       drawer.classList.remove('open');
       const v = b.dataset.more;
       if (v === '__logout') { window.location.href = '/logout'; return; }
+      if (v === '__change_pw') { openChangePasswordModal(); rebuildFilterDrawer(); return; }
       rebuildFilterDrawer();
       setView(v);
     };
   }
 }
 
+// ----------------- Self-service password change -----------------
+function openChangePasswordModal() {
+  let modal = document.getElementById('pw-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'pw-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);'+
+    'z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#14171f;border:1px solid #2a2f3d;border-radius:12px;
+                width:420px;max-width:100%">
+      <div style="padding:18px 22px;border-bottom:1px solid #2a2f3d;
+                  display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:17px;font-weight:700">🔑 Change password</div>
+        <button id="pw-close" style="background:transparent;border:0;
+                color:#8b92a6;font-size:22px;cursor:pointer;padding:4px 8px">✕</button>
+      </div>
+      <div style="padding:18px 22px">
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:#8b92a6;
+                  margin-bottom:6px;text-transform:uppercase">Current password</label>
+          <input id="pw-current" type="password" autocomplete="current-password">
+        </div>
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:#8b92a6;
+                  margin-bottom:6px;text-transform:uppercase">New password</label>
+          <input id="pw-new" type="password" autocomplete="new-password">
+          <div style="font-size:11px;color:#6b7280;margin-top:4px">
+            At least 6 characters
+          </div>
+        </div>
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:#8b92a6;
+                  margin-bottom:6px;text-transform:uppercase">Confirm new password</label>
+          <input id="pw-confirm" type="password" autocomplete="new-password">
+        </div>
+        <div id="pw-error" style="color:#fca5a5;font-size:13px;
+                  margin:8px 0;display:none"></div>
+      </div>
+      <div style="padding:14px 22px;border-top:1px solid #2a2f3d;
+                  display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn secondary" id="pw-cancel">Cancel</button>
+        <button class="btn" id="pw-save">Update password</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  function showErr(msg) {
+    const el = document.getElementById('pw-error');
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+  }
+  const close = () => modal.remove();
+  document.getElementById('pw-close').onclick = close;
+  document.getElementById('pw-cancel').onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+  setTimeout(() => document.getElementById('pw-current').focus(), 50);
+
+  async function submit() {
+    showErr('');
+    const cur = document.getElementById('pw-current').value;
+    const nw = document.getElementById('pw-new').value;
+    const cf = document.getElementById('pw-confirm').value;
+    if (!cur || !nw || !cf) { showErr('All fields are required'); return; }
+    if (nw !== cf) { showErr('New passwords do not match'); return; }
+    if (nw.length < 6) { showErr('New password must be at least 6 characters'); return; }
+    if (nw === cur) { showErr('New password must differ from current'); return; }
+    const r = await fetch('/api/me/password', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ current_password: cur, new_password: nw }),
+    });
+    if (r.ok) {
+      notify('Password updated');
+      close();
+    } else {
+      let msg = 'Failed to update password';
+      try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+      showErr(msg);
+    }
+  }
+  document.getElementById('pw-save').onclick = submit;
+  for (const id of ['pw-current','pw-new','pw-confirm']) {
+    document.getElementById(id).onkeydown = (e) => {
+      if (e.key === 'Enter') submit();
+    };
+  }
+}
+window.openChangePasswordModal = openChangePasswordModal;
+
 for (const link of document.querySelectorAll('.nav a, .bottom-tabs a')) {
   link.onclick = () => setView(link.dataset.view);
+}
+
+const linkChangePw = document.getElementById('link-change-pw');
+if (linkChangePw) {
+  linkChangePw.onclick = (e) => {
+    e.preventDefault();
+    openChangePasswordModal();
+  };
 }
 
 if (ME.role === 'admin') {
@@ -1868,12 +1968,40 @@ async function refreshUsers() {
       <span class="role ${u.role}">${escapeHtml(u.role)}</span>
       <button class="btn secondary" onclick="openRegionPicker(${u.id})">📍 Regions</button>
       ${u.id !== ME.id ? `
+        <button class="btn secondary" onclick="changeRole(${u.id}, '${u.role === 'admin' ? 'sales' : 'admin'}')">
+          ${u.role === 'admin' ? '↓ Demote to Sales' : '↑ Promote to Admin'}
+        </button>
         <button class="btn secondary" onclick="resetPwd(${u.id})">Reset PW</button>
         <button class="btn danger" onclick="deactivateUser(${u.id})">Deactivate</button>
       ` : ''}
     </div>
   `;}).join('');
 }
+
+async function changeRole(uid, newRole) {
+  const target = users.find(u => u.id === uid);
+  const name = target ? target.full_name : 'this user';
+  const verb = newRole === 'admin' ? 'promote' : 'demote';
+  if (!confirm(`${verb === 'promote' ? '↑ Promote' : '↓ Demote'} ${name} to ${newRole}?\n\n` +
+      (newRole === 'admin'
+        ? 'They will gain full admin powers — manage users, assign regions, deactivate accounts.'
+        : 'They will lose admin powers and become a regular sales user.'))) {
+    return;
+  }
+  const r = await fetch('/api/users/' + uid + '/role', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ role: newRole }),
+  });
+  if (r.ok) {
+    notify(`${name} is now ${newRole}`);
+    refreshUsers();
+  } else {
+    let msg = 'Failed to change role';
+    try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+    alert(msg);
+  }
+}
+window.changeRole = changeRole;
 
 // ----------------- Region picker (admin only) -----------------
 let _regionPickerCache = null;
@@ -2048,18 +2176,114 @@ window.resetPwd = resetPwd;
 window.deactivateUser = deactivateUser;
 window.reactivateUser = reactivateUser;
 
-document.getElementById('btn-new-user').onclick = async () => {
-  const username = prompt('Username (no spaces):'); if (!username) return;
-  const full_name = prompt('Full name:'); if (!full_name) return;
-  const password = prompt('Password (min 6 chars):'); if (!password) return;
-  const role = confirm('OK = admin, Cancel = sales') ? 'admin' : 'sales';
-  const r = await fetch('/api/users', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ username, full_name, password, role }),
-  });
-  if (r.ok) { refreshUsers(); notify('User created'); }
-  else { const d = await r.json(); alert(d.error || 'Failed'); }
-};
+function openNewUserModal() {
+  let modal = document.getElementById('new-user-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'new-user-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);'+
+    'z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#14171f;border:1px solid #2a2f3d;border-radius:12px;
+                width:460px;max-width:100%">
+      <div style="padding:18px 22px;border-bottom:1px solid #2a2f3d;
+                  display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:17px;font-weight:700">➕ Create user</div>
+        <button id="nu-close" style="background:transparent;border:0;
+                color:#8b92a6;font-size:22px;cursor:pointer;padding:4px 8px">✕</button>
+      </div>
+      <div style="padding:18px 22px">
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:#8b92a6;
+                  margin-bottom:6px;text-transform:uppercase">Username</label>
+          <input id="nu-username" type="text" autocomplete="off"
+                  placeholder="no spaces, e.g. giorgos">
+        </div>
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:#8b92a6;
+                  margin-bottom:6px;text-transform:uppercase">Full name</label>
+          <input id="nu-fullname" type="text" placeholder="e.g. Γιώργος Σπύρου">
+        </div>
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:#8b92a6;
+                  margin-bottom:6px;text-transform:uppercase">Password</label>
+          <input id="nu-password" type="password" placeholder="min 6 chars">
+        </div>
+        <div class="filter-group">
+          <label style="display:block;font-size:11px;color:#8b92a6;
+                  margin-bottom:6px;text-transform:uppercase">Role</label>
+          <div class="toggle-row">
+            <button type="button" id="nu-role-sales" class="active">Sales</button>
+            <button type="button" id="nu-role-admin">Admin</button>
+          </div>
+          <div style="font-size:11px;color:#6b7280;margin-top:6px">
+            Admins can manage users, assign regions, and deactivate accounts.
+          </div>
+        </div>
+        <div id="nu-error" style="color:#fca5a5;font-size:13px;
+                  margin:8px 0;display:none"></div>
+      </div>
+      <div style="padding:14px 22px;border-top:1px solid #2a2f3d;
+                  display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn secondary" id="nu-cancel">Cancel</button>
+        <button class="btn" id="nu-save">Create</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  let role = 'sales';
+  function showErr(msg) {
+    const el = document.getElementById('nu-error');
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+  }
+  const close = () => modal.remove();
+  document.getElementById('nu-close').onclick = close;
+  document.getElementById('nu-cancel').onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+  document.getElementById('nu-role-sales').onclick = () => {
+    role = 'sales';
+    document.getElementById('nu-role-sales').classList.add('active');
+    document.getElementById('nu-role-admin').classList.remove('active');
+  };
+  document.getElementById('nu-role-admin').onclick = () => {
+    role = 'admin';
+    document.getElementById('nu-role-admin').classList.add('active');
+    document.getElementById('nu-role-sales').classList.remove('active');
+  };
+  setTimeout(() => document.getElementById('nu-username').focus(), 50);
+
+  async function submit() {
+    showErr('');
+    const username = document.getElementById('nu-username').value.trim();
+    const full_name = document.getElementById('nu-fullname').value.trim();
+    const password = document.getElementById('nu-password').value;
+    if (!username) { showErr('Username is required'); return; }
+    if (/\s/.test(username)) { showErr('Username cannot contain spaces'); return; }
+    if (!full_name) { showErr('Full name is required'); return; }
+    if (password.length < 6) { showErr('Password must be at least 6 characters'); return; }
+    const r = await fetch('/api/users', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, full_name, password, role }),
+    });
+    if (r.ok) {
+      notify(`Created ${full_name} (${role})`);
+      close();
+      refreshUsers();
+    } else {
+      let msg = 'Failed to create user';
+      try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+      showErr(msg);
+    }
+  }
+  document.getElementById('nu-save').onclick = submit;
+  for (const id of ['nu-username','nu-fullname','nu-password']) {
+    document.getElementById(id).onkeydown = (e) => {
+      if (e.key === 'Enter') submit();
+    };
+  }
+}
+
+document.getElementById('btn-new-user').onclick = openNewUserModal;
 
 // ----------------- Daily plan -----------------
 async function refreshPlan() {
@@ -2117,6 +2341,16 @@ evt.onmessage = (e) => {
       return;
     }
     if (data.type === 'user_activated') {
+      if (currentView === 'admin') refreshUsers();
+      return;
+    }
+    if (data.type === 'user_role_changed') {
+      if (data.user_id === ME.id) {
+        // My own role changed — reload to refresh navigation/UI
+        notify(`Your role is now ${data.role} — reloading...`);
+        setTimeout(() => window.location.reload(), 800);
+        return;
+      }
       if (currentView === 'admin') refreshUsers();
       return;
     }

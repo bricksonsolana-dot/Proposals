@@ -600,6 +600,42 @@ def api_delete_user(uid):
     return jsonify({"ok": True})
 
 
+@app.route("/api/users/<int:uid>/role", methods=["POST"])
+@auth.admin_required
+def api_change_role(uid):
+    data = request.get_json(force=True) or {}
+    new_role = data.get("role") or ""
+    if new_role not in ("admin", "sales"):
+        return jsonify({"error": "role must be 'admin' or 'sales'"}), 400
+    target = db.query_one(
+        "SELECT id, role, is_active, full_name FROM users WHERE id = ?",
+        (uid,))
+    if not target:
+        return jsonify({"error": "user not found"}), 404
+    if target["role"] == new_role:
+        return jsonify({"ok": True, "unchanged": True})
+    # Prevent demoting yourself or the last active admin
+    if target["role"] == "admin" and new_role == "sales":
+        if uid == g.user["id"]:
+            return jsonify(
+                {"error": "you cannot demote yourself"}), 400
+        active_admins = db.query_one(
+            "SELECT COUNT(*) AS n FROM users "
+            "WHERE role = 'admin' AND is_active = 1", ())
+        if active_admins and active_admins["n"] <= 1:
+            return jsonify(
+                {"error": "cannot demote the last active admin"}), 400
+    db.execute(
+        "UPDATE users SET role = ? WHERE id = ?", (new_role, uid))
+    broadcast({
+        "type": "user_role_changed",
+        "user_id": uid,
+        "full_name": target["full_name"],
+        "role": new_role,
+    })
+    return jsonify({"ok": True, "role": new_role})
+
+
 @app.route("/api/users/<int:uid>/activate", methods=["POST"])
 @auth.admin_required
 def api_activate_user(uid):
@@ -626,8 +662,36 @@ def api_reset_password(uid):
     new_pw = data.get("password") or ""
     if not new_pw:
         return jsonify({"error": "missing password"}), 400
+    if len(new_pw) < 6:
+        return jsonify({"error": "password must be at least 6 characters"}), 400
     db.execute("UPDATE users SET password_hash = ? WHERE id = ?",
                  (auth.hash_password(new_pw), uid))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/me/password", methods=["POST"])
+@auth.login_required
+def api_change_my_password():
+    """Self-service password change. Requires the current password."""
+    data = request.get_json(force=True) or {}
+    current_pw = data.get("current_password") or ""
+    new_pw = data.get("new_password") or ""
+    if not current_pw or not new_pw:
+        return jsonify(
+            {"error": "current and new passwords are required"}), 400
+    if len(new_pw) < 6:
+        return jsonify(
+            {"error": "new password must be at least 6 characters"}), 400
+    if new_pw == current_pw:
+        return jsonify(
+            {"error": "new password must differ from current"}), 400
+    row = db.query_one(
+        "SELECT password_hash FROM users WHERE id = ?", (g.user["id"],))
+    if not row or not auth.verify_password(current_pw, row["password_hash"]):
+        return jsonify({"error": "current password is incorrect"}), 400
+    db.execute(
+        "UPDATE users SET password_hash = ? WHERE id = ?",
+        (auth.hash_password(new_pw), g.user["id"]))
     return jsonify({"ok": True})
 
 
