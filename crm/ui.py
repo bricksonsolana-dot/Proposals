@@ -2784,6 +2784,18 @@ tr.lead-row.selected td { background: var(--brand-soft); }
                stroke-linejoin="round" class="account-chevron">
                <polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
+        <button class="account-row danger" id="acc-rotate-keys"
+                style="display:none">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+               </svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Rotate VAPID keys (admin)</div>
+            <div class="account-row-sub">Server-side reset for everyone — last resort if delivery keeps failing</div>
+          </div>
+        </button>
         <div class="account-row static" id="acc-push-help" style="display:none">
           <span class="ic" style="background:var(--warning-soft);color:var(--warning)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -5797,6 +5809,18 @@ function updatePushUI() {
       reset.onclick = async () => {
         if (!confirm('Reset this device’s notification subscription? You may need to re-allow notifications.')) return;
         notify('Resetting...');
+        await autoRecoverPush();
+      };
+    }
+    const rotate = document.getElementById('acc-rotate-keys');
+    if (rotate) {
+      rotate.style.display = ME.role === 'admin' ? '' : 'none';
+      rotate.onclick = async () => {
+        if (!confirm('Rotate the server VAPID keys?\n\nThis wipes EVERY user\'s push subscription. Each user will have to toggle Notifications Off → On again. Use this only if normal delivery keeps failing.')) return;
+        const r = await fetch('/api/admin/push/rotate-keys', { method: 'POST' });
+        if (!r.ok) { notify('Rotation failed'); return; }
+        notify('Keys rotated. Resubscribing this device...');
+        await new Promise(res => setTimeout(res, 600));
         await autoRecoverPush();
       };
     }

@@ -74,6 +74,29 @@ def _validate_pem(pem: str) -> bool:
         return False
 
 
+def _normalize_pem(pem: str) -> str | None:
+    """Re-encode any loadable EC private key as SEC1
+    ('-----BEGIN EC PRIVATE KEY-----'). pywebpush + py_vapid handle
+    SEC1 reliably; PKCS8 ('-----BEGIN PRIVATE KEY-----') has bitten us
+    before. Returns None if the input doesn't parse."""
+    if not pem or not isinstance(pem, str):
+        return None
+    try:
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import ec
+        key = serialization.load_pem_private_key(
+            pem.encode("ascii"), password=None)
+        if not isinstance(key, ec.EllipticCurvePrivateKey):
+            return None
+        return key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode("ascii")
+    except Exception:
+        return None
+
+
 def _config_get(key: str) -> str | None:
     import db
     row = db.query_one(
@@ -118,18 +141,36 @@ def _load_or_generate() -> dict:
         try:
             db_pub = _config_get("vapid_public")
             db_priv = _config_get("vapid_private")
-            if db_pub and db_priv and _validate_pem(db_priv):
-                _vapid = {
-                    "public_b64": db_pub,
-                    "private_pem": db_priv,
-                    "claims_email": claims_email,
-                }
-                print("[push] loaded valid VAPID keys from DB",
-                      flush=True)
-                return _vapid
+            if db_pub and db_priv:
+                # Re-encode the stored key as SEC1 every time we load
+                # it. pywebpush / py_vapid have historically choked on
+                # PKCS8 PEM ("-----BEGIN PRIVATE KEY-----"); SEC1
+                # ("-----BEGIN EC PRIVATE KEY-----") works everywhere.
+                normalized = _normalize_pem(db_priv)
+                if normalized:
+                    # If the on-disk format wasn't SEC1, write back the
+                    # normalized version so future reads skip this step.
+                    if normalized != db_priv:
+                        try:
+                            _config_set("vapid_private", normalized)
+                            print("[push] re-encoded DB private key "
+                                  "as SEC1", flush=True)
+                        except Exception:
+                            pass
+                    _vapid = {
+                        "public_b64": db_pub,
+                        "private_pem": normalized,
+                        "claims_email": claims_email,
+                    }
+                    print("[push] loaded VAPID keys from DB",
+                          flush=True)
+                    return _vapid
+                else:
+                    print("[push] DB-stored VAPID private key did "
+                          "not parse, regenerating", flush=True)
             elif db_pub or db_priv:
-                print("[push] DB-stored VAPID keys are missing or "
-                      "corrupt, regenerating", flush=True)
+                print("[push] DB VAPID keys partial/missing, "
+                      "regenerating", flush=True)
         except Exception as e:
             print(f"[push] DB read failed: {e}", flush=True)
 

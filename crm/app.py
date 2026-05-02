@@ -1737,6 +1737,20 @@ def api_push_reset():
     return jsonify({"ok": True, "removed": (n or {}).get("n", 0)})
 
 
+@app.route("/api/admin/push/rotate-keys", methods=["POST"])
+@auth.admin_required
+def api_admin_rotate_vapid_keys():
+    """Force-regenerate the VAPID key pair, wipe all push subscriptions
+    so users re-subscribe with the new public key on next enable.
+    Use when something corrupt has gotten into the config table."""
+    # Drop config rows
+    db.execute("DELETE FROM config WHERE key IN ('vapid_public', 'vapid_private')")
+    # Clear in-memory cache so the next call regenerates
+    _push._vapid = None
+    new_pub = _push.public_key()  # triggers regenerate + persist + sub-wipe
+    return jsonify({"ok": True, "new_public_key_prefix": new_pub[:16]})
+
+
 @app.route("/api/push/diagnose")
 @auth.login_required
 def api_push_diagnose():
