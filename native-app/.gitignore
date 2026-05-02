@@ -1,3 +1,7 @@
+# Local secrets — never commit
+.env
+.env.local
+
 # Node.js artifacts — installed in CI per build
 node_modules/
 
