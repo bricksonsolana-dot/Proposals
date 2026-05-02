@@ -422,6 +422,7 @@ def init_schema():
     # Migrations for existing DBs
     _migrate_add_column("leads", "properties", "TEXT")
     _migrate_add_column("users", "last_seen_at", "TIMESTAMP")
+    _migrate_add_column("messages", "attachments", "TEXT")
 
 
 if __name__ == "__main__":

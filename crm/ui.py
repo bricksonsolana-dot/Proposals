@@ -1179,9 +1179,12 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 .chat-day-divider::after { right: 0; }
 
 .chat-composer {
-  padding: 14px 22px;
+  padding: 12px 18px;
   border-top: 1px solid var(--border);
   background: var(--surface);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.chat-composer-row {
   display: flex; align-items: flex-end; gap: 10px;
 }
 .chat-composer textarea {
@@ -1200,6 +1203,19 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   background: var(--bg);
   box-shadow: 0 0 0 2px var(--brand-soft);
 }
+.chat-composer .icon-btn {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--text-2);
+  border: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.08s;
+}
+.chat-composer .icon-btn:hover { background: var(--border-strong); color: var(--text); }
+.chat-composer .icon-btn:active { transform: scale(0.95); }
 .chat-composer .send-btn {
   flex-shrink: 0;
   width: 40px; height: 40px;
@@ -1215,6 +1231,59 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 .chat-composer .send-btn:active { transform: scale(0.95); }
 .chat-composer .send-btn:disabled {
   opacity: 0.4; cursor: not-allowed; transform: none;
+}
+
+/* Pending-attachment thumbnails inside the composer */
+.composer-attachments {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.composer-attachment {
+  position: relative;
+  width: 84px; height: 84px;
+  border-radius: 10px; overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.composer-attachment img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.composer-attachment .remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 0;
+  font-size: 14px; line-height: 1;
+}
+
+/* Inline image attachments inside a chat message */
+.chat-msg-attachments {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 6px;
+}
+.chat-msg-attachment {
+  max-width: 240px; max-height: 240px;
+  border-radius: 12px; overflow: hidden;
+  background: var(--surface-2); cursor: pointer;
+  display: inline-block;
+}
+.chat-msg-attachment img {
+  display: block;
+  max-width: 100%; max-height: 240px;
+  object-fit: cover;
+}
+
+/* Lightbox for full-size image preview */
+.image-lightbox {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.92);
+  display: flex; align-items: center; justify-content: center;
+  cursor: zoom-out;
+}
+.image-lightbox img {
+  max-width: 100%; max-height: 100%;
 }
 
 /* Online dot on avatars */
@@ -4613,6 +4682,62 @@ let chats = [];
 let activeChatId = null;
 let onlineUsers = new Set();
 let totalUnread = 0;
+let pendingAttachments = [];
+
+// Compress an image client-side: max 1280px on the long edge,
+// JPEG quality 0.78. Returns a data URL.
+async function compressImage(file, maxEdge = 1280, quality = 0.78) {
+  const img = await new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = reject;
+    im.src = URL.createObjectURL(file);
+  });
+  const longEdge = Math.max(img.width, img.height);
+  const scale = longEdge > maxEdge ? maxEdge / longEdge : 1;
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
+  URL.revokeObjectURL(img.src);
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+function renderComposerAttachments() {
+  const wrap = document.getElementById('composer-attachments');
+  if (!wrap) return;
+  if (pendingAttachments.length === 0) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = pendingAttachments.map((a, i) => `
+    <div class="composer-attachment">
+      <img src="${a.data}" alt="">
+      <button class="remove" data-idx="${i}" type="button">×</button>
+    </div>
+  `).join('');
+  for (const b of wrap.querySelectorAll('.remove')) {
+    b.onclick = () => {
+      pendingAttachments.splice(+b.dataset.idx, 1);
+      renderComposerAttachments();
+      const send = document.getElementById('chat-send');
+      const input = document.getElementById('chat-input');
+      if (send && input) {
+        send.disabled = !input.value.trim() && pendingAttachments.length === 0;
+      }
+    };
+  }
+}
+
+function openImageLightbox(src) {
+  const lb = document.createElement('div');
+  lb.className = 'image-lightbox';
+  lb.innerHTML = `<img src="${src}" alt="">`;
+  lb.onclick = () => lb.remove();
+  document.body.appendChild(lb);
+}
+window.openImageLightbox = openImageLightbox;
 
 function avatarHTML(userId, fullName, online, size) {
   const init = initials(fullName || '');
@@ -4808,16 +4933,31 @@ async function openChat(chatId) {
     </div>
     <div class="chat-messages" id="chat-messages"></div>
     <div class="chat-composer">
-      <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
-      <button class="send-btn" id="chat-send" disabled
-              title="Send (Enter)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round"
-             stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-        </svg>
-      </button>
+      <div class="composer-attachments" id="composer-attachments"></div>
+      <div class="chat-composer-row">
+        <button class="icon-btn" id="chat-attach" type="button"
+                title="Attach photo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </button>
+        <input id="chat-file-input" type="file" accept="image/*"
+               multiple style="display:none">
+        <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
+        <button class="send-btn" id="chat-send" disabled
+                title="Send (Enter)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
     </div>`;
   // Wire back button on mobile
   document.getElementById('chat-back').onclick = () => {
@@ -4856,10 +4996,15 @@ async function openChat(chatId) {
   msgs.scrollTop = msgs.scrollHeight;
 
   // Composer
+  pendingAttachments = [];
+  renderComposerAttachments();
   const input = document.getElementById('chat-input');
   const send = document.getElementById('chat-send');
+  const updateSendEnabled = () => {
+    send.disabled = !input.value.trim() && pendingAttachments.length === 0;
+  };
   input.oninput = () => {
-    send.disabled = !input.value.trim();
+    updateSendEnabled();
     input.style.height = 'auto';
     input.style.height = Math.min(120, input.scrollHeight) + 'px';
   };
@@ -4870,6 +5015,29 @@ async function openChat(chatId) {
     }
   };
   send.onclick = sendChatMessage;
+
+  // Image attachments
+  const fileInput = document.getElementById('chat-file-input');
+  document.getElementById('chat-attach').onclick = () => fileInput.click();
+  fileInput.onchange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    for (const f of files) {
+      if (pendingAttachments.length >= 4) {
+        notify('Max 4 photos per message');
+        break;
+      }
+      if (!f.type.startsWith('image/')) continue;
+      try {
+        const dataUrl = await compressImage(f);
+        pendingAttachments.push({ type: 'image', data: dataUrl });
+      } catch (err) {
+        console.warn('Image compression failed', err);
+      }
+    }
+    fileInput.value = '';
+    renderComposerAttachments();
+    updateSendEnabled();
+  };
 
   // Mark read
   await fetch('/api/chats/' + chatId + '/read', { method: 'POST' });
@@ -4884,6 +5052,16 @@ function makeMsgEl(m, sameAuthor) {
   const div = document.createElement('div');
   div.className = 'chat-msg' + (sameAuthor ? ' same-author' : '') +
     (m.user_id === ME.id ? ' mine' : '');
+  const atts = m.attachments || [];
+  const attHtml = atts.length ? `<div class="chat-msg-attachments">
+    ${atts.map(a => a.type === 'image' ?
+      `<button class="chat-msg-attachment" type="button"
+              onclick="openImageLightbox('${a.data}')">
+         <img src="${a.data}" alt="">
+       </button>` : '').join('')}
+  </div>` : '';
+  const bodyHtml = m.body
+    ? `<div class="chat-msg-text">${escapeHtml(m.body)}</div>` : '';
   div.innerHTML = `
     <div class="chat-msg-avatar">${avatarHTML(m.user_id, m.full_name,
       onlineUsers.has(m.user_id))}</div>
@@ -4892,7 +5070,8 @@ function makeMsgEl(m, sameAuthor) {
         <span class="chat-msg-author">${escapeHtml(m.full_name || '')}</span>
         <span class="chat-msg-time">${fmtMsgTime(m.created_at)}</span>
       </div>
-      <div class="chat-msg-text">${escapeHtml(m.body)}</div>
+      ${bodyHtml}
+      ${attHtml}
     </div>`;
   return div;
 }
@@ -4916,27 +5095,23 @@ async function sendChatMessage() {
   const send = document.getElementById('chat-send');
   if (!input || !activeChatId) return;
   const body = input.value.trim();
-  if (!body) return;
+  const atts = pendingAttachments.slice();
+  if (!body && atts.length === 0) return;
   send.disabled = true;
   const r = await fetch('/api/chats/' + activeChatId + '/messages', {
     method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ body }),
+    body: JSON.stringify({ body, attachments: atts }),
   });
   if (r.ok) {
     input.value = '';
     input.style.height = 'auto';
-    // The SSE event will broadcast back to us; no need to manually append.
-    // But for instant feedback in case SSE is slow:
-    const d = await r.json();
-    if (d.message) {
-      // Already appended via SSE? Avoid duplicates by id.
-      const msgs = document.getElementById('chat-messages');
-      if (msgs && !msgs.querySelector(`[data-msg-id="${d.message.id}"]`)) {
-        // The SSE handler will get there first usually; this is safe.
-      }
-    }
+    pendingAttachments = [];
+    renderComposerAttachments();
+    // SSE will deliver the message back to us — no need to append here
   } else {
-    notify('Failed to send');
+    let msg = 'Failed to send';
+    try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+    notify(msg);
     send.disabled = false;
   }
 }
