@@ -24,6 +24,11 @@ dist/
 build/
 *.spec
 
+# But DO ship the desktop client zip so Render can serve it from /download
+!crm/dist/
+crm/dist/*
+!crm/dist/DevoxSales-Windows.zip
+
 # Editor / OS
 .vscode/
 .idea/

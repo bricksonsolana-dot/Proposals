@@ -8,6 +8,10 @@ INDEX_HTML = r"""<!doctype html>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Devox Sales">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="apple-touch-icon" href="/static/logo.png">
+<link rel="icon" type="image/png" href="/static/logo.png">
 <title>Devox CRM</title>
 <style>
 * { box-sizing: border-box; }
@@ -696,6 +700,7 @@ tr.lead-row.selected td { background: #1e293b; }
       📍 <span id="my-regions-count">0</span> regions
     </span>
     <span id="calls-today-badge" class="target-badge">0/20 calls today</span>
+    <a href="/download" target="_blank" title="Download desktop / mobile app">⬇ Download</a>
     <a href="#" id="link-change-pw" title="Change password">🔑 Password</a>
     <a href="/logout">Logout</a>
   </div>
@@ -1074,6 +1079,7 @@ function setView(v) {
 function showMoreMenu() {
   const opts = [
     { v: 'resources', label: '📚 Resources' },
+    { v: '__download', label: '⬇ Download app' },
     { v: '__change_pw', label: '🔑 Change password' },
   ];
   if (ME.role === 'admin') opts.push({ v: 'admin', label: '⚙️ Admin' });
@@ -1099,6 +1105,7 @@ function showMoreMenu() {
       drawer.classList.remove('open');
       const v = b.dataset.more;
       if (v === '__logout') { window.location.href = '/logout'; return; }
+      if (v === '__download') { window.open('/download', '_blank'); rebuildFilterDrawer(); return; }
       if (v === '__change_pw') { openChangePasswordModal(); rebuildFilterDrawer(); return; }
       rebuildFilterDrawer();
       setView(v);

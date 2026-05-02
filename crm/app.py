@@ -18,7 +18,8 @@ except ImportError:
     pass
 
 from flask import (Flask, jsonify, redirect, render_template_string,
-                     request, session, g, Response, stream_with_context)
+                     request, session, g, Response, stream_with_context,
+                     send_from_directory, abort)
 
 import db
 import auth
@@ -101,6 +102,11 @@ def events():
 LOGIN_HTML = """<!doctype html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Devox Sales">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="apple-touch-icon" href="/static/logo.png">
+<link rel="icon" type="image/png" href="/static/logo.png">
 <title>Login - CRM</title>
 <style>
 body { font-family: -apple-system, Segoe UI, sans-serif; background: #0f1117;
@@ -126,6 +132,9 @@ button { width: 100%; padding: 12px; background: #2563eb; color: white;
 button:hover { background: #1d4ed8; }
 .err { color: #fca5a5; font-size: 13px; margin-top: 8px; }
 .hint { color: #6b7280; font-size: 11px; margin-top: 16px; text-align: center; }
+.download-link { display: block; text-align: center; margin-top: 18px;
+                 color: #60a5fa; text-decoration: none; font-size: 13px; }
+.download-link:hover { color: #93c5fd; text-decoration: underline; }
 </style></head>
 <body>
 <form class="box" method="POST">
@@ -137,6 +146,7 @@ button:hover { background: #1d4ed8; }
   <input name="password" type="password" required>
   <button type="submit">Sign In</button>
   {% if error %}<div class="err">{{ error }}</div>{% endif %}
+  <a class="download-link" href="/download">⬇ Download desktop / mobile app</a>
 </form>
 </body></html>"""
 
@@ -898,6 +908,171 @@ def api_all_regions():
         "WHERE region IS NOT NULL AND region <> '' "
         "GROUP BY region ORDER BY region", ())
     return jsonify(rows)
+
+
+# ---------- Download (desktop app + mobile install instructions) ----------
+
+DIST_DIR = ROOT / "dist"
+DOWNLOAD_FILE = "DevoxSales-Windows.zip"
+
+
+DOWNLOAD_HTML = r"""<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Download Devox Sales</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: -apple-system, Segoe UI, sans-serif; margin: 0;
+       background: #0f1117; color: #e8eaf0; padding: 20px;
+       min-height: 100vh; }
+.wrap { max-width: 720px; margin: 40px auto; }
+.logo { display: flex; align-items: center; justify-content: center;
+        margin-bottom: 24px; }
+.logo img { height: 56px; filter: brightness(0) invert(1); }
+h1 { text-align: center; font-size: 26px; margin: 0 0 8px; }
+.sub { text-align: center; color: #8b92a6; margin-bottom: 32px;
+       font-size: 15px; }
+.card { background: #1a1d27; border: 1px solid #2a2f3d;
+        border-radius: 14px; padding: 28px; margin-bottom: 18px; }
+.card h2 { margin: 0 0 14px; font-size: 18px; display: flex;
+           align-items: center; gap: 10px; }
+.dl-btn { display: inline-flex; align-items: center; justify-content: center;
+          gap: 10px; background: #2563eb; color: white !important;
+          text-decoration: none; padding: 16px 28px; border-radius: 10px;
+          font-weight: 700; font-size: 16px; width: 100%;
+          transition: background 0.15s; }
+.dl-btn:hover { background: #1d4ed8; }
+.dl-btn.secondary { background: #2a2f3d; }
+.dl-btn.secondary:hover { background: #3a3f4d; }
+.size { font-size: 12px; color: #8b92a6; margin-top: 8px;
+        text-align: center; }
+ol { margin: 12px 0 0 0; padding-left: 24px; line-height: 1.8;
+     font-size: 14px; }
+ol li { margin-bottom: 4px; }
+code { background: #0a0c12; padding: 2px 6px; border-radius: 4px;
+       font-family: Consolas, monospace; font-size: 13px; }
+.platform-tabs { display: flex; gap: 4px; background: #0a0c12;
+                 padding: 4px; border-radius: 10px; margin-bottom: 16px; }
+.platform-tabs button { flex: 1; background: transparent; border: 0;
+                        color: #8b92a6; padding: 12px; border-radius: 7px;
+                        font-weight: 700; cursor: pointer; font-size: 14px; }
+.platform-tabs button.active { background: #2563eb; color: white; }
+.platform-content { display: none; }
+.platform-content.active { display: block; }
+.notice { background: #422006; color: #fbbf24; padding: 10px 14px;
+          border-radius: 8px; font-size: 13px; margin-top: 12px;
+          line-height: 1.5; }
+.back { display: block; text-align: center; color: #60a5fa;
+        text-decoration: none; margin-top: 20px; font-size: 14px; }
+.back:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><img src="/static/logo.png" alt="Devox"></div>
+  <h1>Devox Sales</h1>
+  <p class="sub">Κατέβασε την εφαρμογή στη συσκευή σου</p>
+
+  <div class="platform-tabs">
+    <button id="tab-desktop" class="active">💻 Windows</button>
+    <button id="tab-mobile">📱 Κινητό</button>
+  </div>
+
+  <div id="content-desktop" class="platform-content active">
+    <div class="card">
+      <h2>💻 Windows Desktop App</h2>
+      <a class="dl-btn" href="/download/desktop">
+        ⬇ Download DevoxSales.exe
+      </a>
+      <div class="size">{{ desktop_size }} • Windows 10 / 11</div>
+      <ol>
+        <li>Κάνε download το zip και εξάγαγέ το (right-click → Extract All)</li>
+        <li>Κάνε διπλό κλικ στο <code>DevoxSales.exe</code></li>
+        <li>Login με τα στοιχεία που σου έδωσε ο admin</li>
+      </ol>
+      <div class="notice">
+        ⚠️ Την πρώτη φορά το Windows SmartScreen ίσως εμφανίσει warning
+        γιατί η εφαρμογή δεν είναι code-signed. Πάτησε
+        <b>"More info"</b> → <b>"Run anyway"</b>.
+      </div>
+    </div>
+  </div>
+
+  <div id="content-mobile" class="platform-content">
+    <div class="card">
+      <h2>📱 Mobile (Android & iOS)</h2>
+      <p style="color:#d6d3d1;font-size:14px;line-height:1.6;margin:0 0 14px">
+        Δεν χρειάζεται download. Η εφαρμογή τρέχει μέσα στον browser
+        αλλά μπορείς να την προσθέσεις στην αρχική οθόνη του κινητού
+        σου σαν κανονικό app.
+      </p>
+
+      <h3 style="font-size:14px;margin:18px 0 8px;color:#60a5fa">📱 iPhone / iPad (Safari)</h3>
+      <ol>
+        <li>Άνοιξε το <code>{{ host_url }}</code> στο Safari</li>
+        <li>Πάτα το κουμπί Share <b>⬆️</b> κάτω-κέντρο</li>
+        <li>Επίλεξε <b>"Add to Home Screen"</b></li>
+        <li>Πάτα <b>Add</b> πάνω δεξιά</li>
+      </ol>
+
+      <h3 style="font-size:14px;margin:18px 0 8px;color:#60a5fa">🤖 Android (Chrome)</h3>
+      <ol>
+        <li>Άνοιξε το <code>{{ host_url }}</code> στο Chrome</li>
+        <li>Πάτα τις 3 τελείες <b>⋮</b> πάνω δεξιά</li>
+        <li>Επίλεξε <b>"Install app"</b> ή <b>"Add to Home screen"</b></li>
+      </ol>
+
+      <a class="dl-btn secondary" href="/" style="margin-top:18px">
+        🔗 Άνοιξε την εφαρμογή τώρα
+      </a>
+    </div>
+  </div>
+
+  <a class="back" href="/">← Πίσω στο login</a>
+</div>
+
+<script>
+function pickPlatform(p) {
+  for (const id of ['desktop', 'mobile']) {
+    document.getElementById('tab-' + id).classList.toggle('active', id === p);
+    document.getElementById('content-' + id).classList.toggle('active', id === p);
+  }
+}
+document.getElementById('tab-desktop').onclick = () => pickPlatform('desktop');
+document.getElementById('tab-mobile').onclick = () => pickPlatform('mobile');
+
+// Auto-pick mobile tab if accessed from a phone
+const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+if (isMobile) pickPlatform('mobile');
+</script>
+</body>
+</html>
+"""
+
+
+@app.route("/download")
+def download_page():
+    desktop_path = DIST_DIR / DOWNLOAD_FILE
+    if desktop_path.exists():
+        size_mb = desktop_path.stat().st_size / 1024 / 1024
+        desktop_size = f"{size_mb:.1f} MB"
+    else:
+        desktop_size = "—"
+    return render_template_string(
+        DOWNLOAD_HTML,
+        desktop_size=desktop_size,
+        host_url=request.host_url.rstrip("/"))
+
+
+@app.route("/download/desktop")
+def download_desktop():
+    if not (DIST_DIR / DOWNLOAD_FILE).exists():
+        abort(404, description="Desktop build not available yet")
+    return send_from_directory(
+        str(DIST_DIR), DOWNLOAD_FILE, as_attachment=True,
+        download_name="DevoxSales-Windows.zip")
 
 
 # ---------- Main UI ----------
