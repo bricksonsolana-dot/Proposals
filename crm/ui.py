@@ -1139,48 +1139,92 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 22px;
+  padding: 18px 18px 8px;
   display: flex; flex-direction: column;
-  gap: 6px;
+  gap: 2px;
 }
+
+/* iMessage / Instagram-style bubbles
+   - their messages: left aligned, gray bubble, avatar on the left
+   - my messages: right aligned, blue bubble, no avatar
+*/
 .chat-msg {
-  display: flex; gap: 10px;
-  align-items: flex-start;
-  margin-top: 8px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+  max-width: 100%;
 }
-.chat-msg.same-author { margin-top: 1px; }
-.chat-msg.same-author .chat-msg-avatar { visibility: hidden; }
-.chat-msg.same-author .chat-msg-meta { display: none; }
-.chat-msg-avatar { flex-shrink: 0; }
+.chat-msg.same-author { margin-top: 2px; }
+.chat-msg.mine {
+  flex-direction: row-reverse;
+}
+
+/* Avatar shown only on the FIRST message of a streak from another
+   author. Hidden for our own messages and for follow-up messages. */
+.chat-msg-avatar { flex-shrink: 0; align-self: flex-end; }
 .chat-msg-avatar .user-avatar {
-  width: 32px; height: 32px; font-size: 11px;
+  width: 28px; height: 28px; font-size: 11px;
 }
-.chat-msg-body { flex: 1; min-width: 0; }
+.chat-msg.mine .chat-msg-avatar { display: none; }
+.chat-msg.same-author .chat-msg-avatar { visibility: hidden; }
+
+.chat-msg-body {
+  display: flex; flex-direction: column;
+  min-width: 0; max-width: 75%;
+}
+.chat-msg.mine .chat-msg-body { align-items: flex-end; }
+.chat-msg:not(.mine) .chat-msg-body { align-items: flex-start; }
+
+/* Author name + time only above the FIRST message of a streak,
+   only for OTHER people. We don't bother showing our own name. */
 .chat-msg-meta {
   display: flex; align-items: baseline; gap: 8px;
-  margin-bottom: 2px;
+  margin: 0 4px 3px;
+  font-size: 11px;
 }
+.chat-msg.mine .chat-msg-meta { display: none; }
+.chat-msg.same-author .chat-msg-meta { display: none; }
 .chat-msg-author {
-  font-size: 13px; font-weight: 600;
-  color: var(--text);
+  font-weight: 600;
+  color: var(--text-2);
   letter-spacing: -0.005em;
 }
 .chat-msg-time {
-  font-size: 11px; color: var(--text-4);
+  color: var(--text-4);
 }
+
+/* The actual bubble */
 .chat-msg-text {
-  font-size: 14px; color: var(--text);
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 9px 13px;
+  border-radius: 18px;
   word-wrap: break-word;
   white-space: pre-wrap;
+  max-width: 100%;
+}
+.chat-msg:not(.mine) .chat-msg-text {
+  background: var(--surface-2);
+  color: var(--text);
+  border-bottom-left-radius: 6px;
 }
 .chat-msg.mine .chat-msg-text {
-  background: var(--brand-soft);
-  color: var(--text);
-  padding: 6px 10px;
-  border-radius: 10px;
-  display: inline-block;
+  background: var(--brand);
+  color: white;
+  border-bottom-right-radius: 6px;
 }
+/* Tighter corner on continuation messages so a streak feels like
+   a single chunk. */
+.chat-msg.same-author:not(.mine) .chat-msg-text {
+  border-top-left-radius: 6px;
+}
+.chat-msg.same-author.mine .chat-msg-text {
+  border-top-right-radius: 6px;
+}
+
+/* When a message is JUST attachments (no text), strip the bubble */
+.chat-msg-text:empty { display: none; }
 .chat-day-divider {
   text-align: center;
   font-size: 11px; color: var(--text-4);
@@ -1282,18 +1326,20 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 
 /* Inline image attachments inside a chat message */
 .chat-msg-attachments {
-  display: flex; gap: 6px; flex-wrap: wrap;
-  margin-top: 6px;
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-top: 4px;
 }
+.chat-msg.mine .chat-msg-attachments { justify-content: flex-end; }
 .chat-msg-attachment {
-  max-width: 240px; max-height: 240px;
-  border-radius: 12px; overflow: hidden;
+  max-width: 220px; max-height: 220px;
+  border-radius: 14px; overflow: hidden;
   background: var(--surface-2); cursor: pointer;
   display: inline-block;
+  border: 0; padding: 0;
 }
 .chat-msg-attachment img {
   display: block;
-  max-width: 100%; max-height: 240px;
+  max-width: 100%; max-height: 220px;
   object-fit: cover;
 }
 
