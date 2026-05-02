@@ -1803,8 +1803,27 @@ async function loadUsers() {
 }
 
 async function refreshUsers() {
-  await loadUsers();
-  // Fetch each user's assigned regions for the admin list
+  // Admin-only: include inactive users in the management list
+  const url = ME.role === 'admin'
+    ? '/api/users?include_inactive=1'
+    : '/api/users';
+  const r = await fetch(url);
+  const allUsers = await r.json();
+  // Update the global `users` list (active only) used elsewhere
+  // (assignee dropdowns shouldn't show deactivated users)
+  users = allUsers.filter(u => u.is_active);
+
+  // Refresh dependent dropdowns from the active users
+  const topSel = document.getElementById('filter-assignee-top');
+  if (topSel) {
+    const cur = topSel.value;
+    topSel.innerHTML = '<option value="">👤 All assignees</option>' +
+      '<option value="unassigned">— Unassigned —</option>' +
+      users.map(u => `<option value="${u.id}">${escapeHtml(u.full_name)}</option>`).join('');
+    topSel.value = cur;
+  }
+
+  // Fetch each user's assigned regions for the admin list (active only)
   const regionsByUser = {};
   await Promise.all(users.map(async u => {
     try {
@@ -1815,8 +1834,24 @@ async function refreshUsers() {
       }
     } catch {}
   }));
+
   const list = document.getElementById('admin-users');
-  list.innerHTML = users.map(u => {
+  list.innerHTML = allUsers.map(u => {
+    const inactive = !u.is_active;
+    if (inactive) {
+      return `
+      <div class="user-row" style="flex-wrap:wrap; opacity:0.55">
+        <div class="name" style="flex:1 1 200px">
+          <b>${escapeHtml(u.full_name)}</b>
+          <span style="color:#8b92a6"> · @${escapeHtml(u.username)}</span>
+          <span style="margin-left:8px;font-size:10px;background:#4a1d1d;
+                color:#fca5a5;padding:2px 8px;border-radius:10px;
+                text-transform:uppercase">deactivated</span>
+        </div>
+        <span class="role ${u.role}">${escapeHtml(u.role)}</span>
+        <button class="btn success" onclick="reactivateUser(${u.id})">Reactivate</button>
+      </div>`;
+    }
     const regs = regionsByUser[u.id] || [];
     const regSummary = regs.length === 0
       ? '<span style="color:#6b7280;font-style:italic">no regions</span>'
@@ -1974,12 +2009,44 @@ async function resetPwd(uid) {
   if (r.ok) notify('Password reset');
 }
 async function deactivateUser(uid) {
-  if (!confirm('Deactivate this user?')) return;
-  await fetch('/api/users/' + uid, { method: 'DELETE' });
-  refreshUsers();
+  const target = users.find(u => u.id === uid);
+  const name = target ? target.full_name : 'this user';
+  if (!confirm(
+    `Deactivate ${name}?\n\n` +
+    `• They won't be able to log in anymore\n` +
+    `• Any active sessions get terminated immediately\n` +
+    `• Their assigned leads will go back to unassigned\n` +
+    `• Their region assignments will be removed\n\n` +
+    `You can reactivate them later from this same screen.`)) {
+    return;
+  }
+  const r = await fetch('/api/users/' + uid, { method: 'DELETE' });
+  if (r.ok) {
+    notify(`Deactivated ${name}`);
+    refreshUsers();
+    refreshLeads();  // unassigned leads may have shifted
+  } else {
+    let msg = 'Failed to deactivate';
+    try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+    alert(msg);
+  }
 }
+
+async function reactivateUser(uid) {
+  const r = await fetch('/api/users/' + uid + '/activate', { method: 'POST' });
+  if (r.ok) {
+    notify('User reactivated');
+    refreshUsers();
+  } else {
+    let msg = 'Failed to reactivate';
+    try { const d = await r.json(); if (d.error) msg = d.error; } catch {}
+    alert(msg);
+  }
+}
+
 window.resetPwd = resetPwd;
 window.deactivateUser = deactivateUser;
+window.reactivateUser = reactivateUser;
 
 document.getElementById('btn-new-user').onclick = async () => {
   const username = prompt('Username (no spaces):'); if (!username) return;
@@ -2035,6 +2102,22 @@ evt.onmessage = (e) => {
     if (data.type === 'leads_synced') {
       notify(`${data.count} new leads imported`);
       refreshLeads();
+      return;
+    }
+    if (data.type === 'user_deactivated') {
+      // If MY account just got deactivated, send me to /login
+      if (data.user_id === ME.id) {
+        alert('Your account has been deactivated by an admin.');
+        window.location.href = '/logout';
+        return;
+      }
+      if (currentView === 'admin') refreshUsers();
+      // Drop them from the active users list used in dropdowns
+      users = users.filter(u => u.id !== data.user_id);
+      return;
+    }
+    if (data.type === 'user_activated') {
+      if (currentView === 'admin') refreshUsers();
       return;
     }
     if (data.type === 'regions_assigned') {

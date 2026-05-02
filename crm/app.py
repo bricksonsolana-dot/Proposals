@@ -535,9 +535,15 @@ def api_daily_plan():
 @app.route("/api/users")
 @auth.login_required
 def api_users():
-    rows = db.query(
-        "SELECT id, username, full_name, role, is_active FROM users "
-        "ORDER BY full_name", ())
+    include_inactive = request.args.get("include_inactive") == "1"
+    if include_inactive and g.user["role"] == "admin":
+        rows = db.query(
+            "SELECT id, username, full_name, role, is_active FROM users "
+            "ORDER BY is_active DESC, full_name", ())
+    else:
+        rows = db.query(
+            "SELECT id, username, full_name, role, is_active FROM users "
+            "WHERE is_active = 1 ORDER BY full_name", ())
     return jsonify(rows)
 
 
@@ -562,8 +568,54 @@ def api_create_user():
 @auth.admin_required
 def api_delete_user(uid):
     if uid == g.user["id"]:
-        return jsonify({"error": "cannot delete self"}), 400
-    db.execute("UPDATE users SET is_active = 0 WHERE id = ?", (uid,))
+        return jsonify({"error": "cannot deactivate yourself"}), 400
+    target = db.query_one(
+        "SELECT id, username, full_name, role, is_active FROM users "
+        "WHERE id = ?", (uid,))
+    if not target:
+        return jsonify({"error": "user not found"}), 404
+    if not target.get("is_active"):
+        return jsonify({"error": "user is already deactivated"}), 400
+    # Prevent deactivating the last active admin
+    if target["role"] == "admin":
+        active_admins = db.query_one(
+            "SELECT COUNT(*) AS n FROM users "
+            "WHERE role = 'admin' AND is_active = 1", ())
+        if active_admins and active_admins["n"] <= 1:
+            return jsonify(
+                {"error": "cannot deactivate the last active admin"}), 400
+    db.execute(
+        "UPDATE users SET is_active = 0 WHERE id = ?", (uid,))
+    # Free leads claimed by this user — they can't work them anymore
+    db.execute(
+        "UPDATE lead_state SET assigned_to = NULL, "
+        "updated_at = CURRENT_TIMESTAMP WHERE assigned_to = ?", (uid,))
+    # Drop their region assignments
+    db.execute("DELETE FROM user_regions WHERE user_id = ?", (uid,))
+    broadcast({
+        "type": "user_deactivated",
+        "user_id": uid,
+        "full_name": target["full_name"],
+    })
+    return jsonify({"ok": True})
+
+
+@app.route("/api/users/<int:uid>/activate", methods=["POST"])
+@auth.admin_required
+def api_activate_user(uid):
+    target = db.query_one(
+        "SELECT id, full_name, is_active FROM users WHERE id = ?", (uid,))
+    if not target:
+        return jsonify({"error": "user not found"}), 404
+    if target.get("is_active"):
+        return jsonify({"error": "user is already active"}), 400
+    db.execute(
+        "UPDATE users SET is_active = 1 WHERE id = ?", (uid,))
+    broadcast({
+        "type": "user_activated",
+        "user_id": uid,
+        "full_name": target["full_name"],
+    })
     return jsonify({"ok": True})
 
 

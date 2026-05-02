@@ -68,12 +68,24 @@ def current_user() -> dict | None:
     }
 
 
+def _check_still_active(uid: int) -> bool:
+    """Confirm the session's user still exists and is active in the DB."""
+    row = db.query_one(
+        "SELECT is_active FROM users WHERE id = ?", (uid,))
+    return bool(row and row.get("is_active"))
+
+
 def login_required(view):
     @functools.wraps(view)
     def wrapped(*args, **kwargs):
         if "user_id" not in session:
             if request.path.startswith("/api/"):
                 return jsonify({"error": "not authenticated"}), 401
+            return redirect("/login")
+        if not _check_still_active(session["user_id"]):
+            session.clear()
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "account deactivated"}), 401
             return redirect("/login")
         g.user = current_user()
         return view(*args, **kwargs)
@@ -86,6 +98,11 @@ def admin_required(view):
         if "user_id" not in session:
             if request.path.startswith("/api/"):
                 return jsonify({"error": "not authenticated"}), 401
+            return redirect("/login")
+        if not _check_still_active(session["user_id"]):
+            session.clear()
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "account deactivated"}), 401
             return redirect("/login")
         if session.get("role") != "admin":
             return jsonify({"error": "admin only"}), 403
