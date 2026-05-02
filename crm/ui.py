@@ -78,8 +78,8 @@ INDEX_HTML = r"""<!doctype html>
   --s-6: 32px;
 
   /* Layout */
-  --header-h: 56px;
-  --sidebar-w: 264px;
+  --header-h: 52px;
+  --sidebar-w: 232px;
   --bottom-tabs-h: 64px;
 }
 
@@ -110,40 +110,37 @@ body {
 a { color: var(--brand); text-decoration: none; }
 a:hover { color: var(--brand-hover); }
 
-/* ---------- Top bar ---------- */
+/* ---------- Top bar (thin, iOS-inspired) ---------- */
 .top {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--s-4);
+  gap: var(--s-3);
   height: var(--header-h);
-  padding: 0 var(--s-5);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  padding: 0 var(--s-4);
+  background: rgba(18, 20, 27, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--border);
   z-index: 50;
 }
 .top h1 {
   margin: 0; display: flex; align-items: center; gap: var(--s-2);
-  font-size: 14px; font-weight: 700; letter-spacing: -0.01em;
+  font-size: 13px; font-weight: 700; letter-spacing: -0.01em;
+  width: calc(var(--sidebar-w) - var(--s-4));
 }
 .top h1 img {
-  height: 20px; width: auto;
+  height: 18px; width: auto;
   filter: brightness(0) invert(1);
 }
-.top .center-title {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--text-3);
+.top .top-title {
+  font-size: 14px; font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  flex: 0 0 auto;
 }
-.top .nav { display: flex; gap: var(--s-1); margin-left: var(--s-4); }
-.top .nav a {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 32px; padding: 0 12px; border-radius: var(--r-2);
-  color: var(--text-3); font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: background 0.12s, color 0.12s;
-}
-.top .nav a:hover { color: var(--text); background: var(--hover); }
-.top .nav a.active { color: var(--text); background: var(--surface-3); }
+.top .nav { display: none; }
+.top .center-title { display: none; }
 .top .spacer { flex: 1; }
 .top .user-info {
   display: flex; align-items: center; gap: var(--s-2);
@@ -153,7 +150,9 @@ a:hover { color: var(--brand-hover); }
   padding: 4px 10px; background: var(--surface-3); border-radius: var(--r-pill);
   font-size: 12px; font-weight: 500;
 }
-.user-info .live { color: var(--success); }
+.user-info .live {
+  color: var(--text-3); font-size: 12px;
+}
 .user-info > a {
   color: var(--text-3); padding: 6px 10px; border-radius: var(--r-2);
   font-size: 12px; font-weight: 500; transition: all 0.12s;
@@ -269,21 +268,79 @@ a:hover { color: var(--brand-hover); }
   height: calc(100vh - var(--header-h));
 }
 .sidebar {
-  padding: var(--s-5) var(--s-4);
-  border-right: 1px solid var(--border);
+  padding: var(--s-3) 10px;
+  border-right: 0.5px solid var(--border);
   overflow-y: auto;
   background: var(--surface);
+  display: flex; flex-direction: column;
+}
+
+/* iOS-style sidebar navigation list */
+.side-nav {
+  display: flex; flex-direction: column;
+  gap: 1px;
+  margin-bottom: 4px;
+}
+.side-nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  color: var(--text-2);
+  font-size: 14px; font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  letter-spacing: -0.005em;
+  transition: background 0.1s, color 0.1s;
+  position: relative;
+}
+.side-nav-item:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.side-nav-item.active {
+  background: var(--brand-soft);
+  color: var(--brand-text);
+  font-weight: 600;
+}
+.side-nav-item.active .side-nav-icon { color: var(--brand); }
+.side-nav-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.side-nav-item:hover .side-nav-icon { color: var(--text); }
+.side-nav-label { flex: 1; min-width: 0; }
+.side-nav-item .nav-badge {
+  margin-left: auto;
+  margin-right: 2px;
+}
+
+.side-divider {
+  height: 0.5px;
+  background: var(--border);
+  margin: 8px 4px;
+}
+
+.side-section-title {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-4);
+  padding: 8px 12px 6px;
+  margin-top: 4px;
 }
 .main {
   padding: var(--s-5) var(--s-6);
   overflow-y: auto;
 }
-.sidebar h2, .main h2 {
-  font-size: 11px; font-weight: 600; text-transform: uppercase;
-  color: var(--text-3); margin: 20px 0 10px;
-  letter-spacing: 0.08em;
+.main h2 {
+  font-size: 22px; font-weight: 700;
+  color: var(--text);
+  margin: 0 0 18px;
+  letter-spacing: -0.018em;
+  text-transform: none;
 }
-.sidebar h2:first-child, .main h2:first-child { margin-top: 0; }
+.main h2:first-child { margin-top: 0; }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -1531,6 +1588,9 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   /* Layout */
   .container { grid-template-columns: 1fr !important; height: auto; }
   .sidebar { display: none !important; }
+  /* Top title and logo behave fine on mobile, but the title gets too tight */
+  .top h1 { width: auto; }
+  .top .top-title { font-size: 13px; color: var(--text-3); }
   .main {
     padding: 0 16px;
     padding-bottom: calc(var(--bottom-tabs-h) + 16px);
@@ -1994,18 +2054,7 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 
 <div class="top">
   <h1><img src="/static/logo.png" alt="Devox"></h1>
-  <div class="center-title">Sales</div>
-  <div class="nav">
-    <a id="nav-leads" class="active" data-view="leads">Leads</a>
-    <a id="nav-plan" data-view="plan">My Day</a>
-    <a id="nav-feed" data-view="feed">Activity</a>
-    <a id="nav-chat" data-view="chat">
-      Chat <span class="nav-badge" id="nav-chat-badge" style="display:none">0</span>
-    </a>
-    <a id="nav-resources" data-view="resources">Resources</a>
-    <a id="nav-proposal" data-view="proposal">Proposal</a>
-    <a id="nav-admin" data-view="admin" style="display:none">Admin</a>
-  </div>
+  <div class="top-title" id="top-title">Leads</div>
   <div class="spacer"></div>
   <div class="user-info">
     <span id="online-now" class="live"></span>
@@ -2015,7 +2064,10 @@ tr.lead-row.selected td { background: var(--brand-soft); }
     </span>
     <span id="calls-today-badge" class="target-badge">0/20 today</span>
     <button class="user-menu-btn" id="user-menu-btn" type="button">
-      <span class="user-avatar" id="user-avatar"></span>
+      <span class="avatar-wrap">
+        <span class="user-avatar" id="user-avatar" data-uid="{{ user.id }}"></span>
+        <span class="online-dot"></span>
+      </span>
       <span class="user-name">{{ user.full_name }}</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -2155,8 +2207,80 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 
 <div class="container">
   <aside class="sidebar">
+    <!-- Primary navigation (replaces top nav on desktop) -->
+    <nav class="side-nav">
+      <a class="side-nav-item active" id="nav-leads" data-view="leads">
+        <span class="side-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+          <path d="M9 11H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+          <path d="M17 11h-2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+          <path d="M9 21H7a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+          <path d="M17 21h-2a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2z"></path>
+        </svg></span>
+        <span class="side-nav-label">Leads</span>
+      </a>
+      <a class="side-nav-item" id="nav-plan" data-view="plan">
+        <span class="side-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg></span>
+        <span class="side-nav-label">My Day</span>
+      </a>
+      <a class="side-nav-item" id="nav-chat" data-view="chat">
+        <span class="side-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg></span>
+        <span class="side-nav-label">Chat</span>
+        <span class="nav-badge" id="nav-chat-badge" style="display:none">0</span>
+      </a>
+      <a class="side-nav-item" id="nav-feed" data-view="feed">
+        <span class="side-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg></span>
+        <span class="side-nav-label">Activity</span>
+      </a>
+      <a class="side-nav-item" id="nav-resources" data-view="resources">
+        <span class="side-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg></span>
+        <span class="side-nav-label">Resources</span>
+      </a>
+      <a class="side-nav-item" id="nav-proposal" data-view="proposal">
+        <span class="side-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg></span>
+        <span class="side-nav-label">Proposal</span>
+      </a>
+      <a class="side-nav-item" id="nav-admin" data-view="admin" style="display:none">
+        <span class="side-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg></span>
+        <span class="side-nav-label">Admin</span>
+      </a>
+    </nav>
+
+    <div class="side-divider"></div>
+
     <div id="sidebar-leads">
-      <h2>View</h2>
+      <div class="side-section-title">View</div>
       <div class="filter-group">
         <div class="toggle-row">
           <button id="t-mine" data-mine="1">My Leads</button>
@@ -2166,16 +2290,16 @@ tr.lead-row.selected td { background: var(--brand-soft); }
       <div class="filter-group" id="my-regions-toggle-row" style="display:none">
         <label class="fav-toggle-label" style="width:100%">
           <input id="filter-my-regions" type="checkbox">
-          <span>📍 Only my regions (<span id="my-regions-list-inline">—</span>)</span>
+          <span>Only my regions (<span id="my-regions-list-inline">—</span>)</span>
         </label>
       </div>
 
-      <h2>Quick Stats</h2>
+      <div class="side-section-title">Status</div>
       <div class="status-counts" id="status-counts"></div>
     </div>
 
     <div id="sidebar-admin" class="hidden">
-      <h2>Users</h2>
+      <div class="side-section-title">Users</div>
       <div id="users-list"></div>
       <button class="btn" id="btn-new-user" style="width:100%; margin-top:10px">
         + Create user
@@ -2576,6 +2700,14 @@ function setView(v) {
     const btab = document.getElementById('btab-' + id);
     if (btab) btab.classList.toggle('active', id === v);
   }
+  // Top bar title reflects the current view on desktop
+  const TITLE_FOR = {
+    leads: 'Leads', plan: 'My Day', chat: 'Chat',
+    feed: 'Activity', resources: 'Resources',
+    proposal: 'Proposal', account: 'Account', admin: 'Admin',
+  };
+  const titleEl = document.getElementById('top-title');
+  if (titleEl) titleEl.textContent = TITLE_FOR[v] || '';
   // Bottom tab "More" stays inactive once we navigate elsewhere
   const btabMore = document.getElementById('btab-more');
   if (btabMore) btabMore.classList.remove('active');
@@ -2778,8 +2910,11 @@ function openChangePasswordModal() {
 }
 window.openChangePasswordModal = openChangePasswordModal;
 
-for (const link of document.querySelectorAll('.nav a, .bottom-tabs a')) {
-  link.onclick = () => setView(link.dataset.view);
+for (const link of document.querySelectorAll('.side-nav-item, .bottom-tabs a')) {
+  link.onclick = (e) => {
+    e.preventDefault();
+    setView(link.dataset.view);
+  };
 }
 
 // User dropdown menu (desktop)

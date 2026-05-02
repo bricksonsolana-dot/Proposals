@@ -44,6 +44,14 @@ def _load_or_create_secret() -> str:
 app = Flask(__name__)
 app.secret_key = _load_or_create_secret()
 app.permanent_session_lifetime = timedelta(days=30)
+# Cookie hardening — keep credentials away from JS, force same-site,
+# require HTTPS in production (Render terminates TLS upstream of us).
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=os.environ.get("RENDER", "") != "" or
+        os.environ.get("FLASK_ENV") == "production",
+)
 
 # Ensure DB schema exists
 db.init_schema()
