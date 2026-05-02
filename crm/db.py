@@ -33,15 +33,44 @@ IS_POSTGRES = DATABASE_URL.startswith(("postgresql://", "postgres://"))
 _sqlite_lock = threading.Lock()
 
 
+_pg_pool = None
+_pg_pool_lock = threading.Lock()
+
+
+def _get_pg_pool():
+    """Lazily create a small ThreadedConnectionPool for Postgres so each
+    request doesn't pay the SSL handshake + auth cost (≈200ms over the
+    wire to Supabase)."""
+    global _pg_pool
+    if _pg_pool is not None:
+        return _pg_pool
+    with _pg_pool_lock:
+        if _pg_pool is not None:
+            return _pg_pool
+        from psycopg2.pool import ThreadedConnectionPool
+        url = DATABASE_URL
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
+        _pg_pool = ThreadedConnectionPool(minconn=1, maxconn=10, dsn=url)
+        return _pg_pool
+
+
 def _get_pg_conn():
-    import psycopg2
-    import psycopg2.extras
-    url = DATABASE_URL
-    if url.startswith("postgres://"):
-        url = "postgresql://" + url[len("postgres://"):]
-    conn = psycopg2.connect(url)
+    pool = _get_pg_pool()
+    conn = pool.getconn()
     conn.autocommit = False
     return conn
+
+
+def _put_pg_conn(conn):
+    pool = _get_pg_pool()
+    try:
+        pool.putconn(conn)
+    except Exception:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 
 def _get_sqlite_conn():
@@ -63,10 +92,13 @@ def get_conn():
             yield conn
             conn.commit()
         except Exception:
-            conn.rollback()
+            try:
+                conn.rollback()
+            except Exception:
+                pass
             raise
         finally:
-            conn.close()
+            _put_pg_conn(conn)
     else:
         with _sqlite_lock:
             conn = _get_sqlite_conn()
@@ -221,6 +253,17 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    endpoint TEXT UNIQUE NOT NULL,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
@@ -230,6 +273,7 @@ CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
 CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
 """
 
 SCHEMA_POSTGRES = """
@@ -316,6 +360,16 @@ CREATE TABLE IF NOT EXISTS messages (
     edited_at TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    endpoint TEXT UNIQUE NOT NULL,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
@@ -325,6 +379,7 @@ CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
 CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
 """
 
 

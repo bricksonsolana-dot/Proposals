@@ -3,7 +3,9 @@
 .env.local
 **/.env
 **/.secret_key
+**/.vapid_keys
 crm/data/.secret_key
+crm/data/.vapid_keys
 
 # Local database files (data is in Supabase Postgres for production)
 crm/data/*.db

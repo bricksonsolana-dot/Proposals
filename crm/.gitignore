@@ -1,6 +1,7 @@
 # Secrets
 .env
 data/.secret_key
+data/.vapid_keys
 
 # Local SQLite DB (we keep this out of git)
 data/*.db

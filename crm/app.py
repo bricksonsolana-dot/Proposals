@@ -51,7 +51,22 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=os.environ.get("RENDER", "") != "" or
         os.environ.get("FLASK_ENV") == "production",
+    # Cache static files (logos, icons, manifest) for a week — they
+    # change rarely and the icons in particular are 5-50 KB each.
+    SEND_FILE_MAX_AGE_DEFAULT=timedelta(days=7),
 )
+
+
+@app.after_request
+def _set_cache_headers(response):
+    """Add Cache-Control + immutable for /static/* (rebuilds bust caches
+    via the deploy hash that Render rotates). API responses stay
+    no-cache by default."""
+    if request.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=604800"
+    elif request.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 # Ensure DB schema exists
 db.init_schema()
@@ -117,9 +132,6 @@ LOGIN_HTML = """<!doctype html>
 <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
 <link rel="shortcut icon" href="/static/logo.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <title>Sign in — Devox Sales</title>
 <style>
 :root {
@@ -581,6 +593,18 @@ def api_assign(phone):
                             (user_id,)) if user_id else None
     log_activity(norm, g.user["id"], "assigned",
                   target["full_name"] if target else "unassigned")
+
+    # Push notification to the newly assigned user (if not self-assign)
+    if user_id and int(user_id) != g.user["id"]:
+        lead = db.query_one(
+            "SELECT name, region FROM leads WHERE phone = ?", (norm,))
+        if lead:
+            _push.send_push_to_user(int(user_id), {
+                "title": "New lead assigned",
+                "body": f"{lead['name']} · {lead['region'] or 'no region'}",
+                "tag": f"lead-{norm}",
+                "data": {"url": "/", "lead_phone": norm},
+            })
     return jsonify({"ok": True})
 
 
@@ -1289,6 +1313,25 @@ def api_send_message(chat_id):
         "created_at": created_str,
     }
     broadcast(payload)
+
+    # Push notifications: every chat member except the sender
+    other_members = db.query(
+        "SELECT user_id FROM chat_members "
+        "WHERE chat_id = ? AND user_id <> ?", (chat_id, g.user["id"]))
+    chat_row = db.query_one(
+        "SELECT type, name FROM chats WHERE id = ?", (chat_id,))
+    title = (g.user["full_name"]
+             if chat_row and chat_row["type"] == "dm"
+             else f"{g.user['full_name']} in #{chat_row['name'] or 'chat'}")
+    snippet = body if len(body) <= 120 else body[:117] + "…"
+    _push.send_push_to_users(
+        [m["user_id"] for m in other_members],
+        {
+            "title": title, "body": snippet,
+            "tag": f"chat-{chat_id}",
+            "data": {"url": "/", "chat_id": chat_id},
+        })
+
     return jsonify({"ok": True, "message": payload})
 
 
@@ -1300,6 +1343,205 @@ def api_mark_read(chat_id):
         "WHERE chat_id = ? AND user_id = ?",
         (chat_id, g.user["id"]))
     return jsonify({"ok": True})
+
+
+# ---------- Push notifications ----------
+
+import push as _push
+
+# Service worker MUST be served from the root so it controls the whole
+# origin, not just /static/. (Browsers scope service workers by URL.)
+@app.route("/sw.js")
+def service_worker():
+    response = send_from_directory(
+        str(ROOT / "static"), "sw.js", mimetype="application/javascript")
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Service-Worker-Allowed"] = "/"
+    return response
+
+
+@app.route("/api/push/public-key")
+@auth.login_required
+def api_push_public_key():
+    return jsonify({"key": _push.public_key()})
+
+
+@app.route("/api/push/subscribe", methods=["POST"])
+@auth.login_required
+def api_push_subscribe():
+    data = request.get_json(force=True) or {}
+    endpoint = (data.get("endpoint") or "").strip()
+    keys = data.get("keys") or {}
+    p256dh = keys.get("p256dh")
+    auth_token = keys.get("auth")
+    if not endpoint or not p256dh or not auth_token:
+        return jsonify({"error": "missing fields"}), 400
+    ua = request.headers.get("User-Agent", "")[:255]
+    # Upsert: replace existing subscription with same endpoint
+    existing = db.query_one(
+        "SELECT id FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+    if existing:
+        db.execute(
+            "UPDATE push_subscriptions SET user_id = ?, p256dh = ?, auth = ?, "
+            "user_agent = ? WHERE id = ?",
+            (g.user["id"], p256dh, auth_token, ua, existing["id"]))
+    else:
+        db.execute(
+            "INSERT INTO push_subscriptions "
+            "(user_id, endpoint, p256dh, auth, user_agent) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (g.user["id"], endpoint, p256dh, auth_token, ua))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/push/unsubscribe", methods=["POST"])
+@auth.login_required
+def api_push_unsubscribe():
+    data = request.get_json(force=True) or {}
+    endpoint = (data.get("endpoint") or "").strip()
+    if endpoint:
+        db.execute(
+            "DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/push/test", methods=["POST"])
+@auth.login_required
+def api_push_test():
+    """Send a test notification to the calling user — for the
+    'Enable notifications' button to confirm setup."""
+    sent = _push.send_push_to_user(g.user["id"], {
+        "title": "Devox Sales",
+        "body": "Notifications are working — you'll get a ping for new messages and assignments.",
+        "tag": "test",
+        "data": {"url": "/"},
+    })
+    return jsonify({"ok": True, "sent": sent})
+
+
+# Banter messages — random pool used by the daily summary cron / admin
+# broadcast endpoint to deliver "fun" notifications to whoever fell
+# behind the goal or surprised the team.
+BANTER_MISS = [
+    "Beers on you Saturday 🍺",
+    "Coffee run tomorrow morning, on you ☕",
+    "The team's calling — literally, you owe a phone call 📞",
+    "Top of the leaderboard from the bottom 🪤",
+    "Daily target had its feelings hurt today 😅",
+]
+BANTER_HIT = [
+    "Crushing it today — keep going 🚀",
+    "Daily target ✓. Time for one more? 💪",
+    "You're paying for your own beers tonight 🍻",
+    "Officially carrying the team 🦾",
+]
+
+
+@app.route("/api/admin/broadcast", methods=["POST"])
+@auth.admin_required
+def api_admin_broadcast():
+    """Admin-only: push a custom notification to selected users (or all)."""
+    data = request.get_json(force=True) or {}
+    title = (data.get("title") or "Devox Sales").strip()[:80]
+    body = (data.get("body") or "").strip()[:300]
+    if not body:
+        return jsonify({"error": "body is required"}), 400
+    user_ids = data.get("user_ids")  # list[int] or None for everyone
+    if not user_ids:
+        rows = db.query(
+            "SELECT id FROM users WHERE is_active = 1", ())
+        user_ids = [r["id"] for r in rows]
+    sent = _push.send_push_to_users(
+        [int(u) for u in user_ids],
+        {"title": title, "body": body, "tag": "broadcast",
+         "data": {"url": "/"}})
+    return jsonify({"ok": True, "sent": sent})
+
+
+@app.route("/api/admin/banter", methods=["POST"])
+@auth.admin_required
+def api_admin_banter():
+    """One-tap fun: ping the slacker(s) from today's leaderboard.
+    Pass {"behind": true} to push a random miss-banter to everyone
+    below 50% of target, {"hit": true} to celebrate everyone over
+    target, or {"user_id": N, "kind": "miss"|"hit"} for a single user."""
+    import random
+    data = request.get_json(force=True) or {}
+    target = 20  # default daily call target
+
+    if "user_id" in data:
+        kind = data.get("kind", "miss")
+        line = random.choice(
+            BANTER_MISS if kind == "miss" else BANTER_HIT)
+        sent = _push.send_push_to_user(int(data["user_id"]),
+            {"title": "Devox Sales", "body": line, "tag": "banter",
+             "data": {"url": "/"}})
+        return jsonify({"ok": True, "sent": sent})
+
+    today = date.today().isoformat()
+    rows = db.query(
+        "SELECT u.id, u.full_name, COUNT(a.id) AS calls FROM users u "
+        "LEFT JOIN activity a ON a.user_id = u.id AND a.action = 'called' "
+        "  AND date(a.created_at) = ? "
+        "WHERE u.is_active = 1 GROUP BY u.id, u.full_name",
+        (today,))
+    behind = [r for r in rows if (r["calls"] or 0) < target * 0.5]
+    hit = [r for r in rows if (r["calls"] or 0) >= target]
+
+    sent_total = 0
+    if data.get("behind"):
+        for r in behind:
+            line = random.choice(BANTER_MISS)
+            sent_total += _push.send_push_to_user(r["id"],
+                {"title": "Devox Sales", "body": line, "tag": "banter",
+                 "data": {"url": "/"}})
+    if data.get("hit"):
+        for r in hit:
+            line = random.choice(BANTER_HIT)
+            sent_total += _push.send_push_to_user(r["id"],
+                {"title": "Devox Sales", "body": line, "tag": "banter",
+                 "data": {"url": "/"}})
+    return jsonify({"ok": True, "sent": sent_total,
+                    "behind": len(behind), "hit": len(hit)})
+
+
+@app.route("/api/cron/daily-summary", methods=["POST"])
+def api_cron_daily_summary():
+    """Designed to be hit by an external cron (cron-job.org) every
+    evening (e.g. 6pm). Sends each user their daily standing.
+    Auth: same X-Sync-Token used for lead sync."""
+    token_required = os.environ.get("SYNC_TOKEN", "dev-token")
+    if request.headers.get("X-Sync-Token") != token_required:
+        return jsonify({"error": "unauthorized"}), 401
+
+    target = 20
+    today = date.today().isoformat()
+    rows = db.query(
+        "SELECT u.id, u.full_name, COUNT(a.id) AS calls FROM users u "
+        "LEFT JOIN activity a ON a.user_id = u.id AND a.action = 'called' "
+        "  AND date(a.created_at) = ? "
+        "WHERE u.is_active = 1 GROUP BY u.id, u.full_name",
+        (today,))
+    sent = 0
+    import random
+    for r in rows:
+        calls = r["calls"] or 0
+        if calls >= target:
+            line = random.choice(BANTER_HIT)
+            body = f"{calls}/{target} calls today. {line}"
+        elif calls >= target * 0.5:
+            body = (f"{calls}/{target} calls today — "
+                    f"{target - calls} more to hit goal!")
+        else:
+            line = random.choice(BANTER_MISS)
+            body = f"Only {calls}/{target} today. {line}"
+        sent += _push.send_push_to_user(r["id"], {
+            "title": "Daily summary",
+            "body": body,
+            "tag": "daily-summary",
+            "data": {"url": "/"},
+        })
+    return jsonify({"ok": True, "sent": sent})
 
 
 # ---------- Download (desktop app + mobile install instructions) ----------
@@ -1317,9 +1559,6 @@ DOWNLOAD_HTML = r"""<!doctype html>
 <link rel="apple-touch-icon" href="/static/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
 <link rel="shortcut icon" href="/static/logo.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap">
 <title>Download — Devox Sales</title>
 <style>
 :root {

@@ -14,9 +14,6 @@ INDEX_HTML = r"""<!doctype html>
 <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
 <link rel="shortcut icon" href="/static/logo.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <title>Devox Sales</title>
 <style>
 /* =============================================================
@@ -2577,14 +2574,27 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 
       <div class="account-section">
         <div class="account-section-title">Notifications</div>
-        <div class="account-row static">
+        <button class="account-row" id="acc-toggle-push">
           <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2" stroke-linecap="round"
                stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span>
           <div class="account-row-text">
+            <div class="account-row-title">Push notifications</div>
+            <div class="account-row-sub" id="acc-push-sub">
+              Get pinged for new messages and lead assignments
+            </div>
+          </div>
+          <span class="account-pill" id="acc-push-pill">Off</span>
+        </button>
+        <div class="account-row static">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle>
+               <polyline points="12 6 12 12 16 14"></polyline></svg></span>
+          <div class="account-row-text">
             <div class="account-row-title">Live activity</div>
-            <div class="account-row-sub">You'll see live updates from the team</div>
+            <div class="account-row-sub">Real-time updates while the app is open</div>
           </div>
           <span class="account-pill on">On</span>
         </div>
@@ -2739,6 +2749,7 @@ function refreshAccountView() {
   }
   const pwBtn = document.getElementById('acc-change-pw');
   if (pwBtn) pwBtn.onclick = () => openChangePasswordModal();
+  if (typeof updatePushUI === 'function') updatePushUI();
 }
 
 function showMoreMenu() {
@@ -4977,14 +4988,133 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ----------------- Push notifications -----------------
+let pushSupported = ('serviceWorker' in navigator) && ('PushManager' in window)
+                     && ('Notification' in window);
+let swRegistration = null;
+let pushSubscription = null;
+
+function urlBase64ToUint8Array(b64) {
+  const padding = '='.repeat((4 - b64.length % 4) % 4);
+  const base64 = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+async function initPush() {
+  if (!pushSupported) return;
+  try {
+    swRegistration = await navigator.serviceWorker.register('/sw.js');
+    pushSubscription = await swRegistration.pushManager.getSubscription();
+    updatePushUI();
+  } catch (e) {
+    console.warn('SW register failed', e);
+  }
+}
+
+async function enablePush() {
+  if (!pushSupported) {
+    alert('Your browser does not support push notifications.');
+    return;
+  }
+  if (!swRegistration) {
+    swRegistration = await navigator.serviceWorker.register('/sw.js');
+  }
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    notify('Notifications are blocked. Allow them in your browser settings.');
+    return;
+  }
+  // Get VAPID public key
+  const r = await fetch('/api/push/public-key');
+  const { key } = await r.json();
+  const sub = await swRegistration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(key),
+  });
+  // POST it to the server
+  const subJson = sub.toJSON();
+  await fetch('/api/push/subscribe', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(subJson),
+  });
+  pushSubscription = sub;
+  notify('Notifications enabled');
+  // Send a test ping so the user sees one immediately
+  try { await fetch('/api/push/test', { method: 'POST' }); } catch {}
+  updatePushUI();
+}
+
+async function disablePush() {
+  if (!pushSubscription) { updatePushUI(); return; }
+  try {
+    await fetch('/api/push/unsubscribe', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ endpoint: pushSubscription.endpoint }),
+    });
+    await pushSubscription.unsubscribe();
+  } catch {}
+  pushSubscription = null;
+  notify('Notifications disabled');
+  updatePushUI();
+}
+
+function updatePushUI() {
+  const pill = document.getElementById('acc-push-pill');
+  const sub = document.getElementById('acc-push-sub');
+  const btn = document.getElementById('acc-toggle-push');
+  if (!pill || !btn) return;
+  if (!pushSupported) {
+    pill.textContent = 'Unsupported';
+    pill.className = 'account-pill';
+    btn.disabled = true;
+    if (sub) sub.textContent = 'This browser does not support push.';
+    return;
+  }
+  const perm = ('Notification' in window) ? Notification.permission : 'default';
+  if (pushSubscription && perm === 'granted') {
+    pill.textContent = 'On';
+    pill.className = 'account-pill on';
+  } else if (perm === 'denied') {
+    pill.textContent = 'Blocked';
+    pill.className = 'account-pill';
+    if (sub) sub.textContent = 'Allow notifications in your browser settings.';
+  } else {
+    pill.textContent = 'Off';
+    pill.className = 'account-pill';
+  }
+  btn.onclick = () => {
+    if (pushSubscription) disablePush();
+    else enablePush();
+  };
+}
+
+// Bootstrap push as soon as the page loads (registers SW so we're ready
+// the first time the user opens Account → Push notifications).
+initPush();
+
+// Service worker → page channel: when the user clicks a notification
+// the SW posts a navigate message, route to the relevant view.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'navigate') {
+      // Currently we only route to /, so no-op. Hook for future.
+    }
+  });
+}
+
 // ----------------- Presence -----------------
 async function pingPresence() {
+  if (document.hidden) return;  // don't waste cycles on backgrounded tabs
   try {
     await fetch('/api/presence/ping', { method: 'POST' });
   } catch {}
 }
 
 async function refreshPresence() {
+  if (document.hidden) return;
   try {
     const r = await fetch('/api/presence');
     if (!r.ok) return;
@@ -5007,10 +5137,21 @@ async function refreshPresence() {
   } catch {}
 }
 
+// Catch up immediately when the tab becomes visible again
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    pingPresence();
+    refreshPresence();
+  }
+});
+
 pingPresence();
 refreshPresence();
 setInterval(pingPresence, 30000);
 setInterval(refreshPresence, 20000);
+
+// Fetch chat list once on init so the unread badge is correct from the
+// first paint. Subsequent updates ride on the SSE chat_message channel.
 refreshChatList();
 
 // Init — every user lands in All Leads by default. The My Leads tab
