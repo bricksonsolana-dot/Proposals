@@ -583,7 +583,95 @@ tr.lead-row.selected td { background: #1e293b; }
 .leads-cards { display: none; }
 /* Hide mobile-only elements on desktop */
 .mobile-filter-btn { display: none; }
+.mobile-leads-header { display: none; }
 .filter-drawer { display: none; }
+
+/* Mobile leads header — visible only on phones */
+@media (max-width: 768px) {
+  .mobile-leads-header {
+    display: flex !important;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: stretch;
+  }
+  .mobile-tab-toggle {
+    display: flex;
+    flex: 1;
+    background: #0a0c12;
+    border: 1px solid #2a2f3d;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .mobile-tab-toggle button {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    color: #8b92a6;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 8px;
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .mobile-tab-toggle button.active {
+    background: #2563eb;
+    color: white;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  }
+  .mobile-tab-toggle button .cnt {
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.18);
+    color: inherit;
+    padding: 1px 7px;
+    border-radius: 10px;
+    min-width: 22px;
+    text-align: center;
+    opacity: 0.9;
+  }
+  .mobile-tab-toggle button:not(.active) .cnt {
+    background: #1a1d27;
+    color: #8b92a6;
+  }
+  .mobile-filter-btn-2 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1a1d27;
+    border: 1px solid #2a2f3d;
+    color: #d6d3d1;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .mobile-filter-btn-2.has-filters {
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+  .filter-count-badge {
+    background: #2563eb;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+  }
+  /* Hide the desktop toolbar's redundant filter button on mobile —
+     the new mobile-leads-header above already has one */
+  .leads-toolbar .mobile-filter-btn { display: none; }
+}
 </style>
 </head>
 <body>
@@ -696,6 +784,25 @@ tr.lead-row.selected td { background: #1e293b; }
   <main class="main">
     <!-- LEADS VIEW -->
     <div id="view-leads">
+      <!-- Mobile-only header: All / My toggle + Filters button -->
+      <div class="mobile-leads-header">
+        <div class="mobile-tab-toggle">
+          <button id="mt-all" class="active" data-mine="0">
+            <span class="lbl">All Leads</span>
+            <span class="cnt" id="mt-all-count"></span>
+          </button>
+          <button id="mt-mine" data-mine="1">
+            <span class="lbl">My Leads</span>
+            <span class="cnt" id="mt-mine-count"></span>
+          </button>
+        </div>
+        <button class="mobile-filter-btn-2" id="mobile-filter-btn-2">
+          <span>⚙️</span>
+          <span>Filters</span>
+          <span class="filter-count-badge" id="filter-count-badge" style="display:none">0</span>
+        </button>
+      </div>
+
       <div class="leads-toolbar">
         <input id="filter-text-top" type="text"
                 placeholder="🔍 Search leads by name, phone, region, category, email...">
@@ -709,9 +816,6 @@ tr.lead-row.selected td { background: #1e293b; }
           <input id="filter-fav-top" type="checkbox">
           <span>⭐ Favorites</span>
         </label>
-        <button class="mobile-filter-btn" id="mobile-filter-btn">
-          <span>⚙️</span> Filters
-        </button>
       </div>
 
       <div class="leads-header">
@@ -1214,7 +1318,57 @@ async function refreshLeads() {
     regSel.value = cur;
   }
 
+  updateMobileToggleCounts();
+  updateActiveFilterBadge();
   renderLeads();
+}
+
+// Fetch the count for the OTHER mode (so the toggle button shows
+// both numbers), without re-rendering the whole table.
+async function updateMobileToggleCounts() {
+  const myEl = document.getElementById('mt-mine-count');
+  const allEl = document.getElementById('mt-all-count');
+  if (!myEl || !allEl) return;
+  // Current mode count is allLeads.length
+  const currentCount = allLeads.length;
+  if (myMode) myEl.textContent = currentCount;
+  else allEl.textContent = currentCount;
+  // Fetch the other side cheaply (same filters minus mine)
+  try {
+    const params = new URLSearchParams();
+    if (!myMode) params.set('mine', '1');
+    if (favOnly) params.set('favorites', '1');
+    if (activeStatus) params.set('status', activeStatus);
+    if (activeFilterRegion) params.set('region', activeFilterRegion);
+    if (activeFilterAssignee) params.set('assigned_to', activeFilterAssignee);
+    if (filterText) params.set('q', filterText);
+    const r = await fetch('/api/leads?' + params.toString());
+    if (!r.ok) return;
+    const d = await r.json();
+    if (myMode) allEl.textContent = d.total;
+    else myEl.textContent = d.total;
+  } catch {}
+}
+
+function updateActiveFilterBadge() {
+  // Count the filters that are not in their default state
+  let n = 0;
+  if (favOnly) n++;
+  if (activeStatus) n++;
+  if (activeFilterRegion) n++;
+  if (activeFilterAssignee) n++;
+  if (filterText) n++;
+  const btn = document.getElementById('mobile-filter-btn-2');
+  const badge = document.getElementById('filter-count-badge');
+  if (!btn || !badge) return;
+  if (n > 0) {
+    btn.classList.add('has-filters');
+    badge.style.display = '';
+    badge.textContent = n;
+  } else {
+    btn.classList.remove('has-filters');
+    badge.style.display = 'none';
+  }
 }
 
 function renderLeads() {
@@ -1348,16 +1502,31 @@ function renderLeads() {
   }
 }
 
-document.getElementById('t-mine').onclick = () => {
-  myMode = 1; document.getElementById('t-mine').classList.add('active');
-  document.getElementById('t-all').classList.remove('active');
+function setMyMode(v) {
+  myMode = v ? 1 : 0;
+  document.getElementById('t-mine').classList.toggle('active', myMode === 1);
+  document.getElementById('t-all').classList.toggle('active', myMode === 0);
+  const mtMine = document.getElementById('mt-mine');
+  const mtAll = document.getElementById('mt-all');
+  if (mtMine) mtMine.classList.toggle('active', myMode === 1);
+  if (mtAll) mtAll.classList.toggle('active', myMode === 0);
   refreshLeads();
-};
-document.getElementById('t-all').onclick = () => {
-  myMode = 0; document.getElementById('t-all').classList.add('active');
-  document.getElementById('t-mine').classList.remove('active');
-  refreshLeads();
-};
+}
+document.getElementById('t-mine').onclick = () => setMyMode(1);
+document.getElementById('t-all').onclick = () => setMyMode(0);
+const mtMineEl = document.getElementById('mt-mine');
+const mtAllEl = document.getElementById('mt-all');
+if (mtMineEl) mtMineEl.onclick = () => setMyMode(1);
+if (mtAllEl) mtAllEl.onclick = () => setMyMode(0);
+
+// Wire the second mobile filter button (in the new mobile-leads-header)
+const mobFilterBtn2 = document.getElementById('mobile-filter-btn-2');
+if (mobFilterBtn2) {
+  mobFilterBtn2.onclick = () => {
+    rebuildFilterDrawer();
+    document.getElementById('filter-drawer').classList.add('open');
+  };
+}
 document.getElementById('filter-text-top').oninput = e => {
   filterText = e.target.value;
   clearTimeout(searchTimer);
@@ -1391,15 +1560,34 @@ if (filterMyRegionsCb) {
 function rebuildFilterDrawer() {
   const inner = document.querySelector('#filter-drawer .filter-drawer-inner');
   if (!inner) return;
+  const STATUS_LABEL_LOCAL = STATUS_LABEL;
+  const STATUS_KEYS = ['new','called','reached','interested','follow_up',
+                        'not_interested','closed_won','closed_lost','disqualified'];
   inner.innerHTML = `
     <button class="filter-drawer-close" id="filter-drawer-close">✕</button>
-    <h3>Filters</h3>
+    <h3 style="display:flex;justify-content:space-between;align-items:center">
+      <span>Filters</span>
+      <button id="filter-drawer-clear" style="background:transparent;border:0;
+              color:#60a5fa;font-size:12px;cursor:pointer;padding:0">
+        Clear all
+      </button>
+    </h3>
     <div class="filter-group">
       <label style="font-size:11px;color:#8b92a6">View</label>
       <div class="toggle-row">
-        <button id="m-t-mine" data-mine="1" class="${myMode?'active':''}">My Leads</button>
         <button id="m-t-all" data-mine="0" class="${!myMode?'active':''}">All Leads</button>
+        <button id="m-t-mine" data-mine="1" class="${myMode?'active':''}">My Leads</button>
       </div>
+    </div>
+    <div class="filter-group">
+      <label style="font-size:11px;color:#8b92a6">Status</label>
+      <select id="m-filter-status">
+        <option value="">Any status</option>
+        ${STATUS_KEYS.map(k => `
+          <option value="${k}" ${activeStatus === k ? 'selected' : ''}>
+            ${STATUS_LABEL_LOCAL[k] || k}
+          </option>`).join('')}
+      </select>
     </div>
     <div class="filter-group">
       <label style="font-size:11px;color:#8b92a6">Region</label>
@@ -1434,26 +1622,52 @@ function rebuildFilterDrawer() {
   inner.querySelector('#filter-drawer-close').onclick = () => {
     document.getElementById('filter-drawer').classList.remove('open');
   };
+  inner.querySelector('#filter-drawer-clear').onclick = () => {
+    // Reset all filters and apply
+    activeStatus = null;
+    activeFilterRegion = '';
+    activeFilterAssignee = '';
+    favOnly = false;
+    myMode = 0;
+    if (regSrc) regSrc.value = '';
+    if (asgSrc) asgSrc.value = '';
+    document.getElementById('filter-fav-top').checked = false;
+    document.getElementById('t-mine').classList.remove('active');
+    document.getElementById('t-all').classList.add('active');
+    const mtMine = document.getElementById('mt-mine');
+    const mtAll = document.getElementById('mt-all');
+    if (mtMine) mtMine.classList.remove('active');
+    if (mtAll) mtAll.classList.add('active');
+    document.getElementById('filter-drawer').classList.remove('open');
+    refreshLeads();
+  };
+  let drawerMyMode = myMode;
   inner.querySelector('#m-t-mine').onclick = () => {
-    myMode = 1;
+    drawerMyMode = 1;
     inner.querySelector('#m-t-mine').classList.add('active');
     inner.querySelector('#m-t-all').classList.remove('active');
   };
   inner.querySelector('#m-t-all').onclick = () => {
-    myMode = 0;
+    drawerMyMode = 0;
     inner.querySelector('#m-t-all').classList.add('active');
     inner.querySelector('#m-t-mine').classList.remove('active');
   };
   inner.querySelector('#filter-drawer-apply').onclick = () => {
+    myMode = drawerMyMode;
+    activeStatus = inner.querySelector('#m-filter-status').value || null;
     activeFilterRegion = inner.querySelector('#m-filter-region').value;
     activeFilterAssignee = inner.querySelector('#m-filter-assignee').value;
     favOnly = inner.querySelector('#m-filter-fav').checked;
-    // Sync desktop UI as well
+    // Sync desktop / outer UI
     if (regSrc) regSrc.value = activeFilterRegion;
     if (asgSrc) asgSrc.value = activeFilterAssignee;
     document.getElementById('filter-fav-top').checked = favOnly;
     document.getElementById('t-mine').classList.toggle('active', myMode === 1);
     document.getElementById('t-all').classList.toggle('active', myMode === 0);
+    const mtMine = document.getElementById('mt-mine');
+    const mtAll = document.getElementById('mt-all');
+    if (mtMine) mtMine.classList.toggle('active', myMode === 1);
+    if (mtAll) mtAll.classList.toggle('active', myMode === 0);
     document.getElementById('filter-drawer').classList.remove('open');
     refreshLeads();
   };
