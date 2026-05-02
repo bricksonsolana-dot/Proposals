@@ -987,6 +987,313 @@ def api_all_regions():
     return jsonify(rows)
 
 
+# ---------- Presence (online users) ----------
+
+PRESENCE_TIMEOUT_SECONDS = 90  # users inactive > 90s are considered offline
+
+
+@app.route("/api/presence/ping", methods=["POST"])
+@auth.login_required
+def api_presence_ping():
+    db.execute(
+        "UPDATE users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?",
+        (g.user["id"],))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/presence")
+@auth.login_required
+def api_presence():
+    """Return user_ids currently online (pinged within 90s)."""
+    if db.IS_POSTGRES:
+        rows = db.query(
+            "SELECT id, last_seen_at FROM users "
+            "WHERE is_active = 1 AND last_seen_at > "
+            "NOW() - INTERVAL '90 seconds'", ())
+    else:
+        rows = db.query(
+            "SELECT id, last_seen_at FROM users "
+            "WHERE is_active = 1 AND last_seen_at > "
+            "datetime('now', '-90 seconds')", ())
+    return jsonify({"online": [r["id"] for r in rows]})
+
+
+# ---------- Chat ----------
+
+def _get_or_create_team_chat() -> int:
+    """The 'Team' group chat that everyone belongs to. Auto-created."""
+    row = db.query_one(
+        "SELECT id FROM chats WHERE type = 'team' LIMIT 1", ())
+    if row:
+        return row["id"]
+    # Create the team chat
+    if db.IS_POSTGRES:
+        with db.get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO chats (type, name) VALUES ('team', 'Team') "
+                "RETURNING id")
+            chat_id = cur.fetchone()[0]
+    else:
+        db.execute(
+            "INSERT INTO chats (type, name) VALUES ('team', 'Team')", ())
+        row = db.query_one(
+            "SELECT id FROM chats WHERE type = 'team' LIMIT 1", ())
+        chat_id = row["id"]
+    # Add every active user
+    users = db.query(
+        "SELECT id FROM users WHERE is_active = 1", ())
+    for u in users:
+        try:
+            db.execute(
+                "INSERT INTO chat_members (chat_id, user_id) VALUES (?, ?)",
+                (chat_id, u["id"]))
+        except Exception:
+            pass  # already a member
+    return chat_id
+
+
+def _ensure_team_membership(uid: int):
+    """Make sure the user is a member of the team chat."""
+    team_id = _get_or_create_team_chat()
+    existing = db.query_one(
+        "SELECT chat_id FROM chat_members WHERE chat_id = ? AND user_id = ?",
+        (team_id, uid))
+    if not existing:
+        try:
+            db.execute(
+                "INSERT INTO chat_members (chat_id, user_id) VALUES (?, ?)",
+                (team_id, uid))
+        except Exception:
+            pass
+
+
+def _chat_summary(chat_id: int, viewer_id: int) -> dict:
+    """Compose a chat summary: id, type, display_name, last_message,
+    unread_count, members (just user_ids for DMs to find the peer).
+    """
+    chat = db.query_one(
+        "SELECT id, type, name, created_at FROM chats WHERE id = ?",
+        (chat_id,))
+    if not chat:
+        return None
+    member_rows = db.query(
+        "SELECT cm.user_id, cm.last_read_at, u.full_name, u.username "
+        "FROM chat_members cm JOIN users u ON u.id = cm.user_id "
+        "WHERE cm.chat_id = ?", (chat_id,))
+    members = [{"user_id": r["user_id"], "full_name": r["full_name"],
+                 "username": r["username"]} for r in member_rows]
+    me = next((r for r in member_rows if r["user_id"] == viewer_id), None)
+    last_read = me["last_read_at"] if me else None
+
+    # Unread count
+    if last_read:
+        urow = db.query_one(
+            "SELECT COUNT(*) AS n FROM messages "
+            "WHERE chat_id = ? AND user_id <> ? AND created_at > ?",
+            (chat_id, viewer_id, last_read))
+    else:
+        urow = db.query_one(
+            "SELECT COUNT(*) AS n FROM messages "
+            "WHERE chat_id = ? AND user_id <> ?",
+            (chat_id, viewer_id))
+    unread = (urow or {}).get("n", 0) if urow else 0
+
+    # Last message
+    last = db.query_one(
+        "SELECT m.id, m.body, m.created_at, m.user_id, u.full_name "
+        "FROM messages m JOIN users u ON u.id = m.user_id "
+        "WHERE m.chat_id = ? ORDER BY m.created_at DESC LIMIT 1",
+        (chat_id,))
+
+    # Display name: for DMs, the *other* member's name
+    display_name = chat["name"]
+    if chat["type"] == "dm":
+        other = next((m for m in members if m["user_id"] != viewer_id),
+                     None)
+        display_name = other["full_name"] if other else "(unknown)"
+
+    return {
+        "id": chat["id"],
+        "type": chat["type"],
+        "name": display_name,
+        "members": members,
+        "unread": unread,
+        "last_message": {
+            "id": last["id"], "body": last["body"],
+            "created_at": last["created_at"].isoformat(timespec="seconds")
+              if hasattr(last["created_at"], "isoformat")
+              else str(last["created_at"]),
+            "user_id": last["user_id"],
+            "full_name": last["full_name"],
+        } if last else None,
+    }
+
+
+@app.route("/api/chats")
+@auth.login_required
+def api_chats():
+    """List the chats the current user is a member of."""
+    _ensure_team_membership(g.user["id"])
+    rows = db.query(
+        "SELECT chat_id FROM chat_members WHERE user_id = ?",
+        (g.user["id"],))
+    out = []
+    for r in rows:
+        s = _chat_summary(r["chat_id"], g.user["id"])
+        if s:
+            out.append(s)
+    # Sort: team first, then by last message timestamp desc
+    out.sort(key=lambda c: (
+        0 if c["type"] == "team" else 1,
+        -(c["last_message"]["id"] if c["last_message"] else 0),
+    ))
+    return jsonify({"chats": out})
+
+
+@app.route("/api/chats/dm/<int:peer_id>", methods=["POST"])
+@auth.login_required
+def api_open_dm(peer_id):
+    """Open a DM with another user. Creates the chat if it doesn't exist."""
+    if peer_id == g.user["id"]:
+        return jsonify({"error": "cannot DM yourself"}), 400
+    peer = db.query_one(
+        "SELECT id FROM users WHERE id = ? AND is_active = 1", (peer_id,))
+    if not peer:
+        return jsonify({"error": "user not found"}), 404
+
+    # Look for an existing DM with exactly these two members
+    rows = db.query(
+        "SELECT c.id FROM chats c "
+        "JOIN chat_members cm1 ON cm1.chat_id = c.id AND cm1.user_id = ? "
+        "JOIN chat_members cm2 ON cm2.chat_id = c.id AND cm2.user_id = ? "
+        "WHERE c.type = 'dm'", (g.user["id"], peer_id))
+    for r in rows:
+        # Confirm it has exactly 2 members
+        cnt = db.query_one(
+            "SELECT COUNT(*) AS n FROM chat_members WHERE chat_id = ?",
+            (r["id"],))
+        if cnt and cnt["n"] == 2:
+            return jsonify({"chat_id": r["id"]})
+
+    # Create new DM
+    if db.IS_POSTGRES:
+        with db.get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO chats (type, created_by) VALUES ('dm', %s) "
+                "RETURNING id", (g.user["id"],))
+            chat_id = cur.fetchone()[0]
+    else:
+        db.execute(
+            "INSERT INTO chats (type, created_by) VALUES ('dm', ?)",
+            (g.user["id"],))
+        # SQLite: get the inserted id
+        row = db.query_one(
+            "SELECT MAX(id) AS id FROM chats WHERE type = 'dm' "
+            "AND created_by = ?", (g.user["id"],))
+        chat_id = row["id"]
+    db.execute_many(
+        "INSERT INTO chat_members (chat_id, user_id) VALUES (?, ?)",
+        [(chat_id, g.user["id"]), (chat_id, peer_id)])
+    return jsonify({"chat_id": chat_id})
+
+
+@app.route("/api/chats/<int:chat_id>/messages")
+@auth.login_required
+def api_chat_messages(chat_id):
+    """Return last 100 messages in the chat."""
+    is_member = db.query_one(
+        "SELECT 1 AS ok FROM chat_members WHERE chat_id = ? AND user_id = ?",
+        (chat_id, g.user["id"]))
+    if not is_member:
+        return jsonify({"error": "forbidden"}), 403
+    rows = db.query(
+        "SELECT m.id, m.body, m.user_id, m.created_at, m.edited_at, "
+        "       u.full_name, u.username "
+        "FROM messages m JOIN users u ON u.id = m.user_id "
+        "WHERE m.chat_id = ? ORDER BY m.created_at DESC LIMIT 100",
+        (chat_id,))
+    rows.reverse()
+    out = [{
+        "id": r["id"], "body": r["body"], "user_id": r["user_id"],
+        "full_name": r["full_name"], "username": r["username"],
+        "created_at": r["created_at"].isoformat(timespec="seconds")
+          if hasattr(r["created_at"], "isoformat")
+          else str(r["created_at"]),
+        "edited_at": (r["edited_at"].isoformat(timespec="seconds")
+          if hasattr(r["edited_at"], "isoformat")
+          else str(r["edited_at"])) if r.get("edited_at") else None,
+    } for r in rows]
+    summary = _chat_summary(chat_id, g.user["id"])
+    return jsonify({"chat": summary, "messages": out})
+
+
+@app.route("/api/chats/<int:chat_id>/messages", methods=["POST"])
+@auth.login_required
+def api_send_message(chat_id):
+    is_member = db.query_one(
+        "SELECT 1 AS ok FROM chat_members WHERE chat_id = ? AND user_id = ?",
+        (chat_id, g.user["id"]))
+    if not is_member:
+        return jsonify({"error": "forbidden"}), 403
+    data = request.get_json(force=True) or {}
+    body = (data.get("body") or "").strip()
+    if not body:
+        return jsonify({"error": "empty message"}), 400
+    if len(body) > 4000:
+        return jsonify({"error": "message too long"}), 400
+    if db.IS_POSTGRES:
+        with db.get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO messages (chat_id, user_id, body) "
+                "VALUES (%s, %s, %s) RETURNING id, created_at",
+                (chat_id, g.user["id"], body))
+            row = cur.fetchone()
+            msg_id = row[0]
+            created_at = row[1]
+    else:
+        db.execute(
+            "INSERT INTO messages (chat_id, user_id, body) VALUES (?, ?, ?)",
+            (chat_id, g.user["id"], body))
+        row = db.query_one(
+            "SELECT id, created_at FROM messages "
+            "WHERE chat_id = ? AND user_id = ? "
+            "ORDER BY id DESC LIMIT 1", (chat_id, g.user["id"]))
+        msg_id = row["id"]
+        created_at = row["created_at"]
+    # Bump sender's last_read so they don't see their own message as unread
+    db.execute(
+        "UPDATE chat_members SET last_read_at = CURRENT_TIMESTAMP "
+        "WHERE chat_id = ? AND user_id = ?", (chat_id, g.user["id"]))
+
+    created_str = (created_at.isoformat(timespec="seconds")
+        if hasattr(created_at, "isoformat") else str(created_at))
+    payload = {
+        "type": "chat_message",
+        "chat_id": chat_id,
+        "id": msg_id,
+        "body": body,
+        "user_id": g.user["id"],
+        "full_name": g.user["full_name"],
+        "username": g.user["username"],
+        "created_at": created_str,
+    }
+    broadcast(payload)
+    return jsonify({"ok": True, "message": payload})
+
+
+@app.route("/api/chats/<int:chat_id>/read", methods=["POST"])
+@auth.login_required
+def api_mark_read(chat_id):
+    db.execute(
+        "UPDATE chat_members SET last_read_at = CURRENT_TIMESTAMP "
+        "WHERE chat_id = ? AND user_id = ?",
+        (chat_id, g.user["id"]))
+    return jsonify({"ok": True})
+
+
 # ---------- Download (desktop app + mobile install instructions) ----------
 
 DIST_DIR = ROOT / "dist"

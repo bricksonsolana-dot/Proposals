@@ -938,6 +938,335 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   margin-top: 6px;
 }
 
+/* ---------- Chat view ---------- */
+.chat-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  height: calc(100vh - var(--header-h) - 48px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.chat-sidebar {
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+.chat-sidebar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.chat-sidebar-header h2 {
+  font-size: 16px !important; font-weight: 700;
+  text-transform: none; letter-spacing: -0.01em;
+  color: var(--text);
+}
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.chat-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  background: transparent;
+  border-left: 0; border-right: 0; border-top: 0;
+  width: 100%; text-align: left;
+  font-family: inherit;
+  color: var(--text);
+}
+.chat-row:hover { background: var(--hover); }
+.chat-row.active { background: var(--brand-soft); }
+.chat-row .avatar-wrap {
+  position: relative; flex-shrink: 0;
+}
+.chat-row .user-avatar {
+  width: 38px; height: 38px; font-size: 13px;
+}
+.chat-row .chat-row-info { flex: 1; min-width: 0; }
+.chat-row .chat-row-name {
+  font-size: 14px; font-weight: 600;
+  color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: -0.005em;
+}
+.chat-row .chat-row-last {
+  font-size: 12px; color: var(--text-3);
+  margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat-row .chat-row-meta {
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 4px; flex-shrink: 0;
+}
+.chat-row .chat-row-time {
+  font-size: 10px; color: var(--text-4);
+  font-weight: 500;
+}
+.chat-row .chat-unread {
+  background: var(--brand);
+  color: white;
+  font-size: 10px; font-weight: 700;
+  min-width: 18px; height: 18px;
+  border-radius: var(--r-pill);
+  padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.chat-thread {
+  display: flex; flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+.chat-thread-empty {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-4);
+  font-size: 14px;
+  padding: 40px;
+  text-align: center;
+}
+.chat-thread-header {
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; gap: 12px;
+}
+.chat-thread-header .user-avatar {
+  width: 36px; height: 36px; font-size: 13px;
+}
+.chat-thread-header .name {
+  font-size: 15px; font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--text);
+}
+.chat-thread-header .sub {
+  font-size: 12px; color: var(--text-3);
+  margin-top: 2px;
+}
+.chat-back-btn {
+  display: none;
+  background: transparent; border: 0;
+  color: var(--text-2);
+  width: 32px; height: 32px;
+  border-radius: var(--r-2);
+  cursor: pointer;
+  align-items: center; justify-content: center;
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px;
+  display: flex; flex-direction: column;
+  gap: 6px;
+}
+.chat-msg {
+  display: flex; gap: 10px;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+.chat-msg.same-author { margin-top: 1px; }
+.chat-msg.same-author .chat-msg-avatar { visibility: hidden; }
+.chat-msg.same-author .chat-msg-meta { display: none; }
+.chat-msg-avatar { flex-shrink: 0; }
+.chat-msg-avatar .user-avatar {
+  width: 32px; height: 32px; font-size: 11px;
+}
+.chat-msg-body { flex: 1; min-width: 0; }
+.chat-msg-meta {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 2px;
+}
+.chat-msg-author {
+  font-size: 13px; font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+.chat-msg-time {
+  font-size: 11px; color: var(--text-4);
+}
+.chat-msg-text {
+  font-size: 14px; color: var(--text);
+  line-height: 1.45;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+.chat-msg.mine .chat-msg-text {
+  background: var(--brand-soft);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 10px;
+  display: inline-block;
+}
+.chat-day-divider {
+  text-align: center;
+  font-size: 11px; color: var(--text-4);
+  font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin: 14px 0 6px;
+  position: relative;
+}
+.chat-day-divider::before, .chat-day-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 38%;
+  height: 1px;
+  background: var(--border);
+}
+.chat-day-divider::before { left: 0; }
+.chat-day-divider::after { right: 0; }
+
+.chat-composer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: flex-end; gap: 10px;
+}
+.chat-composer textarea {
+  flex: 1;
+  min-height: 40px;
+  max-height: 120px;
+  padding: 10px 14px;
+  border-radius: var(--r-3);
+  resize: none;
+  background: var(--surface-2);
+  border: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.chat-composer textarea:focus {
+  background: var(--bg);
+  box-shadow: 0 0 0 2px var(--brand-soft);
+}
+.chat-composer .send-btn {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: white;
+  border: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.08s;
+}
+.chat-composer .send-btn:hover { background: var(--brand-hover); }
+.chat-composer .send-btn:active { transform: scale(0.95); }
+.chat-composer .send-btn:disabled {
+  opacity: 0.4; cursor: not-allowed; transform: none;
+}
+
+/* Online dot on avatars */
+.avatar-wrap { position: relative; }
+.online-dot {
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 2px solid var(--surface);
+  display: none;
+}
+.avatar-wrap.online .online-dot { display: block; }
+
+/* Top nav badge for Chat tab */
+.nav-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand);
+  color: white;
+  font-size: 10px; font-weight: 700;
+  min-width: 18px; height: 18px;
+  border-radius: var(--r-pill);
+  padding: 0 6px;
+  margin-left: 4px;
+}
+
+/* Bottom tab badge */
+.tab-badge {
+  position: absolute;
+  top: -4px; right: -10px;
+  background: var(--brand);
+  color: white;
+  font-size: 9px; font-weight: 700;
+  min-width: 16px; height: 16px;
+  border-radius: var(--r-pill);
+  padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--surface);
+}
+
+/* New DM picker */
+.dm-picker {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.dm-picker-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  width: 420px; max-width: 100%;
+  max-height: 70vh; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.dm-picker-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.dm-picker-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.dm-picker-list {
+  overflow-y: auto;
+  padding: 8px;
+}
+.dm-picker-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.1s;
+}
+.dm-picker-row:hover { background: var(--hover); }
+.dm-picker-row .name {
+  font-size: 14px; font-weight: 500; color: var(--text);
+}
+.dm-picker-row .role {
+  font-size: 12px; color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* Mobile chat tweaks */
+@media (max-width: 768px) {
+  .chat-layout {
+    grid-template-columns: 1fr;
+    height: calc(100vh - 48px - var(--bottom-tabs-h));
+    border-radius: 0;
+    border: 0;
+    margin: -16px -16px 0;
+    width: calc(100% + 32px);
+  }
+  .chat-sidebar { border-right: 0; }
+  .chat-sidebar.hidden-on-mobile { display: none; }
+  .chat-thread.active-on-mobile { display: flex; }
+  .chat-thread:not(.active-on-mobile) { display: none; }
+  .chat-thread-header { padding: 12px 16px; }
+  .chat-back-btn { display: inline-flex; }
+  .chat-messages { padding: 14px 16px; }
+  .chat-composer {
+    padding: 12px 16px;
+  }
+  .chat-composer textarea { font-size: 16px; }
+  .nav-chat-badge { font-size: 9px; }
+}
+
 /* ---------- Proposal view ---------- */
 .proposal-layout {
   display: grid;
@@ -1670,6 +1999,9 @@ tr.lead-row.selected td { background: var(--brand-soft); }
     <a id="nav-leads" class="active" data-view="leads">Leads</a>
     <a id="nav-plan" data-view="plan">My Day</a>
     <a id="nav-feed" data-view="feed">Activity</a>
+    <a id="nav-chat" data-view="chat">
+      Chat <span class="nav-badge" id="nav-chat-badge" style="display:none">0</span>
+    </a>
     <a id="nav-resources" data-view="resources">Resources</a>
     <a id="nav-proposal" data-view="proposal">Proposal</a>
     <a id="nav-admin" data-view="admin" style="display:none">Admin</a>
@@ -1755,14 +2087,15 @@ tr.lead-row.selected td { background: var(--brand-soft); }
       </svg>
     </span><span>My Day</span>
   </a>
-  <a id="btab-feed" data-view="feed">
-    <span class="tab-icon">
+  <a id="btab-chat" data-view="chat">
+    <span class="tab-icon" style="position:relative">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2" stroke-linecap="round"
            stroke-linejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
       </svg>
-    </span><span>Activity</span>
+      <span class="tab-badge" id="btab-chat-badge" style="display:none">0</span>
+    </span><span>Chat</span>
   </a>
   <a id="btab-proposal" data-view="proposal">
     <span class="tab-icon">
@@ -2052,6 +2385,27 @@ tr.lead-row.selected td { background: var(--brand-soft); }
       </div>
     </div>
 
+    <!-- CHAT VIEW -->
+    <div id="view-chat" class="hidden">
+      <div class="chat-layout">
+        <aside class="chat-sidebar">
+          <div class="chat-sidebar-header">
+            <h2 style="margin:0">Chats</h2>
+            <button class="btn ghost sm" id="btn-new-dm" type="button"
+                    title="Start a direct message">+ New</button>
+          </div>
+          <div class="chat-list" id="chat-list">
+            <div class="empty">Loading...</div>
+          </div>
+        </aside>
+        <section class="chat-thread" id="chat-thread">
+          <div class="chat-thread-empty">
+            Select a conversation to start chatting
+          </div>
+        </section>
+      </div>
+    </div>
+
     <!-- ADMIN VIEW -->
     <div id="view-admin" class="hidden">
       <h2>User Management</h2>
@@ -2214,7 +2568,7 @@ function setView(v) {
   }
   currentView = v;
   for (const id of ['leads', 'plan', 'feed', 'admin', 'resources',
-                     'proposal', 'account']) {
+                     'proposal', 'account', 'chat']) {
     const view = document.getElementById('view-' + id);
     if (view) view.classList.toggle('hidden', id !== v);
     const link = document.getElementById('nav-' + id);
@@ -2233,6 +2587,7 @@ function setView(v) {
   if (v === 'resources') loadResources();
   if (v === 'proposal') initProposalForm();
   if (v === 'account') refreshAccountView();
+  if (v === 'chat') openChatView();
 }
 
 function refreshAccountView() {
@@ -2263,6 +2618,8 @@ function showMoreMenu() {
   const opts = [
     { v: 'account', label: 'Account', sub: 'Profile, password',
       icon: '<circle cx="12" cy="8" r="4"></circle><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"></path>' },
+    { v: 'feed', label: 'Activity', sub: 'Live team activity',
+      icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>' },
     { v: 'resources', label: 'Resources', sub: 'Sales playbook & guides',
       icon: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>' },
   ];
@@ -3782,6 +4139,10 @@ evt.onmessage = (e) => {
   try {
     const data = JSON.parse(e.data);
     if (data.type === 'connected') return;
+    if (data.type === 'chat_message') {
+      onIncomingChatMessage(data);
+      return;
+    }
     if (data.type === 'leads_synced') {
       notify(`${data.count} new leads imported`);
       refreshLeads();
@@ -4090,6 +4451,432 @@ document.getElementById('prop-download').onclick = async () => {
   URL.revokeObjectURL(url);
   notify('Downloaded');
 };
+
+// ----------------- Chat -----------------
+let chats = [];
+let activeChatId = null;
+let onlineUsers = new Set();
+let totalUnread = 0;
+
+function avatarHTML(userId, fullName, online, size) {
+  const init = initials(fullName || '');
+  const cls = (online ? 'avatar-wrap online' : 'avatar-wrap');
+  const sizeCls = size === 'lg' ? ' lg' : '';
+  return `<span class="${cls}">
+    <span class="user-avatar${sizeCls}" data-uid="${userId}">${escapeHtml(init)}</span>
+    <span class="online-dot"></span>
+  </span>`;
+}
+
+function fmtChatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const today = new Date();
+  const sameDay = d.toDateString() === today.toDateString();
+  if (sameDay) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+  if (d.toDateString() === yest.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString([], { day: '2-digit', month: 'short' });
+}
+
+function fmtMsgTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function onIncomingChatMessage(msg) {
+  // Update local cache for the chat list
+  const chat = chats.find(c => c.id === msg.chat_id);
+  if (chat) {
+    chat.last_message = {
+      id: msg.id, body: msg.body, created_at: msg.created_at,
+      user_id: msg.user_id, full_name: msg.full_name,
+    };
+    if (activeChatId === msg.chat_id && currentView === 'chat') {
+      // Mark as read because the user is looking at it right now
+      fetch('/api/chats/' + msg.chat_id + '/read', { method: 'POST' });
+    } else if (msg.user_id !== ME.id) {
+      chat.unread = (chat.unread || 0) + 1;
+    }
+  }
+  // If we're viewing this chat, append the message
+  if (activeChatId === msg.chat_id && currentView === 'chat') {
+    appendMessage(msg);
+  }
+  recomputeUnreadBadge();
+  if (currentView === 'chat') renderChatList();
+  // Notify if from another user and chat view is not focused
+  if (msg.user_id !== ME.id &&
+      (currentView !== 'chat' || activeChatId !== msg.chat_id)) {
+    const sender = (msg.full_name || '').split(' ')[0] || 'New message';
+    notify(`${sender}: ${msg.body.length > 60 ? msg.body.slice(0,57)+'…' : msg.body}`);
+  }
+}
+
+function recomputeUnreadBadge() {
+  totalUnread = chats.reduce((sum, c) => sum + (c.unread || 0), 0);
+  for (const id of ['nav-chat-badge', 'btab-chat-badge']) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (totalUnread > 0) {
+      el.style.display = '';
+      el.textContent = totalUnread > 99 ? '99+' : totalUnread;
+    } else {
+      el.style.display = 'none';
+    }
+  }
+}
+
+async function refreshChatList() {
+  try {
+    const r = await fetch('/api/chats');
+    const d = await r.json();
+    chats = d.chats || [];
+    recomputeUnreadBadge();
+    if (currentView === 'chat') renderChatList();
+  } catch {}
+}
+
+function renderChatList() {
+  const list = document.getElementById('chat-list');
+  if (!list) return;
+  if (!chats.length) {
+    list.innerHTML = '<div class="empty">No conversations yet</div>';
+    return;
+  }
+  list.innerHTML = chats.map(c => {
+    let avatarUid = null;
+    let avatarOnline = false;
+    if (c.type === 'dm') {
+      const peer = c.members.find(m => m.user_id !== ME.id);
+      if (peer) {
+        avatarUid = peer.user_id;
+        avatarOnline = onlineUsers.has(peer.user_id);
+      }
+    }
+    const isActive = c.id === activeChatId ? ' active' : '';
+    const lastBody = c.last_message
+      ? (c.last_message.user_id === ME.id ? 'You: ' : '') + c.last_message.body
+      : 'No messages yet';
+    const lastTime = c.last_message ? fmtChatTime(c.last_message.created_at) : '';
+    const unreadHtml = c.unread
+      ? `<span class="chat-unread">${c.unread > 99 ? '99+' : c.unread}</span>`
+      : '';
+    let avatarHtml;
+    if (c.type === 'team') {
+      avatarHtml = `<span class="avatar-wrap"><span class="user-avatar"
+                    style="background:linear-gradient(135deg,#2ecc71,#5cd0ff)">#</span></span>`;
+    } else {
+      avatarHtml = avatarHTML(avatarUid, c.name, avatarOnline);
+    }
+    return `<button class="chat-row${isActive}" data-chat-id="${c.id}">
+      ${avatarHtml}
+      <div class="chat-row-info">
+        <div class="chat-row-name">${escapeHtml(c.name || 'Unknown')}</div>
+        <div class="chat-row-last">${escapeHtml(lastBody)}</div>
+      </div>
+      <div class="chat-row-meta">
+        <span class="chat-row-time">${lastTime}</span>
+        ${unreadHtml}
+      </div>
+    </button>`;
+  }).join('');
+  for (const row of list.querySelectorAll('.chat-row')) {
+    row.onclick = () => openChat(parseInt(row.dataset.chatId, 10));
+  }
+}
+
+async function openChatView() {
+  await refreshChatList();
+  renderChatList();
+  // Auto-select team chat if nothing selected, on desktop
+  if (!activeChatId && chats.length && window.innerWidth > 768) {
+    openChat(chats[0].id);
+  } else if (activeChatId) {
+    openChat(activeChatId);
+  } else {
+    document.getElementById('chat-thread').innerHTML =
+      '<div class="chat-thread-empty">Select a conversation to start chatting</div>';
+    document.getElementById('chat-thread').classList.remove('active-on-mobile');
+    document.querySelector('.chat-sidebar').classList.remove('hidden-on-mobile');
+  }
+}
+
+let chatLoadingId = null;
+async function openChat(chatId) {
+  activeChatId = chatId;
+  chatLoadingId = chatId;
+  // Mobile: show thread, hide sidebar
+  document.querySelector('.chat-sidebar').classList.add('hidden-on-mobile');
+  document.getElementById('chat-thread').classList.add('active-on-mobile');
+  renderChatList();
+
+  const thread = document.getElementById('chat-thread');
+  thread.innerHTML = '<div class="chat-thread-empty">Loading...</div>';
+
+  const r = await fetch('/api/chats/' + chatId + '/messages');
+  if (!r.ok) {
+    thread.innerHTML = '<div class="chat-thread-empty">Failed to load chat</div>';
+    return;
+  }
+  if (chatLoadingId !== chatId) return; // user opened a different chat
+  const data = await r.json();
+  const chat = data.chat;
+  let headerAvatar;
+  let headerSub = '';
+  if (chat.type === 'team') {
+    headerAvatar = `<span class="user-avatar"
+      style="background:linear-gradient(135deg,#2ecc71,#5cd0ff);width:36px;height:36px;font-size:13px">#</span>`;
+    headerSub = `${chat.members.length} members`;
+  } else {
+    const peer = chat.members.find(m => m.user_id !== ME.id);
+    const peerOnline = peer && onlineUsers.has(peer.user_id);
+    headerAvatar = avatarHTML(peer && peer.user_id, chat.name, peerOnline);
+    headerSub = peerOnline ? 'Online now' : 'Offline';
+  }
+  thread.innerHTML = `
+    <div class="chat-thread-header">
+      <button class="chat-back-btn" id="chat-back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+             stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      ${headerAvatar}
+      <div>
+        <div class="name">${escapeHtml(chat.name)}</div>
+        <div class="sub">${escapeHtml(headerSub)}</div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-composer">
+      <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
+      <button class="send-btn" id="chat-send" disabled
+              title="Send (Enter)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>`;
+  // Wire back button on mobile
+  document.getElementById('chat-back').onclick = () => {
+    activeChatId = null;
+    document.querySelector('.chat-sidebar').classList.remove('hidden-on-mobile');
+    document.getElementById('chat-thread').classList.remove('active-on-mobile');
+    document.getElementById('chat-thread').innerHTML =
+      '<div class="chat-thread-empty">Select a conversation to start chatting</div>';
+    renderChatList();
+  };
+  // Render messages
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+  let lastAuthor = null;
+  let lastDay = null;
+  for (const m of data.messages) {
+    const day = new Date(m.created_at).toDateString();
+    if (day !== lastDay) {
+      const div = document.createElement('div');
+      div.className = 'chat-day-divider';
+      const today = new Date().toDateString();
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      let label;
+      if (day === today) label = 'Today';
+      else if (day === y.toDateString()) label = 'Yesterday';
+      else label = new Date(m.created_at).toLocaleDateString(
+        [], { weekday: 'short', day: '2-digit', month: 'short' });
+      div.textContent = label;
+      msgs.appendChild(div);
+      lastAuthor = null;
+      lastDay = day;
+    }
+    msgs.appendChild(makeMsgEl(m, m.user_id === lastAuthor));
+    lastAuthor = m.user_id;
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Composer
+  const input = document.getElementById('chat-input');
+  const send = document.getElementById('chat-send');
+  input.oninput = () => {
+    send.disabled = !input.value.trim();
+    input.style.height = 'auto';
+    input.style.height = Math.min(120, input.scrollHeight) + 'px';
+  };
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  };
+  send.onclick = sendChatMessage;
+
+  // Mark read
+  await fetch('/api/chats/' + chatId + '/read', { method: 'POST' });
+  const c = chats.find(x => x.id === chatId);
+  if (c) c.unread = 0;
+  recomputeUnreadBadge();
+  renderChatList();
+  setTimeout(() => { input.focus(); }, 50);
+}
+
+function makeMsgEl(m, sameAuthor) {
+  const div = document.createElement('div');
+  div.className = 'chat-msg' + (sameAuthor ? ' same-author' : '') +
+    (m.user_id === ME.id ? ' mine' : '');
+  div.innerHTML = `
+    <div class="chat-msg-avatar">${avatarHTML(m.user_id, m.full_name,
+      onlineUsers.has(m.user_id))}</div>
+    <div class="chat-msg-body">
+      <div class="chat-msg-meta">
+        <span class="chat-msg-author">${escapeHtml(m.full_name || '')}</span>
+        <span class="chat-msg-time">${fmtMsgTime(m.created_at)}</span>
+      </div>
+      <div class="chat-msg-text">${escapeHtml(m.body)}</div>
+    </div>`;
+  return div;
+}
+
+function appendMessage(m) {
+  const msgs = document.getElementById('chat-messages');
+  if (!msgs) return;
+  // Detect same author / same day vs the last message
+  const last = msgs.querySelector('.chat-msg:last-of-type');
+  let sameAuthor = false;
+  if (last) {
+    const lastUid = last.querySelector('.user-avatar[data-uid]');
+    if (lastUid && +lastUid.dataset.uid === m.user_id) sameAuthor = true;
+  }
+  msgs.appendChild(makeMsgEl(m, sameAuthor));
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const send = document.getElementById('chat-send');
+  if (!input || !activeChatId) return;
+  const body = input.value.trim();
+  if (!body) return;
+  send.disabled = true;
+  const r = await fetch('/api/chats/' + activeChatId + '/messages', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ body }),
+  });
+  if (r.ok) {
+    input.value = '';
+    input.style.height = 'auto';
+    // The SSE event will broadcast back to us; no need to manually append.
+    // But for instant feedback in case SSE is slow:
+    const d = await r.json();
+    if (d.message) {
+      // Already appended via SSE? Avoid duplicates by id.
+      const msgs = document.getElementById('chat-messages');
+      if (msgs && !msgs.querySelector(`[data-msg-id="${d.message.id}"]`)) {
+        // The SSE handler will get there first usually; this is safe.
+      }
+    }
+  } else {
+    notify('Failed to send');
+    send.disabled = false;
+  }
+}
+
+// New DM picker
+async function openNewDmPicker() {
+  // Get all active users besides me
+  const r = await fetch('/api/users');
+  const all = await r.json();
+  const candidates = all.filter(u => u.id !== ME.id && u.is_active);
+  let modal = document.getElementById('dm-picker');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'dm-picker';
+  modal.className = 'dm-picker';
+  modal.innerHTML = `
+    <div class="dm-picker-inner">
+      <div class="dm-picker-header">
+        <h3>Start a conversation</h3>
+        <button class="filter-drawer-close" id="dm-close">✕</button>
+      </div>
+      <div class="dm-picker-list">
+        ${candidates.length === 0
+          ? '<div class="empty">No other users yet</div>'
+          : candidates.map(u => `
+            <div class="dm-picker-row" data-uid="${u.id}">
+              ${avatarHTML(u.id, u.full_name, onlineUsers.has(u.id))}
+              <div>
+                <div class="name">${escapeHtml(u.full_name)}</div>
+                <div class="role">${escapeHtml(u.role)} · @${escapeHtml(u.username)}</div>
+              </div>
+            </div>
+          `).join('')}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  const close = () => modal.remove();
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+  document.getElementById('dm-close').onclick = close;
+  for (const row of modal.querySelectorAll('.dm-picker-row')) {
+    row.onclick = async () => {
+      const uid = +row.dataset.uid;
+      const r = await fetch('/api/chats/dm/' + uid, { method: 'POST' });
+      if (r.ok) {
+        const d = await r.json();
+        close();
+        await refreshChatList();
+        openChat(d.chat_id);
+      }
+    };
+  }
+}
+
+// Wire the "+ New" button (needs to wait for the chat view to be present)
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#btn-new-dm')) {
+    openNewDmPicker();
+  }
+});
+
+// ----------------- Presence -----------------
+async function pingPresence() {
+  try {
+    await fetch('/api/presence/ping', { method: 'POST' });
+  } catch {}
+}
+
+async function refreshPresence() {
+  try {
+    const r = await fetch('/api/presence');
+    if (!r.ok) return;
+    const d = await r.json();
+    const newSet = new Set(d.online || []);
+    onlineUsers = newSet;
+    // Update online dots throughout the page
+    for (const w of document.querySelectorAll('.avatar-wrap')) {
+      const av = w.querySelector('.user-avatar[data-uid]');
+      if (!av) continue;
+      const uid = +av.dataset.uid;
+      w.classList.toggle('online', onlineUsers.has(uid));
+    }
+    // Update "online now" counter in top bar
+    const cnt = document.getElementById('online-now');
+    if (cnt) {
+      const others = Array.from(onlineUsers).filter(id => id !== ME.id).length;
+      cnt.textContent = others > 0 ? `${others} online` : '';
+    }
+  } catch {}
+}
+
+pingPresence();
+refreshPresence();
+setInterval(pingPresence, 30000);
+setInterval(refreshPresence, 20000);
+refreshChatList();
 
 // Init — every user lands in All Leads by default. The My Leads tab
 // shows only the leads that admin has assigned to them via regions

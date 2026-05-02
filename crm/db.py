@@ -191,6 +191,36 @@ CREATE TABLE IF NOT EXISTS user_regions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS chats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
+    name TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INTEGER,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS chat_members (
+    chat_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_read_at TIMESTAMP,
+    PRIMARY KEY (chat_id, user_id),
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edited_at TIMESTAMP,
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
@@ -198,6 +228,8 @@ CREATE INDEX IF NOT EXISTS idx_activity_user_date ON activity(user_id, created_a
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
+CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 """
 
 SCHEMA_POSTGRES = """
@@ -259,6 +291,31 @@ CREATE TABLE IF NOT EXISTS user_regions (
     PRIMARY KEY (user_id, region)
 );
 
+CREATE TABLE IF NOT EXISTS chats (
+    id SERIAL PRIMARY KEY,
+    type TEXT NOT NULL,
+    name TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS chat_members (
+    chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_read_at TIMESTAMP,
+    PRIMARY KEY (chat_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edited_at TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_lead_state_assigned ON lead_state(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
@@ -266,6 +323,8 @@ CREATE INDEX IF NOT EXISTS idx_activity_user_date ON activity(user_id, created_a
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
+CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 """
 
 
@@ -307,6 +366,7 @@ def init_schema():
             cur.executescript(schema)
     # Migrations for existing DBs
     _migrate_add_column("leads", "properties", "TEXT")
+    _migrate_add_column("users", "last_seen_at", "TIMESTAMP")
 
 
 if __name__ == "__main__":
