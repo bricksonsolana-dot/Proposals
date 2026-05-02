@@ -2118,27 +2118,41 @@ code {
     {% if apk_available %}
     <div class="card">
       <h2>Android <span class="pill">{{ apk_size }}</span></h2>
-      <a class="dl-btn" href="/download/android">
+      <a class="dl-btn" href="/download/android"
+         download="DevoxSales.apk" type="application/vnd.android.package-archive">
         Download DevoxSales.apk
       </a>
       <div class="size">Android 7.0+</div>
-      <ol>
-        <li>Πάτα το κουμπί download παραπάνω</li>
-        <li>Όταν τελειώσει, άνοιξε το αρχείο <code>DevoxSales.apk</code></li>
-        <li>Αν εμφανιστεί <b>"Install unknown apps"</b>, πάτα
-          <b>Settings</b> → ενεργοποίησε
-          <b>"Allow from this source"</b> για τον browser σου</li>
-        <li>Πίσω και πάτα <b>Install</b></li>
-        <li>Άνοιξε την εφαρμογή και κάνε login</li>
-        <li><b>Καθάρισμα:</b> μετά το install μπορείς να σβήσεις το
-          <code>DevoxSales.apk</code> από τα Downloads — δεν χρειάζεται
-          πια. Το app ήδη εγκαταστάθηκε.</li>
-      </ol>
-      <div class="notice" style="margin-top:14px">
-        <b>Για να απεγκαταστήσεις:</b> long-press το εικονίδιο στο home
-        screen → Uninstall. Ή Settings → Apps → Devox Sales → Uninstall.
-        <br>Δεν χρειάζεται να ψάξεις το APK στο file manager.
+
+      <div class="notice" style="margin-top:14px;background:rgba(255,92,111,0.1);border-color:rgba(255,92,111,0.3);color:var(--danger);">
+        <b>⚠️ Αν έχεις Chrome PWA shortcut από πριν:</b>
+        <br>1. Long-press το παλιό Devox Sales icon → Remove
+        <br>2. Chrome → 3 τελείες → Settings → Site settings →
+            All sites → Find <code>devox-crm.onrender.com</code> →
+            Clear & reset
+        <br>3. ΜΕΤΑ ακολούθησε τα παρακάτω βήματα
       </div>
+
+      <ol>
+        <li>Πάτα <b>Download DevoxSales.apk</b> παραπάνω</li>
+        <li>Στο Chrome download notification → πάτα <b>Open</b>
+          <br><i>(αν δεν φανεί notification, βρες το αρχείο
+           <code>DevoxSales.apk</code> στα Downloads)</i></li>
+        <li>Αν εμφανιστεί <b>"Install unknown apps"</b>:
+            tap <b>Settings</b> → ON για Chrome → πίσω</li>
+        <li>Πάτα <b>Install</b> → Done → <b>Open</b></li>
+        <li>Login με τα στοιχεία που σου έδωσε ο admin</li>
+      </ol>
+
+      <div class="notice" style="margin-top:14px;background:var(--brand-soft);border-color:var(--brand);color:var(--brand-text)">
+        <b>✅ Πώς θα ξέρεις ότι εγκαταστάθηκε σωστά:</b>
+        <br>Settings → Apps → <b>Devox Sales</b>
+        <br>• Πρέπει να βλέπεις <b>"Force stop", "Uninstall", "Storage"</b>
+        <br>• <b>Όχι</b> "Site settings" / browser permissions
+        <br>Αν βλέπεις Site settings, έχεις ακόμα το παλιό PWA shortcut
+        — επανέλαβε από τα παραπάνω βήματα.
+      </div>
+
       <div class="notice">
         Επειδή το APK δεν διανέμεται μέσω Google Play, το Android
         ζητά μία φορά άδεια ότι εμπιστεύεσαι την πηγή.
