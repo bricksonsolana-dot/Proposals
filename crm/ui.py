@@ -1099,11 +1099,15 @@ async function refreshLeads() {
     }
   }
 
-  // Region dropdown (top)
+  // Region dropdown (top). When in My Leads mode, the placeholder shows
+  // "My regions" because only the user's assigned regions appear here.
   const regSel = document.getElementById('filter-region-top');
   if (regSel) {
     const cur = regSel.value;
-    regSel.innerHTML = '<option value="">📍 All regions</option>' +
+    const placeholder = myMode
+      ? `📍 All my regions (${data.by_region.length})`
+      : '📍 All regions';
+    regSel.innerHTML = `<option value="">${placeholder}</option>` +
       data.by_region.map(r =>
         `<option value="${escapeHtml(r.region)}">${escapeHtml(r.region)} (${r.count})</option>`
       ).join('');
@@ -1946,7 +1950,11 @@ async function openRegionPicker(uid) {
       body: JSON.stringify({ regions: Array.from(current) }),
     });
     if (r.ok) {
-      notify(`Saved ${current.size} regions for ${target.full_name}`);
+      const d = await r.json();
+      let msg = `Saved ${current.size} regions for ${target.full_name}`;
+      if (d.bulk_assigned) msg += ` · ${d.bulk_assigned} leads assigned`;
+      if (d.bulk_unassigned) msg += ` · ${d.bulk_unassigned} leads unassigned`;
+      notify(msg);
       close();
       refreshUsers();
     } else {
@@ -2034,7 +2042,12 @@ evt.onmessage = (e) => {
       if (data.user_id === ME.id) {
         ME.regions = data.regions || [];
         renderMyRegionsUI();
-        notify(`Your regions updated (${ME.regions.length})`);
+        const ba = data.bulk_assigned || 0;
+        const bu = data.bulk_unassigned || 0;
+        let msg = `Your regions updated (${ME.regions.length})`;
+        if (ba) msg += ` · +${ba} leads in My Leads`;
+        if (bu) msg += ` · -${bu} leads removed`;
+        notify(msg);
         refreshLeads();
       } else if (currentView === 'admin') {
         refreshUsers();
@@ -2302,13 +2315,12 @@ document.getElementById('prop-download').onclick = async () => {
   notify('Downloaded');
 };
 
-// Init — sales users with assigned regions default to "my regions only"
+// Init — sales users with assigned regions default to "My Leads" mode
+// because their assigned regions auto-populate that list.
 if (ME.role !== 'admin' && (ME.regions || []).length) {
-  myRegionsOnly = 1;
-  const cb = document.getElementById('filter-my-regions');
-  if (cb) cb.checked = true;
-  const badge = document.getElementById('my-regions-badge');
-  if (badge) badge.classList.add('met');
+  myMode = 1;
+  document.getElementById('t-mine').classList.add('active');
+  document.getElementById('t-all').classList.remove('active');
 }
 loadUsers();
 refreshLeads();

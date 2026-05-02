@@ -699,12 +699,61 @@ def api_set_user_regions(uid):
     if not isinstance(regions, list):
         return jsonify({"error": "regions must be a list"}), 400
     regions = [str(r).strip() for r in regions if str(r).strip()]
-    # Replace the full set
+
+    previous = set(get_user_regions(uid))
+    incoming = set(regions)
+    added = incoming - previous
+    removed = previous - incoming
+
+    # Replace the user_regions set
     db.execute("DELETE FROM user_regions WHERE user_id = ?", (uid,))
     if regions:
         db.execute_many(
             "INSERT INTO user_regions (user_id, region) VALUES (?, ?)",
             [(uid, r) for r in regions])
+
+    # Bulk-assign leads in newly added regions to this user (My Leads).
+    # Skip leads already assigned to a DIFFERENT user — don't steal.
+    bulk_assigned = 0
+    for region in added:
+        # Make sure each lead has a row in lead_state, then claim it if free
+        unassigned_leads = db.query(
+            "SELECT phone FROM leads WHERE region = ? AND phone NOT IN "
+            "(SELECT lead_phone FROM lead_state WHERE assigned_to IS NOT NULL "
+            " AND assigned_to <> ?)",
+            (region, uid))
+        for row in unassigned_leads:
+            phone = row["phone"]
+            existing = db.query_one(
+                "SELECT lead_phone FROM lead_state WHERE lead_phone = ?",
+                (phone,))
+            if existing:
+                db.execute(
+                    "UPDATE lead_state SET assigned_to = ?, "
+                    "updated_at = CURRENT_TIMESTAMP WHERE lead_phone = ?",
+                    (uid, phone))
+            else:
+                db.execute(
+                    "INSERT INTO lead_state (lead_phone, status, assigned_to) "
+                    "VALUES (?, 'new', ?)", (phone, uid))
+            bulk_assigned += 1
+
+    # Un-assign leads in removed regions, but only the ones still
+    # assigned to *this* user (don't touch leads other users have claimed).
+    bulk_unassigned = 0
+    for region in removed:
+        rows = db.query(
+            "SELECT lead_phone FROM lead_state ls "
+            "JOIN leads l ON l.phone = ls.lead_phone "
+            "WHERE l.region = ? AND ls.assigned_to = ?",
+            (region, uid))
+        for r in rows:
+            db.execute(
+                "UPDATE lead_state SET assigned_to = NULL, "
+                "updated_at = CURRENT_TIMESTAMP WHERE lead_phone = ?",
+                (r["lead_phone"],))
+            bulk_unassigned += 1
+
     user = db.query_one(
         "SELECT username, full_name FROM users WHERE id = ?", (uid,))
     broadcast({
@@ -713,8 +762,15 @@ def api_set_user_regions(uid):
         "username": user["username"] if user else "",
         "full_name": user["full_name"] if user else "",
         "regions": regions,
+        "bulk_assigned": bulk_assigned,
+        "bulk_unassigned": bulk_unassigned,
     })
-    return jsonify({"ok": True, "regions": regions})
+    return jsonify({
+        "ok": True,
+        "regions": regions,
+        "bulk_assigned": bulk_assigned,
+        "bulk_unassigned": bulk_unassigned,
+    })
 
 
 @app.route("/api/regions/all")
