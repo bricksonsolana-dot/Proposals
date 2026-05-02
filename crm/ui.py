@@ -2767,6 +2767,23 @@ tr.lead-row.selected td { background: var(--brand-soft); }
                stroke-linejoin="round" class="account-chevron">
                <polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
+        <button class="account-row" id="acc-reset-push" style="display:none">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+               <polyline points="23 4 23 10 17 10"></polyline>
+               <polyline points="1 20 1 14 7 14"></polyline>
+               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+               </svg></span>
+          <div class="account-row-text">
+            <div class="account-row-title">Reset notifications</div>
+            <div class="account-row-sub">Re-subscribe this device with fresh keys</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round" class="account-chevron">
+               <polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
         <div class="account-row static" id="acc-push-help" style="display:none">
           <span class="ic" style="background:var(--warning-soft);color:var(--warning)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -5633,12 +5650,22 @@ async function enablePush() {
   if (!swRegistration) {
     swRegistration = await navigator.serviceWorker.register('/sw.js');
   }
+  // Wipe any stale server-side subscription before subscribing fresh.
+  // Without this, a subscription signed against an old VAPID key may
+  // persist and silently fail every send.
+  try { await fetch('/api/push/reset', { method: 'POST' }); } catch {}
+  // Also unsubscribe any existing browser-side subscription
+  try {
+    const existing = await swRegistration.pushManager.getSubscription();
+    if (existing) await existing.unsubscribe();
+  } catch {}
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') {
     notify('Notifications are blocked. Allow them in your browser settings.');
     return;
   }
-  // Get VAPID public key
+  // Get VAPID public key (always fetched fresh so we use the
+  // current server-side keys, not anything cached client-side)
   const r = await fetch('/api/push/public-key');
   const { key } = await r.json();
   const sub = await swRegistration.pushManager.subscribe({
@@ -5656,6 +5683,21 @@ async function enablePush() {
   // Send a test ping so the user sees one immediately
   try { await fetch('/api/push/test', { method: 'POST' }); } catch {}
   updatePushUI();
+}
+
+async function autoRecoverPush() {
+  // Forces a clean re-subscribe: clears server side, unsubscribes the
+  // browser, then runs enablePush() again.
+  try { await fetch('/api/push/reset', { method: 'POST' }); } catch {}
+  if (pushSubscription) {
+    try { await pushSubscription.unsubscribe(); } catch {}
+    pushSubscription = null;
+  }
+  if (swRegistration) {
+    const existing = await swRegistration.pushManager.getSubscription();
+    if (existing) try { await existing.unsubscribe(); } catch {}
+  }
+  await enablePush();
 }
 
 async function disablePush() {
@@ -5743,12 +5785,21 @@ function updatePushUI() {
 
   const perm = ('Notification' in window) ? Notification.permission : 'default';
 
+  const reset = document.getElementById('acc-reset-push');
   if (pushSubscription && perm === 'granted') {
     pill.textContent = 'On';
     pill.className = 'account-pill on';
     if (sub) sub.textContent = "You'll get pings for new messages and assignments.";
     if (help) help.style.display = 'none';
     if (test) test.style.display = '';
+    if (reset) {
+      reset.style.display = '';
+      reset.onclick = async () => {
+        if (!confirm('Reset this device’s notification subscription? You may need to re-allow notifications.')) return;
+        notify('Resetting...');
+        await autoRecoverPush();
+      };
+    }
   } else if (perm === 'denied') {
     pill.textContent = 'Blocked';
     pill.className = 'account-pill';
@@ -5756,12 +5807,14 @@ function updatePushUI() {
     if (help) help.style.display = '';
     if (helpText) helpText.textContent = pushHelpText('denied');
     if (test) test.style.display = 'none';
+    if (reset) reset.style.display = 'none';
   } else {
     pill.textContent = 'Off';
     pill.className = 'account-pill';
     if (sub) sub.textContent = 'Tap to enable. Your browser will ask for permission.';
     if (help) help.style.display = 'none';
     if (test) test.style.display = 'none';
+    if (reset) reset.style.display = 'none';
   }
 
   btn.onclick = () => {
@@ -5779,21 +5832,25 @@ function updatePushUI() {
       const r = await fetch('/api/push/test', { method: 'POST' });
       if (!r.ok) { notify('Test failed — server error'); return; }
       const d = await r.json();
-      if (d.subscriptions === 0) {
+      if (d.subscriptions_before === 0 && d.subscriptions === 0) {
         notify('No device subscribed. Toggle "Push notifications" off and on again.');
         return;
       }
       if (d.sent > 0) {
-        notify(`Test sent to ${d.sent}/${d.subscriptions} device${d.sent>1?'s':''}`);
+        notify(`Test sent to ${d.sent}/${d.subscriptions_before} device${d.sent>1?'s':''}`);
         return;
       }
-      // Subs exist but all failed — most common in Custom Tab mode
-      // when the TWA assetlinks didn't verify on the device.
-      const via = (d.endpoint_hosts || [])[0] || 'unknown';
-      notify(
-        `Server has ${d.subscriptions} subscription via ${via} ` +
-        `but delivery failed. Likely fix: uninstall + reboot phone + ` +
-        `reinstall APK to refresh trust check.`);
+      // Subs existed but the server already pruned them as dead
+      // (HTTP 401/403/404/410). Auto-recover by re-subscribing.
+      if (d.pruned > 0) {
+        notify('Stale subscription — refreshing now...');
+        await autoRecoverPush();
+        return;
+      }
+      // Subscription still on file but delivery failed for some
+      // other reason. Show the actual error so we can debug.
+      const err = d.last_error ? ` — ${d.last_error}` : '';
+      notify(`Delivery failed${err}. Tap Reset notifications below.`);
     };
   }
 }

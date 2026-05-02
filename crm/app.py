@@ -1678,7 +1678,7 @@ def api_push_test():
     """Send a test notification to the calling user. Returns rich
     diagnostic info so the frontend can tell the user exactly what's
     happening (no subs vs delivery failed)."""
-    subs = db.query(
+    subs_before = db.query(
         "SELECT id, endpoint FROM push_subscriptions WHERE user_id = ?",
         (g.user["id"],))
     sent = _push.send_push_to_user(g.user["id"], {
@@ -1687,10 +1687,14 @@ def api_push_test():
         "tag": "test",
         "data": {"url": "/"},
     })
-    # Trim endpoints so we don't leak the full URL but the user can still
-    # tell whether they subscribed via Mozilla / Google / Apple
+    # Re-query after send so we know which subs survived (dead ones
+    # got pruned). Pull the last_error too.
+    subs_after = db.query(
+        "SELECT id, endpoint, last_error FROM push_subscriptions "
+        "WHERE user_id = ?", (g.user["id"],))
     hosts = []
-    for s in subs:
+    last_error = None
+    for s in subs_after:
         ep = s.get("endpoint", "")
         try:
             from urllib.parse import urlparse
@@ -1699,12 +1703,33 @@ def api_push_test():
                 hosts.append(host)
         except Exception:
             pass
+        if s.get("last_error") and not last_error:
+            last_error = s["last_error"]
+    pruned = len(subs_before) - len(subs_after)
     return jsonify({
         "ok": True,
         "sent": sent,
-        "subscriptions": len(subs),
+        "subscriptions_before": len(subs_before),
+        "subscriptions": len(subs_after),
+        "pruned": pruned,
         "endpoint_hosts": hosts,
+        "last_error": last_error,
     })
+
+
+@app.route("/api/push/reset", methods=["POST"])
+@auth.login_required
+def api_push_reset():
+    """Wipe ALL push subscriptions for the calling user. The frontend
+    follows up with a fresh subscribe(). Useful when the cached
+    subscription is signed against a stale VAPID key."""
+    n = db.query_one(
+        "SELECT COUNT(*) AS n FROM push_subscriptions WHERE user_id = ?",
+        (g.user["id"],))
+    db.execute(
+        "DELETE FROM push_subscriptions WHERE user_id = ?",
+        (g.user["id"],))
+    return jsonify({"ok": True, "removed": (n or {}).get("n", 0)})
 
 
 @app.route("/api/push/diagnose")

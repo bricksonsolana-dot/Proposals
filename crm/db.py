@@ -445,6 +445,9 @@ def init_schema():
     _migrate_add_column("users", "avatar", "TEXT")
     _migrate_add_column("messages", "attachments", "TEXT")
     _migrate_add_column("chats", "avatar", "TEXT")
+    _migrate_add_column("push_subscriptions", "last_error", "TEXT")
+    _migrate_add_column(
+        "push_subscriptions", "last_error_at", "TIMESTAMP")
 
 
 if __name__ == "__main__":

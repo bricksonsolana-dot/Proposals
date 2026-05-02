@@ -162,6 +162,8 @@ def _send_to_subscriptions(subs, payload: dict) -> int:
     body = json.dumps(payload, ensure_ascii=False)
     sent = 0
     dead = []
+    errors = []  # list of (sub_id, error_string)
+    import db
     for s in subs:
         info = {
             "endpoint": s["endpoint"],
@@ -176,25 +178,51 @@ def _send_to_subscriptions(subs, payload: dict) -> int:
                 ttl=60 * 60,
             )
             sent += 1
+            # Clear any prior error from a successful send
+            try:
+                db.execute(
+                    "UPDATE push_subscriptions SET last_error = NULL, "
+                    "last_error_at = NULL WHERE id = ?", (s["id"],))
+            except Exception:
+                pass
         except WebPushException as e:
             status = getattr(getattr(e, "response", None),
                              "status_code", 0)
+            err = f"HTTP {status}: {str(e)[:200]}"
             print(f"[push] WebPushException status={status} "
                   f"endpoint={s['endpoint'][:60]}... err={e}", flush=True)
-            if status in (404, 410):
+            errors.append((s["id"], err))
+            # 401 = bad VAPID signature (key rotated server-side, the
+            # subscription is now orphaned). 403 = forbidden (app server
+            # not authorised). 404 / 410 = endpoint gone. All four mean
+            # this subscription is permanently dead — remove it.
+            if status in (401, 403, 404, 410):
                 dead.append(s["id"])
         except Exception as e:
-            print(f"[push] unexpected error: {type(e).__name__}: {e}",
-                  flush=True)
+            err = f"{type(e).__name__}: {str(e)[:200]}"
+            print(f"[push] unexpected error: {err}", flush=True)
+            errors.append((s["id"], err))
             import traceback
             traceback.print_exc(file=sys.stderr)
+    # Persist last_error per subscription
+    for sid, err in errors:
+        if sid in dead:
+            continue  # we'll delete below
+        try:
+            db.execute(
+                "UPDATE push_subscriptions SET last_error = ?, "
+                "last_error_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (err, sid))
+        except Exception:
+            pass
     if dead:
-        import db
         for sid in dead:
             try:
                 db.execute(
                     "DELETE FROM push_subscriptions WHERE id = ?", (sid,))
             except Exception:
                 pass
+        print(f"[push] removed {len(dead)} dead subscription(s)",
+              flush=True)
     print(f"[push] sent {sent}/{len(subs)} successfully", flush=True)
     return sent
