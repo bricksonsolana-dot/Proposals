@@ -51,7 +51,11 @@ def _get_pg_pool():
         url = DATABASE_URL
         if url.startswith("postgres://"):
             url = "postgresql://" + url[len("postgres://"):]
-        _pg_pool = ThreadedConnectionPool(minconn=1, maxconn=10, dsn=url)
+        # Each gunicorn worker holds its own pool. With --threads 32 a
+        # single worker may have many concurrent SQL calls in flight,
+        # so size the pool generously. Supabase free tier session pooler
+        # supports 200 concurrent connections per project.
+        _pg_pool = ThreadedConnectionPool(minconn=2, maxconn=24, dsn=url)
         return _pg_pool
 
 
@@ -269,11 +273,13 @@ CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
 CREATE INDEX IF NOT EXISTS idx_activity_user_date ON activity(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_lead ON favorites(lead_phone);
 CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
 CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_leads_region ON leads(region);
 """
 
 SCHEMA_POSTGRES = """
@@ -375,11 +381,13 @@ CREATE INDEX IF NOT EXISTS idx_lead_state_status ON lead_state(status);
 CREATE INDEX IF NOT EXISTS idx_activity_lead ON activity(lead_phone);
 CREATE INDEX IF NOT EXISTS idx_activity_user_date ON activity(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_lead ON favorites(lead_phone);
 CREATE INDEX IF NOT EXISTS idx_user_regions_user ON user_regions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_regions_region ON user_regions(region);
 CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_leads_region ON leads(region);
 """
 
 

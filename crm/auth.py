@@ -68,11 +68,42 @@ def current_user() -> dict | None:
     }
 
 
+import time as _time
+
+
 def _check_still_active(uid: int) -> bool:
     """Confirm the session's user still exists and is active in the DB."""
     row = db.query_one(
         "SELECT is_active FROM users WHERE id = ?", (uid,))
     return bool(row and row.get("is_active"))
+
+
+def _cached_is_active() -> bool:
+    """Fast path: trust the session for 5 minutes between DB hits.
+    A real-time admin deactivate still terminates the session through
+    the SSE user_deactivated event in the frontend; the DB re-check is
+    just a periodic safety net so a logged-in user who never receives
+    that event eventually gets kicked. Avoids hitting the DB on every
+    single API request, which was costing ~300-500ms on a typical page
+    load (7 endpoints × one query each)."""
+    uid = session.get("user_id")
+    if not uid:
+        return False
+    last = session.get("_active_checked_at")
+    now = _time.time()
+    if last and now - last < 300:  # cached for 5 minutes
+        return True
+    if _check_still_active(uid):
+        session["_active_checked_at"] = now
+        return True
+    return False
+
+
+# Hot-path endpoints where we can skip the DB re-check entirely. The
+# frontend only calls these when authenticated, and a deactivated user
+# still gets kicked from /api/me, /api/leads, etc. on the next normal
+# request — within 5 minutes given the cache.
+_HOT_PATHS = ("/api/presence/ping", "/api/presence", "/events")
 
 
 def login_required(view):
@@ -82,11 +113,12 @@ def login_required(view):
             if request.path.startswith("/api/"):
                 return jsonify({"error": "not authenticated"}), 401
             return redirect("/login")
-        if not _check_still_active(session["user_id"]):
-            session.clear()
-            if request.path.startswith("/api/"):
-                return jsonify({"error": "account deactivated"}), 401
-            return redirect("/login")
+        if request.path not in _HOT_PATHS:
+            if not _cached_is_active():
+                session.clear()
+                if request.path.startswith("/api/"):
+                    return jsonify({"error": "account deactivated"}), 401
+                return redirect("/login")
         g.user = current_user()
         return view(*args, **kwargs)
     return wrapped
@@ -99,7 +131,7 @@ def admin_required(view):
             if request.path.startswith("/api/"):
                 return jsonify({"error": "not authenticated"}), 401
             return redirect("/login")
-        if not _check_still_active(session["user_id"]):
+        if not _cached_is_active():
             session.clear()
             if request.path.startswith("/api/"):
                 return jsonify({"error": "account deactivated"}), 401
