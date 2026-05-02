@@ -263,9 +263,11 @@ def _send_to_subscriptions(subs, payload: dict) -> int:
         from pywebpush import webpush, WebPushException
         import pywebpush as _pwp_mod
         _pwp_ver = getattr(_pwp_mod, "__version__", "unknown")
+        from cryptography.hazmat.primitives import serialization
     except ImportError as e:
         print(f"[push] pywebpush not installed: {e}", flush=True)
         return 0
+
     cfg = _load_or_generate()
     pem = cfg["private_pem"]
     pem_first_line = pem.split("\n", 1)[0] if pem else ""
@@ -273,6 +275,35 @@ def _send_to_subscriptions(subs, payload: dict) -> int:
           f"{pem_first_line!r} (len={len(pem)}, "
           f"public_b64_prefix={cfg['public_b64'][:12]})",
           flush=True)
+
+    # Load the EC private key ourselves (we know cryptography parses
+    # our SEC1 PEM cleanly because _validate_pem agreed). Then build a
+    # Vapid object directly with that key, bypassing pywebpush's
+    # internal PEM-parsing path that's been failing with "could not
+    # deserialize key data" on the Render-installed version.
+    vapid_obj = None
+    try:
+        crypto_key = serialization.load_pem_private_key(
+            pem.encode("utf-8") if isinstance(pem, str) else pem,
+            password=None)
+        try:
+            from py_vapid import Vapid01 as _VapidCls
+        except ImportError:
+            from py_vapid import Vapid as _VapidCls
+        try:
+            vapid_obj = _VapidCls(crypto_key)
+        except TypeError:
+            # Older API — no conf positional arg
+            vapid_obj = _VapidCls()
+            vapid_obj._private_key = crypto_key
+            vapid_obj._public_key = crypto_key.public_key()
+        print(f"[push] built Vapid object directly "
+              f"({type(vapid_obj).__name__})", flush=True)
+    except Exception as e:
+        print(f"[push] could not build Vapid object: "
+              f"{type(e).__name__}: {e}", flush=True)
+        # Fall through; webpush() will try to parse the PEM itself
+
     body = json.dumps(payload, ensure_ascii=False)
     sent = 0
     dead = []
@@ -287,7 +318,10 @@ def _send_to_subscriptions(subs, payload: dict) -> int:
             webpush(
                 subscription_info=info,
                 data=body,
-                vapid_private_key=cfg["private_pem"],
+                # Pass the pre-built Vapid object when we have one;
+                # falls back to PEM string only as a last resort.
+                vapid_private_key=(vapid_obj if vapid_obj is not None
+                                    else cfg["private_pem"]),
                 vapid_claims={"sub": cfg["claims_email"]},
                 ttl=60 * 60,
             )
