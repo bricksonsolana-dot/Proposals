@@ -913,7 +913,7 @@ def api_all_regions():
 # ---------- Download (desktop app + mobile install instructions) ----------
 
 DIST_DIR = ROOT / "dist"
-DOWNLOAD_FILE = "DevoxSales-Windows.zip"
+DOWNLOAD_FILE = "DevoxSales-Setup.exe"
 APK_FILE = "DevoxSales.apk"
 
 
@@ -985,12 +985,15 @@ code { background: #0a0c12; padding: 2px 6px; border-radius: 4px;
     <div class="card">
       <h2>💻 Windows Desktop App</h2>
       <a class="dl-btn" href="/download/desktop">
-        ⬇ Download DevoxSales.exe
+        ⬇ Download DevoxSales-Setup.exe
       </a>
       <div class="size">{{ desktop_size }} • Windows 10 / 11</div>
       <ol>
-        <li>Κάνε download το zip και εξάγαγέ το (right-click → Extract All)</li>
-        <li>Κάνε διπλό κλικ στο <code>DevoxSales.exe</code></li>
+        <li>Πάτα το κουμπί παραπάνω και κατέβασε το αρχείο</li>
+        <li>Κάνε διπλό κλικ στο <code>DevoxSales-Setup.exe</code></li>
+        <li>Πάτα <b>Next</b> → <b>Install</b> → <b>Finish</b></li>
+        <li>Η εφαρμογή θα έχει εικονίδιο στην επιφάνεια εργασίας
+          και στο Start Menu</li>
         <li>Login με τα στοιχεία που σου έδωσε ο admin</li>
       </ol>
       <div class="notice">
@@ -1111,7 +1114,7 @@ def download_desktop():
         abort(404, description="Desktop build not available yet")
     return send_from_directory(
         str(DIST_DIR), DOWNLOAD_FILE, as_attachment=True,
-        download_name="DevoxSales-Windows.zip")
+        download_name="DevoxSales-Setup.exe")
 
 
 @app.route("/download/android")

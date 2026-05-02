@@ -10,7 +10,7 @@ data/*.db-shm
 
 # Build output
 dist/*
-!dist/DevoxSales-Windows.zip
+!dist/DevoxSales-Setup.exe
 !dist/DevoxSales.apk
 build/
 *.spec
