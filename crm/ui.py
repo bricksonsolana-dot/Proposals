@@ -10,8 +10,10 @@ INDEX_HTML = r"""<!doctype html>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Devox Sales">
 <link rel="manifest" href="/static/manifest.json">
-<link rel="apple-touch-icon" href="/static/logo.png">
-<link rel="icon" type="image/png" href="/static/logo.png">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
+<link rel="shortcut icon" href="/static/logo.ico">
 <title>Devox CRM</title>
 <style>
 * { box-sizing: border-box; }
