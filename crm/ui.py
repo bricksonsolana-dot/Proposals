@@ -5777,14 +5777,23 @@ function updatePushUI() {
   if (test) {
     test.onclick = async () => {
       const r = await fetch('/api/push/test', { method: 'POST' });
-      if (r.ok) {
-        const d = await r.json();
-        if (d.sent && d.sent > 0) {
-          notify('Test sent — check your notifications panel');
-        } else {
-          notify('Server tried to send but no devices received it. Check Render logs.');
-        }
+      if (!r.ok) { notify('Test failed — server error'); return; }
+      const d = await r.json();
+      if (d.subscriptions === 0) {
+        notify('No device subscribed. Toggle "Push notifications" off and on again.');
+        return;
       }
+      if (d.sent > 0) {
+        notify(`Test sent to ${d.sent}/${d.subscriptions} device${d.sent>1?'s':''}`);
+        return;
+      }
+      // Subs exist but all failed — most common in Custom Tab mode
+      // when the TWA assetlinks didn't verify on the device.
+      const via = (d.endpoint_hosts || [])[0] || 'unknown';
+      notify(
+        `Server has ${d.subscriptions} subscription via ${via} ` +
+        `but delivery failed. Likely fix: uninstall + reboot phone + ` +
+        `reinstall APK to refresh trust check.`);
     };
   }
 }

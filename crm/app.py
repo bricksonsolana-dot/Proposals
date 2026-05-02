@@ -1675,15 +1675,60 @@ def api_push_unsubscribe():
 @app.route("/api/push/test", methods=["POST"])
 @auth.login_required
 def api_push_test():
-    """Send a test notification to the calling user — for the
-    'Enable notifications' button to confirm setup."""
+    """Send a test notification to the calling user. Returns rich
+    diagnostic info so the frontend can tell the user exactly what's
+    happening (no subs vs delivery failed)."""
+    subs = db.query(
+        "SELECT id, endpoint FROM push_subscriptions WHERE user_id = ?",
+        (g.user["id"],))
     sent = _push.send_push_to_user(g.user["id"], {
         "title": "Devox Sales",
         "body": "Notifications are working — you'll get a ping for new messages and assignments.",
         "tag": "test",
         "data": {"url": "/"},
     })
-    return jsonify({"ok": True, "sent": sent})
+    # Trim endpoints so we don't leak the full URL but the user can still
+    # tell whether they subscribed via Mozilla / Google / Apple
+    hosts = []
+    for s in subs:
+        ep = s.get("endpoint", "")
+        try:
+            from urllib.parse import urlparse
+            host = urlparse(ep).netloc
+            if host:
+                hosts.append(host)
+        except Exception:
+            pass
+    return jsonify({
+        "ok": True,
+        "sent": sent,
+        "subscriptions": len(subs),
+        "endpoint_hosts": hosts,
+    })
+
+
+@app.route("/api/push/diagnose")
+@auth.login_required
+def api_push_diagnose():
+    """Snapshot of push state for the current user."""
+    subs = db.query(
+        "SELECT endpoint, user_agent, created_at "
+        "FROM push_subscriptions WHERE user_id = ? ORDER BY id DESC",
+        (g.user["id"],))
+    public = ""
+    try:
+        public = _push.public_key()
+    except Exception:
+        pass
+    return jsonify({
+        "vapid_public_key_set": bool(public),
+        "subscriptions": [{
+            "endpoint_host": __import__('urllib.parse').parse.urlparse(
+                s["endpoint"]).netloc if s.get("endpoint") else "",
+            "user_agent": s.get("user_agent") or "",
+            "created_at": str(s.get("created_at") or ""),
+        } for s in subs],
+    })
 
 
 # Banter messages — random pool used by the daily summary cron / admin
