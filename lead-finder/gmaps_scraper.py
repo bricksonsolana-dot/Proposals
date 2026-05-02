@@ -74,6 +74,9 @@ QUERIES_PER_REGION = [
     "hotels in {region}",
     "rooms {region}",
     "apartments {region}",
+    "studios {region}",
+    "ξενοδοχεία {region}",
+    "δωμάτια {region}",
 ]
 
 

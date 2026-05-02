@@ -284,8 +284,167 @@ VILLAGES = {
         "Gaios", "Lakka Paxi", "Loggos Paxi", "Mongonisi",
     ],
 
-    # === Athens Riviera coastal villages — already in regions.py individually ===
-    # These don't need village expansion as they're already specific.
+    # === Attica (Αττική) — neighborhoods, beaches, landmarks ===
+    # Mainland Attica regions are urban/suburban — single search misses
+    # most listings. Expansion to neighborhoods + beaches + landmarks
+    # dramatically improves coverage.
+
+    "Athens": [
+        # Historic center
+        "Plaka Athens", "Monastiraki", "Syntagma Athens", "Thissio",
+        "Psirri", "Acropolis Athens", "Omonia Athens",
+        "Makriyianni Athens", "Koukaki", "Mets Athens",
+        # Central residential
+        "Kolonaki", "Exarchia", "Pagrati", "Neapoli Athens",
+        "Lycabettus", "Ambelokipoi", "Ilisia",
+        # North suburbs
+        "Kifisia", "Kifissia", "Marousi", "Maroussi", "Halandri",
+        "Chalandri", "Nea Erythraia", "Ekali",
+        "Psychiko", "Filothei", "Neo Psychiko",
+        # West / South center
+        "Petralona", "Kerameikos", "Gazi Athens", "Metaxourgeio",
+        "Neos Kosmos Athens",
+        # Coastal / South
+        "Faliro", "Palaio Faliro", "Alimos", "Elliniko",
+    ],
+
+    "Piraeus": [
+        "Piraeus port", "Piraeus center", "Mikrolimano",
+        "Pasalimani", "Zea Marina", "Kastella",
+        "Freattyda", "Piraiki", "Terpsithea Piraeus",
+        "Kaminia Piraeus", "Neo Faliro",
+        "Drapetsona", "Keratsini",
+    ],
+
+    "Glyfada": [
+        "Glyfada", "Glyfada Athens", "Glyfada beach", "Glyfada square",
+        "Glyfada center", "Glyfada marina",
+        "Asteria Glyfada", "Ano Glyfada", "Kato Glyfada",
+        "Astir Glyfada", "Pirnari Glyfada",
+        "Glyfada golf", "Glyfada seafront",
+    ],
+
+    "Voula": [
+        "Voula", "Voula Athens", "Voula beach", "Voula center",
+        "Kato Voula", "Ano Voula",
+        "Voula A beach", "Voula B beach", "Asteras Voula",
+        "Voula marina", "Pigadakia Voula",
+    ],
+
+    "Vouliagmeni": [
+        "Vouliagmeni", "Vouliagmeni Athens", "Vouliagmeni beach",
+        "Vouliagmeni center", "Lake Vouliagmeni", "Limni Vouliagmeni",
+        "Astir Beach Vouliagmeni", "Astir Palace Vouliagmeni",
+        "Kavouri", "Kavouri beach", "Kavouri Athens",
+        "Limanakia Vouliagmeni", "Mikro Kavouri",
+    ],
+
+    "Varkiza": [
+        "Varkiza", "Varkiza beach", "Varkiza Resort",
+        "Yabanaki Varkiza", "Varkiza center", "Varkiza marina",
+        "Vari Varkiza",
+    ],
+
+    "Lagonisi": [
+        "Lagonisi", "Lagonisi beach", "Mavro Lithari Lagonisi",
+        "Grand Resort Lagonisi", "Lagonisi center",
+        "Kitezia Lagonisi", "Kitsi Lagonisi",
+    ],
+
+    "Anavyssos": [
+        "Anavyssos", "Anavissos", "Anavyssos beach", "Anavissos beach",
+        "Mavro Lithari Anavyssos", "Eden beach Anavyssos",
+        "Agios Nikolaos Anavyssos", "Anavyssos center",
+        "Anavyssos seaside", "Paralia Anavyssou",
+    ],
+
+    "Saronida": [
+        "Saronida", "Saronida beach", "Saronida Athens",
+        "Saronida center", "Saronida seafront",
+    ],
+
+    "Palaia Fokaia": [
+        "Palaia Fokaia", "Palea Fokea", "Palaia Fokaia beach",
+        "Palea Fokea beach", "Palaia Fokaia center",
+        "Palaia Fokaia seaside",
+    ],
+
+    "Sounio": [
+        "Sounio", "Sounion", "Cape Sounio",
+        "Temple of Poseidon Sounio", "Sounio beach",
+        "Legrena", "Legrena beach", "Charakas Sounio",
+        "Agios Konstantinos Sounio", "Thorikos",
+    ],
+
+    "Marathon": [
+        "Marathon", "Marathonas", "Marathon beach",
+        "Marathon Greece", "Nea Makri Marathon",
+        "Kato Souli Marathon", "Vrana Marathon",
+        "Marathon Lake", "Limni Marathona",
+        "Tymvos Marathonos", "Schinias Marathon",
+    ],
+
+    "Schinias": [
+        "Schinias", "Schinias beach", "Schinias National Park",
+        "Schinias Marathon", "Paralia Schinia",
+        "Olympic Rowing Center Schinias",
+    ],
+
+    "Nea Makri": [
+        "Nea Makri", "Nea Makri beach", "Nea Makri center",
+        "Zouberi Nea Makri", "Mati Nea Makri", "Mati Attica",
+        "Agios Andreas Nea Makri", "Paralia Nea Makri",
+        "Nea Makri seafront",
+    ],
+
+    "Rafina": [
+        "Rafina", "Rafina port", "Rafina beach",
+        "Rafina center", "Mati Rafina", "Pikermi",
+        "Kallitechnoupoli Rafina", "Neos Voutzas",
+        "Diasporiti Rafina",
+    ],
+
+    "Porto Rafti": [
+        "Porto Rafti", "Porto Rafti beach", "Porto Rafti center",
+        "Avlaki Porto Rafti", "Erotospilia Porto Rafti",
+        "Agios Spyridon Porto Rafti", "Markopoulo Porto Rafti",
+        "Vravrona", "Brauron",
+    ],
+
+    "Lavrio": [
+        "Lavrio", "Lavrion", "Lavrio port", "Lavrio beach",
+        "Lavrio center", "Lavrio Greece",
+        "Thorikos Lavrio", "Pasa Limani Lavrio",
+        "Punta Zeza Lavrio", "Agios Andreas Lavrio",
+    ],
+
+    # Saronic islands (already had some — expanded for completeness)
+    "Aegina": [
+        "Aegina Town", "Aegina port", "Agia Marina Aegina",
+        "Perdika Aegina", "Souvala Aegina", "Vagia Aegina",
+        "Marathonas Aegina", "Portes Aegina",
+        "Kypseli Aegina", "Mesagros Aegina",
+    ],
+
+    "Spetses": [
+        "Spetses Town", "Spetses port", "Old Harbour Spetses",
+        "Agia Marina Spetses", "Agioi Anargyroi Spetses",
+        "Vrellos Spetses", "Zogeria Spetses",
+        "Kounoupitsa Spetses", "Ligoneri Spetses",
+    ],
+
+    "Hydra": [
+        "Hydra Town", "Hydra port", "Kamini Hydra",
+        "Vlychos Hydra", "Mandraki Hydra", "Palamidas Hydra",
+        "Plakes Hydra", "Bisti Hydra",
+    ],
+
+    "Poros": [
+        "Poros Town", "Poros port", "Askeli Poros",
+        "Neorio Poros", "Monastiri Poros", "Russian Bay Poros",
+        "Megalo Neorio Poros", "Mikro Neorio Poros",
+        "Kanali Poros",
+    ],
 }
 
 

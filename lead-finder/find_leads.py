@@ -214,6 +214,15 @@ async def run(args):
         "completed_query_times": [],
     }
 
+    # Clear any stale progress.json from a previous run, then write
+    # an initial snapshot so the dashboard shows the progress bar
+    # immediately (instead of waiting for the first query to finish).
+    try:
+        if PROGRESS_JSON.exists():
+            PROGRESS_JSON.unlink()
+    except Exception:
+        pass
+
     def write_progress():
         elapsed = _time.time() - progress_state["started_at"]
         total_done = sum(r["done"] for r in progress_state["regions"].values())
@@ -355,6 +364,12 @@ async def run(args):
     async def bounded(name):
         async with sem:
             await process_region(name)
+
+    # Write an initial snapshot so the dashboard shows the progress bar
+    # immediately (with 0/total) — otherwise the bar stays hidden until
+    # the first query finishes (which can take 30+ seconds while
+    # Playwright spins up).
+    write_progress()
 
     await asyncio.gather(*[bounded(n) for n in region_names])
 

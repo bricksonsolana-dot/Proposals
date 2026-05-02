@@ -1188,9 +1188,25 @@ async function startScrape(regions) {
 }
 
 async function refreshProgress() {
-  const r = await fetch('/api/progress');
-  const p = await r.json();
+  const [pr, sr] = await Promise.all([
+    fetch('/api/progress'), fetch('/api/status'),
+  ]);
+  const p = await pr.json();
+  const s = await sr.json();
   const card = document.getElementById('progress-card');
+
+  // Show a "starting up" placeholder when the scraper is running but
+  // progress.json hasn't been written yet (or is the stale `completed`
+  // marker from a previous run).
+  if (s.running && (!p || !p.queries_total || p.completed)) {
+    card.style.display = 'block';
+    document.getElementById('prog-bar').style.width = '5%';
+    document.getElementById('prog-percent').textContent = 'warming up';
+    document.getElementById('prog-text').textContent = 'starting...';
+    document.getElementById('prog-region').textContent = 'Initializing Playwright...';
+    document.getElementById('prog-eta').textContent = '—';
+    return;
+  }
   if (!p || !p.queries_total || p.completed) {
     card.style.display = 'none';
     return;
