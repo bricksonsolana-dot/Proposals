@@ -24,10 +24,11 @@ dist/
 build/
 *.spec
 
-# But DO ship the desktop client zip so Render can serve it from /download
+# But DO ship the desktop client zip + APK so Render can serve them
 !crm/dist/
 crm/dist/*
 !crm/dist/DevoxSales-Windows.zip
+!crm/dist/DevoxSales.apk
 
 # Editor / OS
 .vscode/

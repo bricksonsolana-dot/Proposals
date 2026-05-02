@@ -914,6 +914,7 @@ def api_all_regions():
 
 DIST_DIR = ROOT / "dist"
 DOWNLOAD_FILE = "DevoxSales-Windows.zip"
+APK_FILE = "DevoxSales.apk"
 
 
 DOWNLOAD_HTML = r"""<!doctype html>
@@ -1001,33 +1002,60 @@ code { background: #0a0c12; padding: 2px 6px; border-radius: 4px;
   </div>
 
   <div id="content-mobile" class="platform-content">
+    {% if apk_available %}
     <div class="card">
-      <h2>📱 Mobile (Android & iOS)</h2>
-      <p style="color:#d6d3d1;font-size:14px;line-height:1.6;margin:0 0 14px">
-        Δεν χρειάζεται download. Η εφαρμογή τρέχει μέσα στον browser
-        αλλά μπορείς να την προσθέσεις στην αρχική οθόνη του κινητού
-        σου σαν κανονικό app.
-      </p>
-
-      <h3 style="font-size:14px;margin:18px 0 8px;color:#60a5fa">📱 iPhone / iPad (Safari)</h3>
+      <h2>🤖 Android APK</h2>
+      <a class="dl-btn" href="/download/android">
+        ⬇ Download DevoxSales.apk
+      </a>
+      <div class="size">{{ apk_size }} • Android 7.0+</div>
       <ol>
-        <li>Άνοιξε το <code>{{ host_url }}</code> στο Safari</li>
+        <li>Πάτα το κουμπί download παραπάνω</li>
+        <li>Όταν τελειώσει, άνοιξε το αρχείο <code>DevoxSales.apk</code></li>
+        <li>Αν εμφανιστεί προειδοποίηση
+          <b>"Install unknown apps"</b>, πάτα <b>Settings</b>
+          → ενεργοποίησε <b>"Allow from this source"</b> για τον browser σου
+          → πίσω και πάτα <b>Install</b></li>
+        <li>Άνοιξε την εφαρμογή και κάνε login</li>
+      </ol>
+      <div class="notice">
+        ⚠️ Επειδή το APK δεν διανέμεται μέσω Google Play, το Android
+        ζητά μία φορά άδεια ότι εμπιστεύεσαι την πηγή.
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <h2>📱 iPhone / iPad</h2>
+      <p style="color:#d6d3d1;font-size:14px;line-height:1.6;margin:0 0 14px">
+        Δεν υπάρχει .apk για iOS. Πρόσθεσε την εφαρμογή στην αρχική οθόνη
+        και ανοίγει σαν native app.
+      </p>
+      <ol>
+        <li>Άνοιξε το <code>{{ host_url }}</code> στο <b>Safari</b></li>
         <li>Πάτα το κουμπί Share <b>⬆️</b> κάτω-κέντρο</li>
         <li>Επίλεξε <b>"Add to Home Screen"</b></li>
         <li>Πάτα <b>Add</b> πάνω δεξιά</li>
       </ol>
+      <a class="dl-btn secondary" href="/" style="margin-top:14px">
+        🔗 Άνοιξε στον browser
+      </a>
+    </div>
 
-      <h3 style="font-size:14px;margin:18px 0 8px;color:#60a5fa">🤖 Android (Chrome)</h3>
+    {% if not apk_available %}
+    <div class="card">
+      <h2>🤖 Android — Add to Home Screen</h2>
+      <p style="color:#d6d3d1;font-size:14px;line-height:1.6;margin:0 0 14px">
+        Μέχρι να γίνει διαθέσιμο το APK, μπορείς να εγκαταστήσεις
+        την εφαρμογή σαν Progressive Web App.
+      </p>
       <ol>
         <li>Άνοιξε το <code>{{ host_url }}</code> στο Chrome</li>
         <li>Πάτα τις 3 τελείες <b>⋮</b> πάνω δεξιά</li>
         <li>Επίλεξε <b>"Install app"</b> ή <b>"Add to Home screen"</b></li>
       </ol>
-
-      <a class="dl-btn secondary" href="/" style="margin-top:18px">
-        🔗 Άνοιξε την εφαρμογή τώρα
-      </a>
     </div>
+    {% endif %}
   </div>
 
   <a class="back" href="/">← Πίσω στο login</a>
@@ -1060,9 +1088,20 @@ def download_page():
         desktop_size = f"{size_mb:.1f} MB"
     else:
         desktop_size = "—"
+
+    apk_path = DIST_DIR / APK_FILE
+    apk_available = apk_path.exists()
+    if apk_available:
+        size_mb = apk_path.stat().st_size / 1024 / 1024
+        apk_size = f"{size_mb:.1f} MB"
+    else:
+        apk_size = "—"
+
     return render_template_string(
         DOWNLOAD_HTML,
         desktop_size=desktop_size,
+        apk_available=apk_available,
+        apk_size=apk_size,
         host_url=request.host_url.rstrip("/"))
 
 
@@ -1073,6 +1112,18 @@ def download_desktop():
     return send_from_directory(
         str(DIST_DIR), DOWNLOAD_FILE, as_attachment=True,
         download_name="DevoxSales-Windows.zip")
+
+
+@app.route("/download/android")
+def download_android():
+    if not (DIST_DIR / APK_FILE).exists():
+        abort(404, description="Android build not available yet")
+    # APK MIME type so browsers offer to install instead of viewing as text
+    response = send_from_directory(
+        str(DIST_DIR), APK_FILE, as_attachment=True,
+        download_name="DevoxSales.apk")
+    response.headers["Content-Type"] = "application/vnd.android.package-archive"
+    return response
 
 
 # ---------- Main UI ----------
