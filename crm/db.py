@@ -287,7 +287,8 @@ CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_leads_region ON leads(region);
-CREATE INDEX IF NOT EXISTS idx_leads_country ON leads(country);
+-- idx_leads_country is created post-migration in init_schema() so it runs
+-- AFTER _migrate_add_column adds the column to legacy DBs that pre-date it.
 """
 
 SCHEMA_POSTGRES = """
@@ -403,7 +404,8 @@ CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_leads_region ON leads(region);
-CREATE INDEX IF NOT EXISTS idx_leads_country ON leads(country);
+-- idx_leads_country is created post-migration in init_schema() so it runs
+-- AFTER _migrate_add_column adds the column to legacy DBs that pre-date it.
 """
 
 
