@@ -17,7 +17,7 @@ import re
 import sys
 from pathlib import Path
 
-from regions import REGIONS
+from regions import REGIONS, country_for_region
 from gmaps_scraper import scrape_region, filter_leads, _is_real_website,\
     is_blocked_category, is_accommodation_category, looks_like_accommodation_name
 
@@ -29,7 +29,7 @@ MASTER_CSV = OUTPUT_DIR / "leads.csv"
 REJECTED_JSON = OUTPUT_DIR / "rejected.json"
 SCRAPED_JSON = OUTPUT_DIR / "scraped.json"
 PROGRESS_JSON = OUTPUT_DIR / "progress.json"
-MASTER_FIELDS = ["region", "name", "category", "phone", "email",
+MASTER_FIELDS = ["country", "region", "name", "category", "phone", "email",
                   "gmaps_url", "online_presence",
                   "domain_gr_available", "domain_com_available",
                   "domain_suggestion", "enriched_at"]
@@ -142,8 +142,12 @@ def save_master(leads_by_key: dict):
         w = csv.DictWriter(f, fieldnames=MASTER_FIELDS, extrasaction="ignore")
         w.writeheader()
         for r in rows:
+            region = r.get("region", "")
+            # Backfill country from region if missing (handles legacy rows)
+            country = r.get("country") or country_for_region(region)
             w.writerow({
-                "region": clean_field(r.get("region", "")),
+                "country": clean_field(country),
+                "region": clean_field(region),
                 "name": clean_field(r.get("name", "")),
                 "category": clean_field(r.get("category", "")),
                 "phone": clean_field(r.get("phone", "")),
@@ -289,8 +293,10 @@ async def run(args):
                     k = lead_key(lead)
                     if not k[1] or k in master:
                         continue
+                    region = lead.get("region", name)
                     master[k] = {
-                        "region": lead.get("region", name),
+                        "country": country_for_region(region),
+                        "region": region,
                         "name": lead.get("name", ""),
                         "category": lead.get("category", ""),
                         "phone": lead.get("phone", ""),
@@ -331,8 +337,10 @@ async def run(args):
                 k = lead_key(lead)
                 if not k[1] or k in master:
                     continue
+                region = lead.get("region", name)
                 master[k] = {
-                    "region": lead.get("region", name),
+                    "country": country_for_region(region),
+                    "region": region,
                     "name": lead.get("name", ""),
                     "category": lead.get("category", ""),
                     "phone": lead.get("phone", ""),

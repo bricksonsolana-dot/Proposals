@@ -184,7 +184,7 @@ def load_master() -> list[dict]:
 def save_master(leads: list[dict]):
     if not leads:
         return
-    base_fields = ["region", "name", "category", "phone", "email",
+    base_fields = ["country", "region", "name", "category", "phone", "email",
                    "gmaps_url", "online_presence"]
     fields = base_fields + ENRICHED_FIELDS
     with open(MASTER_CSV, "w", newline="", encoding="utf-8-sig") as f:

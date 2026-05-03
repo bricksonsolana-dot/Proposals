@@ -21,7 +21,7 @@ ACCOMMODATION_CATEGORIES = [
     "apartment", "apartments",
     "guest house", "guesthouse",
     "hostel", "lodge", "lodging",
-    "bed & breakfast", "bed and breakfast",
+    "bed & breakfast", "bed and breakfast", "b&b",
     "vacation", "holiday", "villa",
     "rooms", "rented room", "self-catering",
     "pension", "boutique",
@@ -29,6 +29,10 @@ ACCOMMODATION_CATEGORIES = [
     "ξενοδοχ", "ξενώνας", "ξενώνες", "δωμάτι", "διαμέρισμα",
     "διαμερίσματα", "πανσιόν", "πανδοχ", "βίλα", "βίλες",
     "κατάλυμα", "καταλύματα", "ενοικιαζ",
+    # Dutch
+    "appartement", "appartementen", "vakantie", "vakantiehuis",
+    "vakantiewoning", "vakantiepark", "logies", "gastenverblijf",
+    "bungalowpark", "campinghuisje",
 ]
 
 # Categories that should NEVER pass even if name contains "studio" etc.
@@ -71,12 +75,21 @@ OTA_DOMAINS = [
 ]
 
 QUERIES_PER_REGION = [
+    # English (works in any country)
     "hotels in {region}",
     "rooms {region}",
     "apartments {region}",
     "studios {region}",
+    "bed and breakfast {region}",
+    "guest house {region}",
+    # Greek
     "ξενοδοχεία {region}",
     "δωμάτια {region}",
+    # Dutch
+    "appartementen {region}",
+    "B&B {region}",
+    "vakantiehuis {region}",
+    "pension {region}",
 ]
 
 
@@ -447,6 +460,9 @@ def looks_like_accommodation_name(name: str) -> bool:
         "hostel", "resort", "lodge", "inn", "pension", "boutique",
         "ξενοδοχ", "δωμάτι", "διαμέρισμ", "βίλα", "πανσιόν", "κατάλυμ",
         "house", "stay", "retreat", "residence",
+        # Dutch
+        "appartement", "vakantiehuis", "vakantiewoning",
+        "logies", "huisje", "bungalow", "b&b",
     ]
     return any(k in n for k in keywords)
 

@@ -12,8 +12,8 @@ ROOT = Path(__file__).parent
 MASTER_CSV = ROOT / "output" / "leads.csv"
 
 
-def make_search_url(name: str, region: str) -> str:
-    query = f"{name} {region} Greece".strip()
+def make_search_url(name: str, region: str, country: str = "") -> str:
+    query = f"{name} {region} {country}".strip()
     return ("https://www.google.com/maps/search/"
             + urllib.parse.quote(query) + "/?hl=en")
 
@@ -30,9 +30,10 @@ def main():
             continue
         name = r.get("name", "")
         region = r.get("region", "")
+        country = r.get("country", "")
         if not name:
             continue
-        r["gmaps_url"] = make_search_url(name, region)
+        r["gmaps_url"] = make_search_url(name, region, country)
         filled += 1
 
     with open(MASTER_CSV, "w", newline="", encoding="utf-8-sig") as f:

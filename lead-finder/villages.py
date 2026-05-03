@@ -445,6 +445,324 @@ VILLAGES = {
         "Megalo Neorio Poros", "Mikro Neorio Poros",
         "Kanali Poros",
     ],
+
+    # ====================================================================
+    # ============== NETHERLANDS — neighborhoods & coastal areas =========
+    # ====================================================================
+    # Same logic as Athens / Greek hotspots: a single city-wide search misses
+    # most listings on Google Maps. Each Dutch city is expanded to its
+    # districts, neighborhoods, beaches, and landmarks for max coverage.
+
+    # === Amsterdam — full district expansion ===
+    "Amsterdam": [
+        # Historic center
+        "Amsterdam Centrum", "Amsterdam Old Town", "Dam Square Amsterdam",
+        "Damrak Amsterdam", "Rokin Amsterdam", "Nieuwmarkt Amsterdam",
+        "Red Light District Amsterdam", "De Wallen Amsterdam",
+        "Jordaan Amsterdam", "Westerpark Amsterdam",
+        # West
+        "Oud-West Amsterdam", "De Baarsjes Amsterdam",
+        "Bos en Lommer Amsterdam", "Westerpark district Amsterdam",
+        "Kinkerstraat Amsterdam", "Helmersbuurt Amsterdam",
+        # South — premium areas
+        "Oud-Zuid Amsterdam", "De Pijp Amsterdam",
+        "Museumkwartier Amsterdam", "Vondelpark Amsterdam",
+        "Apollolaan Amsterdam", "Beethovenstraat Amsterdam",
+        "Zuidas Amsterdam", "Rivierenbuurt Amsterdam",
+        "Stadionbuurt Amsterdam", "Hoofddorppleinbuurt Amsterdam",
+        # East
+        "Oost Amsterdam", "Plantage Amsterdam",
+        "Indische Buurt Amsterdam", "Oosterpark Amsterdam",
+        "Watergraafsmeer Amsterdam", "IJburg Amsterdam",
+        "Java-eiland Amsterdam", "KNSM-eiland Amsterdam",
+        # North (across the IJ)
+        "Amsterdam Noord", "NDSM Amsterdam", "Buiksloterham Amsterdam",
+        "Tuindorp Oostzaan", "Nieuwendam Amsterdam",
+        # Tourist / nightlife squares
+        "Leidseplein Amsterdam", "Rembrandtplein Amsterdam",
+        "Spui Amsterdam", "Waterlooplein Amsterdam",
+        # Stations / transport hubs (lots of B&Bs nearby)
+        "Amsterdam Centraal", "Amsterdam Zuid station",
+        "Amsterdam Sloterdijk", "Amstel station Amsterdam",
+        # Outer / Bijlmer
+        "Bijlmer Amsterdam", "Amsterdam Zuidoost",
+        "Slotermeer Amsterdam", "Osdorp Amsterdam",
+        "Slotervaart Amsterdam", "Geuzenveld Amsterdam",
+    ],
+
+    # === Rotterdam — districts + waterfront ===
+    "Rotterdam": [
+        "Rotterdam Centrum", "Rotterdam city center",
+        "Cool district Rotterdam", "Stadsdriehoek Rotterdam",
+        "Kop van Zuid Rotterdam", "Wilhelminapier Rotterdam",
+        "Katendrecht Rotterdam", "Erasmusbrug Rotterdam",
+        "Delfshaven Rotterdam", "Historisch Delfshaven",
+        "Witte de Withstraat Rotterdam", "Oude Haven Rotterdam",
+        "Markthal Rotterdam", "Blaak Rotterdam",
+        "Kralingen Rotterdam", "Kralingse Plas Rotterdam",
+        "Hillegersberg Rotterdam", "Schiebroek Rotterdam",
+        "Bergpolder Rotterdam", "Noord Rotterdam",
+        "Oude Westen Rotterdam", "Nieuwe Westen Rotterdam",
+        "Lloydkwartier Rotterdam", "Müllerpier Rotterdam",
+        "Hoek van Holland", "Rozenburg Rotterdam",
+        "Hoogvliet Rotterdam",
+    ],
+
+    # === The Hague / Den Haag — incl. Scheveningen beach ===
+    "The Hague": [
+        "Den Haag Centrum", "The Hague center",
+        "Binnenhof Den Haag", "Plein Den Haag",
+        "Statenkwartier Den Haag", "Archipelbuurt Den Haag",
+        "Benoordenhout Den Haag", "Vogelwijk Den Haag",
+        "Zeeheldenkwartier Den Haag", "Willemspark Den Haag",
+        "Bezuidenhout Den Haag", "Mariahoeve Den Haag",
+        "Voorhout Den Haag", "Voorburg",
+        # Coastal districts
+        "Scheveningen", "Scheveningen beach", "Scheveningen boulevard",
+        "Scheveningen harbour", "Kurhaus Scheveningen",
+        "Kijkduin", "Kijkduin beach", "Madurodam",
+    ],
+
+    # Den Haag = same place as The Hague — duplicate with Dutch name so
+    # whichever the user picks works.
+    "Den Haag": [
+        "Den Haag Centrum", "Binnenhof Den Haag",
+        "Statenkwartier Den Haag", "Archipelbuurt Den Haag",
+        "Benoordenhout Den Haag", "Bezuidenhout Den Haag",
+        "Scheveningen", "Scheveningen beach",
+        "Kijkduin", "Voorburg",
+    ],
+
+    # === Utrecht — old town + neighborhoods ===
+    "Utrecht": [
+        "Utrecht Centrum", "Utrecht binnenstad",
+        "Domplein Utrecht", "Oudegracht Utrecht",
+        "Wittevrouwen Utrecht", "Vogelenbuurt Utrecht",
+        "Lombok Utrecht", "Tuinwijk Utrecht",
+        "Wilhelminapark Utrecht", "Rivierenwijk Utrecht",
+        "Tuindorp Utrecht", "Voordorp Utrecht",
+        "Lunetten Utrecht", "Hoograven Utrecht",
+        "Oog in Al Utrecht", "Leidsche Rijn Utrecht",
+        "Kanaleneiland Utrecht", "Overvecht Utrecht",
+    ],
+
+    # === Maastricht — historic center ===
+    "Maastricht": [
+        "Maastricht Centrum", "Binnenstad Maastricht",
+        "Vrijthof Maastricht", "Markt Maastricht",
+        "Wyck Maastricht", "Jekerkwartier Maastricht",
+        "Sint Pieter Maastricht", "Boschstraatkwartier Maastricht",
+        "Statenkwartier Maastricht", "Wittevrouwenveld Maastricht",
+        "Maastricht station", "Sphinxkwartier Maastricht",
+    ],
+
+    # === Eindhoven — design district + center ===
+    "Eindhoven": [
+        "Eindhoven Centrum", "Eindhoven city center",
+        "Stratumseind Eindhoven", "Markt Eindhoven",
+        "Strijp-S Eindhoven", "Strijp Eindhoven",
+        "Woensel Eindhoven", "Stratum Eindhoven",
+        "Tongelre Eindhoven", "Gestel Eindhoven",
+        "Eindhoven Airport", "Eindhoven station",
+    ],
+
+    # === Haarlem — historic center near Amsterdam ===
+    "Haarlem": [
+        "Haarlem Centrum", "Grote Markt Haarlem",
+        "Spaarne Haarlem", "Vijfhoek Haarlem",
+        "Burgwal Haarlem", "Haarlem station",
+        "Oude Stad Haarlem", "Bloemendaal",
+        "Haarlemmerhout Haarlem",
+    ],
+
+    # === Groningen — north student city ===
+    "Groningen": [
+        "Groningen Centrum", "Grote Markt Groningen",
+        "Vismarkt Groningen", "A-kwartier Groningen",
+        "Hortusbuurt Groningen", "Korreweg Groningen",
+        "Schildersbuurt Groningen", "Helpman Groningen",
+        "Paddepoel Groningen", "Groningen station",
+    ],
+
+    # === Nijmegen — oldest city in NL ===
+    "Nijmegen": [
+        "Nijmegen Centrum", "Grote Markt Nijmegen",
+        "Waalkade Nijmegen", "Benedenstad Nijmegen",
+        "Bottendaal Nijmegen", "Nijmegen-Oost",
+        "Hunnerberg Nijmegen", "Nijmegen station",
+    ],
+
+    # === Breda ===
+    "Breda": [
+        "Breda Centrum", "Grote Markt Breda",
+        "Ginneken Breda", "Boschstraat Breda",
+        "Princenhage Breda", "Breda station",
+    ],
+
+    # === Tilburg ===
+    "Tilburg": [
+        "Tilburg Centrum", "Heuvel Tilburg",
+        "Korvel Tilburg", "Tilburg station",
+        "Piushaven Tilburg", "Spoorzone Tilburg",
+    ],
+
+    # === Den Bosch / 's-Hertogenbosch ===
+    "'s-Hertogenbosch": [
+        "Den Bosch Centrum", "Markt Den Bosch",
+        "Sint Jan Den Bosch", "Uilenburg Den Bosch",
+        "Vughterstraat Den Bosch",
+    ],
+
+    "Den Bosch": [
+        "Den Bosch Centrum", "Markt Den Bosch",
+        "Sint Jan Den Bosch", "Uilenburg Den Bosch",
+    ],
+
+    # === Coastal hotspots (Noord-Holland & Zuid-Holland) ===
+    "Zandvoort": [
+        "Zandvoort", "Zandvoort beach", "Zandvoort aan Zee",
+        "Boulevard Barnaart Zandvoort", "Zandvoort centrum",
+        "Bloemendaal aan Zee",
+    ],
+
+    "Bergen aan Zee": [
+        "Bergen aan Zee", "Bergen NH", "Bergen Noord-Holland",
+        "Bergen aan Zee beach", "Bergen aan Zee centrum",
+    ],
+
+    "Egmond aan Zee": [
+        "Egmond aan Zee", "Egmond aan Zee beach",
+        "Egmond aan den Hoef", "Egmond-Binnen",
+    ],
+
+    "Noordwijk aan Zee": [
+        "Noordwijk", "Noordwijk aan Zee",
+        "Noordwijk Binnen", "Noordwijk boulevard",
+        "Noordwijk beach",
+    ],
+
+    "Katwijk aan Zee": [
+        "Katwijk", "Katwijk aan Zee",
+        "Katwijk boulevard", "Katwijk beach",
+    ],
+
+    "Volendam": [
+        "Volendam", "Volendam harbour",
+        "Volendam centrum", "Edam-Volendam",
+    ],
+
+    # === Texel — biggest Wadden island ===
+    "Texel": [
+        "Texel", "Den Burg Texel", "De Cocksdorp Texel",
+        "De Koog Texel", "Oudeschild Texel",
+        "Den Hoorn Texel", "Oosterend Texel",
+        "De Waal Texel",
+    ],
+
+    # === Other Wadden islands ===
+    "Vlieland": [
+        "Vlieland", "Oost-Vlieland", "Vlieland beach",
+    ],
+    "Terschelling": [
+        "Terschelling", "West-Terschelling", "Midsland Terschelling",
+        "Hoorn Terschelling", "Oosterend Terschelling",
+    ],
+    "Ameland": [
+        "Ameland", "Nes Ameland", "Hollum Ameland",
+        "Ballum Ameland", "Buren Ameland",
+    ],
+    "Schiermonnikoog": [
+        "Schiermonnikoog", "Schiermonnikoog village",
+        "Schiermonnikoog beach",
+    ],
+
+    # === Zeeland coast (Walcheren + Schouwen-Duiveland) ===
+    "Domburg": [
+        "Domburg", "Domburg beach", "Domburg centrum",
+        "Oostkapelle", "Vrouwenpolder",
+    ],
+
+    "Zoutelande": [
+        "Zoutelande", "Zoutelande beach", "Westkapelle",
+        "Dishoek Zoutelande",
+    ],
+
+    "Cadzand": [
+        "Cadzand", "Cadzand-Bad", "Cadzand beach",
+        "Nieuwvliet-Bad", "Breskens",
+    ],
+
+    "Renesse": [
+        "Renesse", "Renesse beach", "Brouwersdam Renesse",
+        "Burgh-Haamstede", "Westenschouwen",
+    ],
+
+    "Burgh-Haamstede": [
+        "Burgh-Haamstede", "Westenschouwen",
+        "Nieuw-Haamstede", "Renesse",
+    ],
+
+    # === Veluwe — forest/holiday area in Gelderland ===
+    "Otterlo": [
+        "Otterlo", "Hoge Veluwe", "Kröller-Müller Otterlo",
+        "Hoenderloo",
+    ],
+    "Hoenderloo": [
+        "Hoenderloo", "Hoge Veluwe", "Apeldoorn",
+    ],
+    "Putten Veluwe": [
+        "Putten", "Putten Gelderland", "Putten Veluwe",
+    ],
+    "Harderwijk": [
+        "Harderwijk", "Harderwijk centrum", "Harderwijk haven",
+        "Dolfinarium Harderwijk",
+    ],
+
+    # === Limburg hills (Maastricht surroundings) ===
+    "Valkenburg aan de Geul": [
+        "Valkenburg", "Valkenburg aan de Geul",
+        "Valkenburg centrum", "Vilt Valkenburg",
+        "Schin op Geul",
+    ],
+
+    # === Friesland lakes / villages ===
+    "Giethoorn": [
+        "Giethoorn", "Giethoorn village", "Giethoorn boats",
+    ],
+
+    "Sneek": [
+        "Sneek", "Sneek centrum", "Sneek harbour",
+        "Waterpoort Sneek",
+    ],
+
+    "Stavoren": [
+        "Stavoren", "Stavoren harbour", "Hindeloopen",
+    ],
+
+    # === Other ===
+    "Delft": [
+        "Delft Centrum", "Markt Delft", "Oude Kerk Delft",
+        "Nieuwe Kerk Delft", "Delft station",
+    ],
+
+    "Leiden": [
+        "Leiden Centrum", "Pieterswijk Leiden",
+        "Leiden station", "Burcht Leiden",
+    ],
+
+    "Gouda": [
+        "Gouda Centrum", "Markt Gouda", "Gouda station",
+    ],
+
+    "Arnhem": [
+        "Arnhem Centrum", "Korenmarkt Arnhem",
+        "Arnhem station", "Sonsbeek Arnhem",
+    ],
+
+    "Apeldoorn": [
+        "Apeldoorn Centrum", "Apeldoorn station",
+        "Het Loo Apeldoorn",
+    ],
 }
 
 

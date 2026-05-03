@@ -23,7 +23,7 @@ from pathlib import Path
 
 from flask import Flask, jsonify, render_template_string, request
 
-from regions import REGIONS, REGION_GROUPS
+from regions import REGIONS, REGION_GROUPS, COUNTRIES, country_for_region
 
 ROOT = Path(__file__).parent
 OUTPUT_DIR = ROOT / "output"
@@ -179,8 +179,17 @@ def api_progress():
 
 @app.route("/api/regions")
 def api_regions():
+    # Strip dict structure to what the UI needs (groups per country).
+    countries = {
+        name: {
+            "code": data["code"],
+            "groups": data["groups"],
+        }
+        for name, data in COUNTRIES.items()
+    }
     return jsonify({
-        "groups": REGION_GROUPS,
+        "countries": countries,
+        "groups": REGION_GROUPS,  # legacy: flat group->regions
         "all": list(REGIONS.keys()),
         "scraped": load_scraped_status(),
     })
@@ -204,13 +213,22 @@ def api_status():
 @app.route("/api/leads")
 def api_leads():
     leads = load_leads()
+    # Backfill country for legacy rows missing the column
+    for l in leads:
+        if not l.get("country"):
+            l["country"] = country_for_region(l.get("region", ""))
     by_region = {}
+    by_country = {}
     for l in leads:
         by_region.setdefault(l.get("region", ""), []).append(l)
+        by_country.setdefault(l.get("country", "") or "Unknown",
+                                []).append(l)
     return jsonify({
         "total": len(leads),
         "by_region": [{"region": r, "count": len(rows)}
                        for r, rows in sorted(by_region.items())],
+        "by_country": [{"country": c, "count": len(rows)}
+                        for c, rows in sorted(by_country.items())],
         "leads": leads,
     })
 
@@ -497,13 +515,25 @@ INDEX_HTML = """<!doctype html>
   select { background: #1a1d27; color: #e8eaf0; border: 1px solid #2a2f3d;
            padding: 8px; border-radius: 6px; width: 100%; font-size: 14px; }
   .region-picker { background: #1a1d27; border: 1px solid #2a2f3d;
-                   border-radius: 6px; padding: 8px; max-height: 380px;
+                   border-radius: 6px; padding: 8px; max-height: 420px;
                    overflow-y: auto; }
-  .group { margin-bottom: 12px; }
+  .country { margin-bottom: 14px; }
+  .country:last-child { margin-bottom: 0; }
+  .country-header { display: flex; align-items: center; gap: 8px;
+                    font-weight: 700; padding: 6px 4px; cursor: pointer;
+                    background: #11141c; border-radius: 4px;
+                    margin-bottom: 6px; font-size: 13px;
+                    text-transform: uppercase; letter-spacing: 0.4px;
+                    color: #93c5fd; }
+  .country-header:hover { color: #bfdbfe; }
+  .country.collapsed .country-body { display: none; }
+  .country-flag { font-size: 14px; }
+  .group { margin-bottom: 10px; }
   .group:last-child { margin-bottom: 0; }
   .group-header { display: flex; align-items: center; gap: 8px;
-                  font-weight: 600; padding: 6px 4px; cursor: pointer;
-                  border-bottom: 1px solid #2a2f3d; margin-bottom: 4px; }
+                  font-weight: 600; padding: 4px 4px; cursor: pointer;
+                  border-bottom: 1px solid #2a2f3d; margin-bottom: 4px;
+                  font-size: 12px; color: #cbd5e1; }
   .group-header:hover { color: #60a5fa; }
   .group-header .toggle { font-size: 11px; color: #6b7280; }
   .group-items { padding-left: 8px; display: grid;
@@ -543,6 +573,16 @@ INDEX_HTML = """<!doctype html>
   .filter { background: #1a1d27; border: 1px solid #2a2f3d;
             color: #e8eaf0; padding: 8px 12px; border-radius: 6px;
             width: 100%; font-size: 14px; margin-bottom: 12px; }
+  .by-country { display: flex; flex-wrap: wrap; gap: 8px;
+                margin-bottom: 12px; }
+  .country-chip { background: #11141c; border: 1px solid #2a2f3d;
+                  padding: 8px 16px; border-radius: 8px; font-size: 13px;
+                  font-weight: 600; cursor: pointer;
+                  display: inline-flex; align-items: center; gap: 6px; }
+  .country-chip:hover { background: #1a1d27; border-color: #3b82f6; }
+  .country-chip.active { background: #2563eb; border-color: #2563eb;
+                         color: white; }
+  .country-chip .flag { font-size: 16px; }
   .by-region { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
   .chip { background: #1a1d27; padding: 4px 10px; border-radius: 999px;
           font-size: 12px; cursor: pointer; }
@@ -731,14 +771,15 @@ INDEX_HTML = """<!doctype html>
            margin-top:4px;text-align:right">0%</div>
     </div>
     <h2>Leads <span id="lead-count" style="color:#8b92a6;font-weight:400"></span></h2>
+    <div class="by-country" id="country-chips"></div>
     <div class="by-region" id="region-chips"></div>
     <input id="filter" class="filter" placeholder="Filter by name, phone or category...">
     <table>
       <thead><tr>
-        <th>Region</th><th>Name</th><th>Category</th><th>Online</th>
-        <th>Phone</th><th>Email</th><th>Domain</th><th></th>
+        <th>Country</th><th>Region</th><th>Name</th><th>Category</th>
+        <th>Online</th><th>Phone</th><th>Email</th><th>Domain</th><th></th>
       </tr></thead>
-      <tbody id="leads-body"><tr><td colspan="8" class="empty">No leads yet</td></tr></tbody>
+      <tbody id="leads-body"><tr><td colspan="9" class="empty">No leads yet</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -758,11 +799,21 @@ INDEX_HTML = """<!doctype html>
 <script>
 let allLeads = [];
 let activeRegion = null;
+let activeCountry = null;
 let filterText = '';
 let selectedLeadPhone = null;
 
-let regionGroups = {};
+let countriesData = {};       // {countryName: {code, groups}}
+let regionToCountry = {};     // region name -> country name
 let scrapedStatus = {};
+
+const COUNTRY_FLAGS = {
+  'Greece': '🇬🇷', 'Netherlands': '🇳🇱',
+  'Italy': '🇮🇹', 'Spain': '🇪🇸', 'Portugal': '🇵🇹',
+  'France': '🇫🇷', 'Germany': '🇩🇪', 'Croatia': '🇭🇷',
+  'Cyprus': '🇨🇾', 'Turkey': '🇹🇷', 'United Kingdom': '🇬🇧',
+};
+function flagFor(country) { return COUNTRY_FLAGS[country] || '🌍'; }
 
 function statusIcon(name) {
   const s = scrapedStatus[name];
@@ -779,29 +830,81 @@ function statusIcon(name) {
 async function loadRegions() {
   const r = await fetch('/api/regions');
   const data = await r.json();
-  regionGroups = data.groups;
+  countriesData = data.countries || {};
   scrapedStatus = data.scraped || {};
+
+  // Build region->country map for client-side filtering
+  regionToCountry = {};
+  for (const [cName, cData] of Object.entries(countriesData)) {
+    for (const regions of Object.values(cData.groups)) {
+      for (const r of regions) regionToCountry[r] = cName;
+    }
+  }
+
   const picker = document.getElementById('region-picker');
-  picker.innerHTML = Object.entries(regionGroups).map(([groupName, items]) => {
-    const groupDoneCount = items.filter(n =>
+  picker.innerHTML = Object.entries(countriesData).map(([cName, cData]) => {
+    const allRegions = Object.values(cData.groups).flat();
+    const doneCount = allRegions.filter(n =>
       scrapedStatus[n] && scrapedStatus[n].status === 'done').length;
-    const groupSuffix = groupDoneCount > 0 ?
-      ` <span style="color:#4ade80;font-size:11px">(${groupDoneCount}/${items.length} ✅)</span>` : '';
+    const cSuffix = doneCount > 0 ?
+      ` <span style="color:#4ade80;font-size:11px">(${doneCount}/${allRegions.length} ✅)</span>` : '';
+    const groupsHtml = Object.entries(cData.groups).map(
+      ([groupName, items]) => {
+        const groupDoneCount = items.filter(n =>
+          scrapedStatus[n] && scrapedStatus[n].status === 'done').length;
+        const groupSuffix = groupDoneCount > 0 ?
+          ` <span style="color:#4ade80;font-size:11px">(${groupDoneCount}/${items.length} ✅)</span>` : '';
+        return `
+        <div class="group" data-group="${groupName}">
+          <div class="group-header">
+            <input type="checkbox" class="group-check" data-group="${groupName}">
+            <span style="flex:1">${groupName} (${items.length})${groupSuffix}</span>
+            <span class="toggle">▼</span>
+          </div>
+          <div class="group-items">
+            ${items.map(name => `
+              <label class="region-item">
+                <input type="checkbox" class="region-check" value="${name}" data-country="${cName}">
+                <span>${name}${statusIcon(name)}</span>
+              </label>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
     return `
-    <div class="group" data-group="${groupName}">
-      <div class="group-header">
-        <input type="checkbox" class="group-check" data-group="${groupName}">
-        <span style="flex:1">${groupName} (${items.length})${groupSuffix}</span>
-        <span class="toggle">▼</span>
-      </div>
-      <div class="group-items">
-        ${items.map(name => `
-          <label class="region-item">
-            <input type="checkbox" class="region-check" value="${name}">
-            <span>${name}${statusIcon(name)}</span>
-          </label>`).join('')}
-      </div>
-    </div>`;}).join('');
+      <div class="country" data-country="${cName}">
+        <div class="country-header">
+          <input type="checkbox" class="country-check" data-country="${cName}">
+          <span class="country-flag">${flagFor(cName)}</span>
+          <span style="flex:1">${cName}${cSuffix}</span>
+          <span class="toggle">▼</span>
+        </div>
+        <div class="country-body">${groupsHtml}</div>
+      </div>`;
+  }).join('');
+
+  // Country header collapse/expand (click on the name, not the checkbox)
+  for (const h of picker.querySelectorAll('.country-header')) {
+    h.querySelectorAll('span:not(.country-flag)').forEach(s => {
+      s.onclick = (e) => {
+        e.stopPropagation();
+        h.parentElement.classList.toggle('collapsed');
+        const t = h.querySelector('.toggle');
+        t.textContent = h.parentElement.classList.contains('collapsed') ? '▶' : '▼';
+      };
+    });
+  }
+
+  // Country checkbox: toggle every region in that country
+  for (const cb of picker.querySelectorAll('.country-check')) {
+    cb.onchange = (e) => {
+      e.stopPropagation();
+      const cName = e.target.dataset.country;
+      const items = picker.querySelectorAll(
+        `.country[data-country="${cName}"] .region-check`);
+      for (const it of items) it.checked = e.target.checked;
+      updateSelectedCount();
+    };
+  }
 
   // Group toggle (collapse/expand on header label click, not checkbox)
   for (const h of picker.querySelectorAll('.group-header')) {
@@ -848,6 +951,15 @@ function updateSelectedCount() {
     groupCb.checked = checked === items.length && items.length > 0;
     groupCb.indeterminate = checked > 0 && checked < items.length;
   }
+  // Update country checkbox indeterminate state
+  for (const cCb of document.querySelectorAll('.country-check')) {
+    const cName = cCb.dataset.country;
+    const items = document.querySelectorAll(
+      `.country[data-country="${cName}"] .region-check`);
+    const checked = Array.from(items).filter(i => i.checked).length;
+    cCb.checked = checked === items.length && items.length > 0;
+    cCb.indeterminate = checked > 0 && checked < items.length;
+  }
 }
 
 document.getElementById('btn-select-all').onclick = () => {
@@ -887,18 +999,55 @@ async function refreshLeads() {
   allLeads = data.leads;
   document.getElementById('stat-total').textContent = data.total;
   document.getElementById('stat-regions').textContent = data.by_region.length;
+
+  // Country chips (Greece / Netherlands / ...). "All" shows everything.
+  const cChips = document.getElementById('country-chips');
+  const byCountry = data.by_country || [];
+  cChips.innerHTML =
+    `<div class="country-chip ${!activeCountry?'active':''}" data-c="">
+       <span class="flag">🌍</span>All countries (${data.total})
+     </div>` +
+    byCountry.map(c =>
+      `<div class="country-chip ${activeCountry===c.country?'active':''}" data-c="${escapeHtml(c.country)}">
+         <span class="flag">${flagFor(c.country)}</span>${escapeHtml(c.country)} (${c.count})
+       </div>`).join('');
+  for (const ch of cChips.querySelectorAll('.country-chip')) {
+    ch.onclick = () => {
+      activeCountry = ch.dataset.c || null;
+      // Reset region filter when country switches (region may not belong)
+      if (activeRegion && regionToCountry[activeRegion] !== activeCountry
+          && activeCountry) {
+        activeRegion = null;
+      }
+      refreshLeads();
+    };
+  }
+
+  // Region chips — narrowed to the active country if one is set
+  const visibleRegions = activeCountry
+    ? data.by_region.filter(r => {
+        const c = regionToCountry[r.region]
+                  || (allLeads.find(l => l.region === r.region) || {}).country;
+        return c === activeCountry;
+      })
+    : data.by_region;
+  const visibleTotal = visibleRegions.reduce((s, r) => s + r.count, 0);
   const chips = document.getElementById('region-chips');
-  chips.innerHTML = `<div class="chip ${!activeRegion?'active':''}" data-r="">All (${data.total})</div>` +
-    data.by_region.map(r =>
-      `<div class="chip ${activeRegion===r.region?'active':''}" data-r="${r.region}">${r.region} (${r.count})</div>`).join('');
+  chips.innerHTML = `<div class="chip ${!activeRegion?'active':''}" data-r="">All (${visibleTotal})</div>` +
+    visibleRegions.map(r =>
+      `<div class="chip ${activeRegion===r.region?'active':''}" data-r="${escapeHtml(r.region)}">${escapeHtml(r.region)} (${r.count})</div>`).join('');
   for (const c of chips.querySelectorAll('.chip')) {
-    c.onclick = () => { activeRegion = c.dataset.r || null; renderLeads(); refreshLeads(); };
+    c.onclick = () => { activeRegion = c.dataset.r || null; renderLeads(); };
   }
   renderLeads();
 }
 
 function renderLeads() {
   let rows = allLeads;
+  if (activeCountry) {
+    rows = rows.filter(l =>
+      (l.country || regionToCountry[l.region] || '') === activeCountry);
+  }
   if (activeRegion) rows = rows.filter(l => l.region === activeRegion);
   if (filterText) {
     const f = filterText.toLowerCase();
@@ -911,7 +1060,7 @@ function renderLeads() {
   document.getElementById('lead-count').textContent = `(${rows.length} shown)`;
   const tbody = document.getElementById('leads-body');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">No leads match</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No leads match</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(l => {
@@ -937,8 +1086,13 @@ function renderLeads() {
     } else {
       domainCell = '<span style="color:#6b7280">—</span>';
     }
+    const country = l.country || regionToCountry[l.region] || '';
+    const countryCell = country
+      ? `<span title="${escapeHtml(country)}">${flagFor(country)}</span>`
+      : '<span style="color:#6b7280">—</span>';
     const rowClass = phone === selectedLeadPhone ? 'lead-row selected' : 'lead-row';
     return `<tr class="${rowClass}" data-phone="${phone}">
+       <td>${countryCell}</td>
        <td>${escapeHtml(l.region||'')}</td>
        <td><b>${escapeHtml(l.name||'')}</b></td>
        <td>${escapeHtml(l.category||'')}</td>
