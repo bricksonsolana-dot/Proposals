@@ -704,6 +704,36 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   color: var(--text); font-weight: 600;
 }
 
+/* Country filter chips (above the leads toolbar) */
+.country-chips {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.country-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--r-1);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; user-select: none;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border);
+  transition: all 0.12s;
+}
+.country-chip:hover {
+  border-color: var(--brand); color: var(--text);
+}
+.country-chip.active {
+  background: var(--brand); color: white; border-color: var(--brand);
+}
+.country-chip .flag { font-size: 15px; }
+.country-chip .count {
+  background: var(--surface-3); padding: 1px 7px;
+  border-radius: var(--r-pill);
+  font-size: 11px; color: var(--text-2);
+}
+.country-chip.active .count {
+  background: rgba(255,255,255,0.25); color: white;
+}
+
 /* Quick filter pills */
 .quick-filters {
   display: flex; gap: 6px; flex-wrap: wrap;
@@ -2486,9 +2516,14 @@ tr.lead-row.selected td { background: var(--brand-soft); }
         </button>
       </div>
 
+      <div class="country-chips" id="country-chips"></div>
+
       <div class="leads-toolbar">
         <input id="filter-text-top" type="text"
                 placeholder="Search leads...">
+        <select id="filter-country-top">
+          <option value="">🌍 All countries</option>
+        </select>
         <select id="filter-region-top">
           <option value="">All regions</option>
         </select>
@@ -2510,11 +2545,12 @@ tr.lead-row.selected td { background: var(--brand-soft); }
 
       <table class="leads-table">
         <thead><tr>
-          <th>★</th><th>Status</th><th>Name</th><th>Region</th><th>Online</th>
+          <th>★</th><th>Status</th><th>Name</th><th>Country</th>
+          <th>Region</th><th>Online</th>
           <th>Phone</th><th>Domain</th><th>Assigned</th>
         </tr></thead>
         <tbody id="leads-body">
-          <tr><td colspan="8" class="empty">Loading...</td></tr>
+          <tr><td colspan="9" class="empty">Loading...</td></tr>
         </tbody>
       </table>
 
@@ -2932,11 +2968,22 @@ let favOnly = false;
 let myRegionsOnly = 0;
 let users = [];
 let activeFilterRegion = '';
+let activeFilterCountry = '';
 let activeFilterAssignee = '';
 let filterText = '';
 let searchTimer = null;
 let selectedPhone = null;
 let currentView = 'leads';
+
+const COUNTRY_FLAGS = {
+  'Greece': '🇬🇷', 'Netherlands': '🇳🇱',
+  'Italy': '🇮🇹', 'Spain': '🇪🇸', 'Portugal': '🇵🇹',
+  'France': '🇫🇷', 'Germany': '🇩🇪', 'Croatia': '🇭🇷',
+  'Cyprus': '🇨🇾', 'Turkey': '🇹🇷', 'United Kingdom': '🇬🇧',
+};
+function flagFor(country) { return COUNTRY_FLAGS[country] || '🌍'; }
+// Region -> country map, populated from /api/regions/all
+let REGION_COUNTRY = {};
 
 // Render assigned-regions UI bits based on what the server gave us in ME.
 function renderMyRegionsUI() {
@@ -3400,6 +3447,7 @@ async function refreshLeads() {
   if (myRegionsOnly) params.set('my_regions', '1');
   if (favOnly) params.set('favorites', '1');
   if (activeStatus) params.set('status', activeStatus);
+  if (activeFilterCountry) params.set('country', activeFilterCountry);
   if (activeFilterRegion) params.set('region', activeFilterRegion);
   if (activeFilterAssignee) params.set('assigned_to', activeFilterAssignee);
   if (filterText) params.set('q', filterText);
@@ -3458,16 +3506,65 @@ async function refreshLeads() {
     }
   }
 
-  // Region dropdown (top). When in My Leads mode, the placeholder shows
-  // "My regions" because only the user's assigned regions appear here.
+  // Country chips (above toolbar). "All countries" plus one per country.
+  const countryEl = document.getElementById('country-chips');
+  const byCountry = data.by_country || [];
+  if (countryEl) {
+    if (byCountry.length <= 1 && !activeFilterCountry) {
+      // Only one country present — chips don't add value, hide them.
+      countryEl.style.display = 'none';
+    } else {
+      countryEl.style.display = '';
+      countryEl.innerHTML =
+        `<div class="country-chip ${!activeFilterCountry?'active':''}" data-c="">
+           <span class="flag">🌍</span>All <span class="count">${data.total}</span>
+         </div>` +
+        byCountry.filter(c => c.country).map(c =>
+          `<div class="country-chip ${activeFilterCountry===c.country?'active':''}" data-c="${escapeHtml(c.country)}">
+             <span class="flag">${flagFor(c.country)}</span>${escapeHtml(c.country)} <span class="count">${c.count}</span>
+           </div>`).join('');
+      for (const ch of countryEl.querySelectorAll('.country-chip')) {
+        ch.onclick = () => {
+          const newC = ch.dataset.c || '';
+          if (newC === activeFilterCountry) return;
+          activeFilterCountry = newC;
+          // If the active region doesn't belong to the chosen country, clear it
+          if (activeFilterRegion && newC &&
+              REGION_COUNTRY[activeFilterRegion] !== newC) {
+            activeFilterRegion = '';
+          }
+          refreshLeads();
+        };
+      }
+    }
+  }
+
+  // Country dropdown in toolbar (parity with chips, plus mobile-friendly)
+  const cSel = document.getElementById('filter-country-top');
+  if (cSel) {
+    const cur = activeFilterCountry;
+    cSel.innerHTML = `<option value="">🌍 All countries</option>` +
+      byCountry.filter(c => c.country).map(c =>
+        `<option value="${escapeHtml(c.country)}">${flagFor(c.country)} ${escapeHtml(c.country)} (${c.count})</option>`
+      ).join('');
+    cSel.value = cur;
+  }
+
+  // Region dropdown (top) — narrowed to active country if set.
+  // When in My Leads mode, the placeholder shows "My regions" because
+  // only the user's assigned regions appear here.
   const regSel = document.getElementById('filter-region-top');
   if (regSel) {
     const cur = regSel.value;
+    const visibleRegions = activeFilterCountry
+      ? data.by_region.filter(r =>
+          (REGION_COUNTRY[r.region] || '') === activeFilterCountry)
+      : data.by_region;
     const placeholder = myMode
-      ? `📍 All my regions (${data.by_region.length})`
+      ? `📍 All my regions (${visibleRegions.length})`
       : '📍 All regions';
     regSel.innerHTML = `<option value="">${placeholder}</option>` +
-      data.by_region.map(r =>
+      visibleRegions.map(r =>
         `<option value="${escapeHtml(r.region)}">${escapeHtml(r.region)} (${r.count})</option>`
       ).join('');
     regSel.value = cur;
@@ -3510,6 +3607,7 @@ function updateActiveFilterBadge() {
   let n = 0;
   if (favOnly) n++;
   if (activeStatus) n++;
+  if (activeFilterCountry) n++;
   if (activeFilterRegion) n++;
   if (activeFilterAssignee) n++;
   if (filterText) n++;
@@ -3532,7 +3630,7 @@ function renderLeads() {
   const tbody = document.getElementById('leads-body');
   const cardsEl = document.getElementById('leads-cards');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty">No leads match</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No leads match</td></tr>';
     if (cardsEl) cardsEl.innerHTML = '<div class="empty">No leads match</div>';
     return;
   }
@@ -3558,7 +3656,7 @@ function renderLeads() {
           <button class="${starCls}" data-phone="${escapeHtml(phone)}" data-fav="${l.is_favorite?1:0}">${starChar}</button>
           <div class="lc-info">
             <div class="lc-name">${escapeHtml(l.name||'')}${propBadge}</div>
-            <div class="lc-region">${escapeHtml(l.region||'')} • ${escapeHtml(l.category||'')}</div>
+            <div class="lc-region">${flagFor(l.country || REGION_COUNTRY[l.region] || '')} ${escapeHtml(l.region||'')} • ${escapeHtml(l.category||'')}</div>
             <div class="lc-badges">
               <span class="status-badge s-${status}">${STATUS_LABEL[status]||status}</span>
               <span class="op-badge op-${op}">${escapeHtml(op)}</span>
@@ -3617,11 +3715,16 @@ function renderLeads() {
     const propBadge = propCount > 1
       ? `<span class="multi-prop-badge" title="Owner has ${propCount} properties">📦 ${propCount}</span>`
       : '';
+    const country = l.country || REGION_COUNTRY[l.region] || '';
+    const countryCell = country
+      ? `<span title="${escapeHtml(country)}" style="font-size:16px">${flagFor(country)}</span>`
+      : '<span style="color:#6b7280">—</span>';
     return `<tr class="${rowClass}" data-phone="${escapeHtml(phone)}">
        <td><button class="${starCls}" data-phone="${escapeHtml(phone)}" data-fav="${l.is_favorite?1:0}">${starChar}</button></td>
        <td><span class="status-badge s-${status}">${STATUS_LABEL[status]||status}</span></td>
        <td><b>${escapeHtml(l.name||'')}</b>${propBadge}<br>
            <span style="color:#8b92a6;font-size:11px">${escapeHtml(l.category||'')}</span></td>
+       <td>${countryCell}</td>
        <td>${escapeHtml(l.region||'')}</td>
        <td><span class="op-badge op-${op}">${escapeHtml(op)}</span></td>
        <td><a href="tel:${escapeHtml(phone)}" style="color:#60a5fa" onclick="event.stopPropagation()">${escapeHtml(phone)}</a></td>
@@ -3687,6 +3790,17 @@ document.getElementById('filter-text-top').oninput = e => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(refreshLeads, 250);
 };
+const _filterCountryTop = document.getElementById('filter-country-top');
+if (_filterCountryTop) {
+  _filterCountryTop.onchange = e => {
+    activeFilterCountry = e.target.value;
+    if (activeFilterRegion && activeFilterCountry &&
+        REGION_COUNTRY[activeFilterRegion] !== activeFilterCountry) {
+      activeFilterRegion = '';
+    }
+    refreshLeads();
+  };
+}
 document.getElementById('filter-region-top').onchange = e => {
   activeFilterRegion = e.target.value;
   if (activeFilterRegion && !activeStatus) activeStatus = 'new';
@@ -4379,24 +4493,78 @@ window.changeRole = changeRole;
 
 // ----------------- Region picker (admin only) -----------------
 let _regionPickerCache = null;
+let _countriesCache = null;
 
 async function loadAllRegions() {
   if (_regionPickerCache) return _regionPickerCache;
   const r = await fetch('/api/regions/all');
   _regionPickerCache = await r.json();
+  // Update the global region->country map so the leads UI can use it too
+  for (const row of _regionPickerCache) {
+    if (row.region && row.country) REGION_COUNTRY[row.region] = row.country;
+  }
   return _regionPickerCache;
+}
+
+async function loadCountries() {
+  if (_countriesCache) return _countriesCache;
+  try {
+    const r = await fetch('/api/countries');
+    if (!r.ok) return null;
+    const data = await r.json();
+    _countriesCache = data.countries || {};
+    // Also populate REGION_COUNTRY from the catalogue (covers regions
+    // that don't yet have a lead in the DB)
+    for (const [cName, cData] of Object.entries(_countriesCache)) {
+      for (const regions of Object.values(cData.groups || {})) {
+        for (const r of regions) {
+          if (!REGION_COUNTRY[r]) REGION_COUNTRY[r] = cName;
+        }
+      }
+    }
+    return _countriesCache;
+  } catch { return null; }
 }
 
 async function openRegionPicker(uid) {
   const target = users.find(u => u.id === uid);
   if (!target) return;
-  // Fetch current regions + full region list in parallel
-  const [allRegions, currentResp] = await Promise.all([
+  // Fetch current regions + full region list + country catalogue in parallel
+  const [allRegions, countries, currentResp] = await Promise.all([
     loadAllRegions(),
+    loadCountries(),
     fetch('/api/users/' + uid + '/regions'),
   ]);
   const currentData = currentResp.ok ? await currentResp.json() : { regions: [] };
   const current = new Set(currentData.regions || []);
+
+  // Build a lead-count lookup from the regions-with-counts response
+  const leadCount = {};
+  for (const r of allRegions) leadCount[r.region] = r.lead_count;
+
+  // Build the country -> group -> regions structure to render. Start from
+  // the official catalogue (from /api/countries); if some region only
+  // exists in the leads table (e.g. ad-hoc), fold it under "Other".
+  const knownRegions = new Set();
+  const structured = {};
+  if (countries) {
+    for (const [cName, cData] of Object.entries(countries)) {
+      structured[cName] = { flag: cData.flag || '🌍', groups: {} };
+      for (const [grpName, regions] of Object.entries(cData.groups || {})) {
+        structured[cName].groups[grpName] = regions.slice();
+        for (const r of regions) knownRegions.add(r);
+      }
+    }
+  }
+  const orphaned = allRegions
+    .map(r => r.region).filter(r => r && !knownRegions.has(r));
+  if (orphaned.length) {
+    structured['Other'] = structured['Other'] ||
+      { flag: '🌍', groups: { 'Uncategorized': [] } };
+    for (const r of orphaned) {
+      structured['Other'].groups['Uncategorized'].push(r);
+    }
+  }
 
   let modal = document.getElementById('region-picker-modal');
   if (modal) modal.remove();
@@ -4406,7 +4574,7 @@ async function openRegionPicker(uid) {
     'z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
   modal.innerHTML = `
     <div style="background:#14171f;border:1px solid #2a2f3d;border-radius:12px;
-                width:680px;max-width:100%;max-height:85vh;display:flex;
+                width:760px;max-width:100%;max-height:88vh;display:flex;
                 flex-direction:column">
       <div style="padding:18px 22px;border-bottom:1px solid #2a2f3d;
                   display:flex;justify-content:space-between;align-items:center">
@@ -4429,10 +4597,7 @@ async function openRegionPicker(uid) {
           ${current.size} selected
         </span>
       </div>
-      <div id="rp-list" style="padding:12px 22px;overflow-y:auto;flex:1;
-                                display:grid;
-                                grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-                                gap:6px"></div>
+      <div id="rp-list" style="padding:14px 22px;overflow-y:auto;flex:1"></div>
       <div style="padding:14px 22px;border-top:1px solid #2a2f3d;
                   display:flex;justify-content:flex-end;gap:8px">
         <button class="btn secondary" id="rp-cancel">Cancel</button>
@@ -4441,26 +4606,123 @@ async function openRegionPicker(uid) {
     </div>`;
   document.body.appendChild(modal);
 
+  function updateCounter() {
+    document.getElementById('rp-count').textContent =
+      current.size + ' selected';
+  }
+
   function renderList(filter) {
     const f = (filter || '').trim().toLowerCase();
     const list = document.getElementById('rp-list');
-    list.innerHTML = allRegions.filter(r =>
-      !f || r.region.toLowerCase().includes(f)
-    ).map(r => {
-      const checked = current.has(r.region) ? 'checked' : '';
-      return `<label style="display:flex;align-items:center;gap:8px;
-                            padding:8px 10px;background:#1a1d27;
-                            border-radius:6px;cursor:pointer;font-size:13px">
-        <input type="checkbox" data-region="${escapeHtml(r.region)}" ${checked}>
-        <span style="flex:1">${escapeHtml(r.region)}</span>
-        <span style="color:#6b7280;font-size:11px">${r.lead_count}</span>
-      </label>`;
-    }).join('');
-    for (const cb of list.querySelectorAll('input[type=checkbox]')) {
+    const parts = [];
+    for (const [cName, cData] of Object.entries(structured)) {
+      const groupParts = [];
+      let countryTotal = 0, countrySelected = 0;
+      for (const [grpName, regions] of Object.entries(cData.groups)) {
+        const visible = regions.filter(r =>
+          !f || r.toLowerCase().includes(f));
+        if (!visible.length) continue;
+        const selectedInGroup = visible.filter(r => current.has(r)).length;
+        countryTotal += visible.length;
+        countrySelected += selectedInGroup;
+        const itemsHtml = visible.map(r => {
+          const checked = current.has(r) ? 'checked' : '';
+          const cnt = leadCount[r] || 0;
+          return `<label style="display:flex;align-items:center;gap:8px;
+                                padding:6px 10px;background:#1a1d27;
+                                border-radius:6px;cursor:pointer;font-size:13px;
+                                user-select:none">
+            <input type="checkbox" class="rp-region" data-region="${escapeHtml(r)}" ${checked}>
+            <span style="flex:1">${escapeHtml(r)}</span>
+            <span style="color:#6b7280;font-size:11px">${cnt}</span>
+          </label>`;
+        }).join('');
+        groupParts.push(`
+          <div style="margin:8px 0 12px">
+            <label style="display:flex;align-items:center;gap:8px;
+                          padding:4px 0 6px 4px;cursor:pointer;
+                          border-bottom:1px solid #2a2f3d;margin-bottom:6px">
+              <input type="checkbox" class="rp-group"
+                     data-group="${escapeHtml(grpName)}"
+                     ${selectedInGroup === visible.length ? 'checked' : ''}>
+              <span style="flex:1;font-weight:600;font-size:12px;color:#cbd5e1">
+                ${escapeHtml(grpName)}
+              </span>
+              <span style="color:#6b7280;font-size:11px">
+                ${selectedInGroup}/${visible.length}
+              </span>
+            </label>
+            <div style="display:grid;
+                        grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+                        gap:4px 8px;padding-left:10px">
+              ${itemsHtml}
+            </div>
+          </div>`);
+      }
+      if (!groupParts.length) continue;
+      parts.push(`
+        <div style="margin-bottom:18px" data-country="${escapeHtml(cName)}">
+          <label style="display:flex;align-items:center;gap:10px;
+                        padding:8px 10px;background:#11141c;border-radius:6px;
+                        margin-bottom:8px;cursor:pointer">
+            <input type="checkbox" class="rp-country"
+                   data-country="${escapeHtml(cName)}"
+                   ${countrySelected === countryTotal ? 'checked' : ''}>
+            <span style="font-size:16px">${cData.flag}</span>
+            <span style="flex:1;font-weight:700;text-transform:uppercase;
+                         letter-spacing:0.4px;color:#93c5fd">
+              ${escapeHtml(cName)}
+            </span>
+            <span style="color:#6b7280;font-size:12px">
+              ${countrySelected}/${countryTotal} selected
+            </span>
+          </label>
+          ${groupParts.join('')}
+        </div>`);
+    }
+    if (!parts.length) {
+      list.innerHTML =
+        '<div style="color:#6b7280;text-align:center;padding:40px">' +
+        'No regions match this filter.</div>';
+      return;
+    }
+    list.innerHTML = parts.join('');
+
+    // Wire individual region checkboxes
+    for (const cb of list.querySelectorAll('input.rp-region')) {
       cb.onchange = () => {
         if (cb.checked) current.add(cb.dataset.region);
         else current.delete(cb.dataset.region);
-        document.getElementById('rp-count').textContent = current.size + ' selected';
+        updateCounter();
+        // Re-render to refresh group/country tri-state checkboxes
+        renderList(document.getElementById('rp-search').value);
+      };
+    }
+    // Group checkboxes: toggle every region in that group (only the
+    // currently visible ones, so search doesn't surprise the user)
+    for (const cb of list.querySelectorAll('input.rp-group')) {
+      cb.onchange = () => {
+        const items = cb.closest('div').parentElement
+          .querySelectorAll('input.rp-region');
+        for (const it of items) {
+          if (cb.checked) current.add(it.dataset.region);
+          else current.delete(it.dataset.region);
+        }
+        updateCounter();
+        renderList(document.getElementById('rp-search').value);
+      };
+    }
+    // Country checkboxes: toggle every region in that country (visible)
+    for (const cb of list.querySelectorAll('input.rp-country')) {
+      cb.onchange = () => {
+        const items = cb.closest('div[data-country]')
+          .querySelectorAll('input.rp-region');
+        for (const it of items) {
+          if (cb.checked) current.add(it.dataset.region);
+          else current.delete(it.dataset.region);
+        }
+        updateCounter();
+        renderList(document.getElementById('rp-search').value);
       };
     }
   }
@@ -4469,12 +4731,12 @@ async function openRegionPicker(uid) {
   document.getElementById('rp-search').oninput = e => renderList(e.target.value);
   document.getElementById('rp-select-all').onclick = () => {
     for (const r of allRegions) current.add(r.region);
-    document.getElementById('rp-count').textContent = current.size + ' selected';
+    updateCounter();
     renderList(document.getElementById('rp-search').value);
   };
   document.getElementById('rp-clear').onclick = () => {
     current.clear();
-    document.getElementById('rp-count').textContent = '0 selected';
+    updateCounter();
     renderList(document.getElementById('rp-search').value);
   };
   const close = () => modal.remove();
@@ -6075,6 +6337,10 @@ if (_initialHash && _validViews.has(_initialHash)) {
 // shows only the leads that admin has assigned to them via regions
 // or one-by-one. Switching is one click from the sidebar.
 loadUsers();
+// Pre-load the country catalogue so REGION_COUNTRY is populated before
+// the user clicks a country chip (lets the region dropdown narrow correctly
+// without an extra round-trip).
+loadCountries().catch(() => {});
 refreshLeads();
 refreshDailyCounter();
 setInterval(refreshDailyCounter, 30000);

@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS leads (
     phone TEXT PRIMARY KEY,
+    country TEXT,
     region TEXT,
     name TEXT,
     category TEXT,
@@ -123,11 +124,20 @@ def migrate_table(sqlite_conn, pg, table: str, columns: list[str],
         print(f"  {table}: 0 rows")
         return
 
-    cols_sql = ", ".join(columns)
-    placeholders = ", ".join(["%s"] * len(columns))
+    # Drop columns that don't exist in source SQLite (e.g. an older DB
+    # that pre-dates a recent migration). The PG schema has them, they'll
+    # just be NULL after migration.
+    src_cols = set(src[0].keys())
+    available = [c for c in columns if c in src_cols]
+    missing = [c for c in columns if c not in src_cols]
+    if missing:
+        print(f"  {table}: source missing cols {missing} — will be NULL in PG")
+
+    cols_sql = ", ".join(available)
+    placeholders = ", ".join(["%s"] * len(available))
     conflict_sql = ", ".join(conflict_cols)
     update_set = ", ".join(
-        f"{c} = EXCLUDED.{c}" for c in columns if c not in conflict_cols)
+        f"{c} = EXCLUDED.{c}" for c in available if c not in conflict_cols)
     if update_set:
         upsert = (
             f"INSERT INTO {table} ({cols_sql}) VALUES ({placeholders}) "
@@ -138,7 +148,7 @@ def migrate_table(sqlite_conn, pg, table: str, columns: list[str],
             f"ON CONFLICT ({conflict_sql}) DO NOTHING")
 
     cur = pg.cursor()
-    rows = [tuple(r[c] for c in columns) for r in src]
+    rows = [tuple(r[c] for c in available) for r in src]
     psycopg2.extras.execute_batch(cur, upsert, rows, page_size=200)
     pg.commit()
     print(f"  {table}: {len(rows)} rows migrated")
@@ -161,7 +171,7 @@ def main():
                     ["id"])
 
     migrate_table(sqlite_conn, pg, "leads",
-                    ["phone", "region", "name", "category", "email",
+                    ["phone", "country", "region", "name", "category", "email",
                      "gmaps_url", "online_presence", "domain_gr_available",
                      "domain_com_available", "domain_suggestion",
                      "enriched_at", "properties", "imported_at"],

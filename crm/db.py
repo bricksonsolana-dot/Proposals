@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS leads (
     phone TEXT PRIMARY KEY,
+    country TEXT,
     region TEXT,
     name TEXT,
     category TEXT,
@@ -286,6 +287,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_leads_region ON leads(region);
+CREATE INDEX IF NOT EXISTS idx_leads_country ON leads(country);
 """
 
 SCHEMA_POSTGRES = """
@@ -301,6 +303,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS leads (
     phone TEXT PRIMARY KEY,
+    country TEXT,
     region TEXT,
     name TEXT,
     category TEXT,
@@ -400,6 +403,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_chat_date ON messages(chat_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_push_user ON push_subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_leads_region ON leads(region);
+CREATE INDEX IF NOT EXISTS idx_leads_country ON leads(country);
 """
 
 
@@ -441,6 +445,7 @@ def init_schema():
             cur.executescript(schema)
     # Migrations for existing DBs
     _migrate_add_column("leads", "properties", "TEXT")
+    _migrate_add_column("leads", "country", "TEXT")
     _migrate_add_column("users", "last_seen_at", "TIMESTAMP")
     _migrate_add_column("users", "avatar", "TEXT")
     _migrate_add_column("messages", "attachments", "TEXT")
@@ -448,6 +453,47 @@ def init_schema():
     _migrate_add_column("push_subscriptions", "last_error", "TEXT")
     _migrate_add_column(
         "push_subscriptions", "last_error_at", "TIMESTAMP")
+
+    # Index on the new country column (idempotent — works on both backends)
+    try:
+        with get_conn() as conn:
+            conn.cursor().execute(
+                "CREATE INDEX IF NOT EXISTS idx_leads_country "
+                "ON leads(country)")
+    except Exception:
+        pass
+
+    # One-shot backfill: derive country from region for rows that pre-date
+    # the column. Cheap to run on every boot — only updates NULL/empty rows.
+    _backfill_lead_country()
+
+
+def _backfill_lead_country():
+    """Set leads.country = country_for_region(region) for legacy rows where
+    country is NULL or empty. No-op if every row already has a country."""
+    try:
+        from countries import country_for_region
+    except Exception:
+        return
+    try:
+        rows = query(
+            "SELECT phone, region FROM leads "
+            "WHERE country IS NULL OR country = ''")
+    except Exception:
+        return
+    if not rows:
+        return
+    updates = []
+    for r in rows:
+        c = country_for_region(r.get("region", "") or "")
+        if c:
+            updates.append((c, r["phone"]))
+    if updates:
+        try:
+            execute_many(
+                "UPDATE leads SET country = ? WHERE phone = ?", updates)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import db
+from countries import country_for_region
 
 CSV_PATH = Path(__file__).parent.parent / "lead-finder" / "output" / "leads.csv"
 
@@ -52,18 +53,24 @@ def main():
             multi_owner += 1
         # Primary = listing with longest name
         primary = max(group, key=lambda r: len(r.get("name", "")))
+        primary_region = primary.get("region", "")
+        # CSV may already have a country column (newer lead-finder); if not,
+        # derive from region.
+        primary_country = (primary.get("country", "")
+                            or country_for_region(primary_region))
 
         existing = db.query_one(
             "SELECT phone FROM leads WHERE phone = ?", (phone,))
         if existing:
             db.execute("""
-                UPDATE leads SET region = ?, name = ?, category = ?,
-                    email = ?, gmaps_url = ?, online_presence = ?,
-                    domain_gr_available = ?, domain_com_available = ?,
-                    domain_suggestion = ?, enriched_at = ?, properties = ?
+                UPDATE leads SET country = ?, region = ?, name = ?,
+                    category = ?, email = ?, gmaps_url = ?,
+                    online_presence = ?, domain_gr_available = ?,
+                    domain_com_available = ?, domain_suggestion = ?,
+                    enriched_at = ?, properties = ?
                 WHERE phone = ?
             """, (
-                primary.get("region", ""), primary.get("name", ""),
+                primary_country, primary_region, primary.get("name", ""),
                 primary.get("category", ""), primary.get("email", ""),
                 primary.get("gmaps_url", ""), primary.get("online_presence", ""),
                 primary.get("domain_gr_available", ""),
@@ -75,13 +82,14 @@ def main():
             updated += 1
         else:
             db.execute("""
-                INSERT INTO leads (phone, region, name, category, email,
-                    gmaps_url, online_presence, domain_gr_available,
+                INSERT INTO leads (phone, country, region, name, category,
+                    email, gmaps_url, online_presence, domain_gr_available,
                     domain_com_available, domain_suggestion, enriched_at,
                     properties)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                phone, primary.get("region", ""), primary.get("name", ""),
+                phone, primary_country, primary_region,
+                primary.get("name", ""),
                 primary.get("category", ""), primary.get("email", ""),
                 primary.get("gmaps_url", ""), primary.get("online_presence", ""),
                 primary.get("domain_gr_available", ""),

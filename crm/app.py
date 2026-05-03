@@ -378,6 +378,11 @@ def api_leads():
         where.append("l.region = ?")
         params.append(region)
 
+    country = args.get("country")
+    if country:
+        where.append("l.country = ?")
+        params.append(country)
+
     assigned = args.get("assigned_to")
     if assigned:
         if assigned == "unassigned":
@@ -400,7 +405,7 @@ def api_leads():
     # in the list view. The full JSON is fetched in /api/lead/<phone>
     # when the side panel opens. Reduces /api/leads payload by 50-70%.
     sql = f"""
-        SELECT l.phone, l.region, l.name, l.category, l.email,
+        SELECT l.phone, l.country, l.region, l.name, l.category, l.email,
                 l.gmaps_url, l.online_presence,
                 l.domain_gr_available, l.domain_com_available,
                 l.domain_suggestion,
@@ -420,25 +425,36 @@ def api_leads():
         LEFT JOIN users u ON u.id = ls.assigned_to
         LEFT JOIN favorites f ON f.lead_phone = l.phone AND f.user_id = ?
         {where_sql}
-        ORDER BY l.region, l.name
+        ORDER BY l.country, l.region, l.name
         LIMIT 5000
     """
     leads = db.query(sql, tuple(params))
 
+    # Backfill missing country for any legacy row that slipped through
+    from countries import country_for_region
+    for l in leads:
+        if not l.get("country"):
+            l["country"] = country_for_region(l.get("region", "") or "")
+
     # Summaries
     by_status = {}
     by_region = {}
+    by_country = {}
     for l in leads:
         s = l.get("status") or "new"
         by_status[s] = by_status.get(s, 0) + 1
         r = l.get("region") or ""
         by_region[r] = by_region.get(r, 0) + 1
+        c = l.get("country") or ""
+        by_country[c] = by_country.get(c, 0) + 1
 
     return jsonify({
         "total": len(leads),
         "by_status": by_status,
         "by_region": [{"region": r, "count": c}
                        for r, c in sorted(by_region.items())],
+        "by_country": [{"country": c, "count": cnt}
+                        for c, cnt in sorted(by_country.items())],
         "leads": leads,
     })
 
@@ -900,6 +916,8 @@ def api_sync_leads():
     payload = request.get_json(force=True) or {}
     leads = payload.get("leads", [])
 
+    from countries import country_for_region
+
     # Group incoming leads by phone — multiple listings per owner become
     # one lead with N properties.
     by_phone = {}
@@ -921,6 +939,11 @@ def api_sync_leads():
 
         # Pick the "primary" listing — the one with longest name (more specific)
         primary = max(group, key=lambda l: len(l.get("name", "")))
+        primary_region = primary.get("region", "")
+        # Trust the country sent by the lead-finder; fall back to derivation
+        # for older clients that don't send it.
+        primary_country = (primary.get("country", "")
+                            or country_for_region(primary_region))
 
         existing = db.query_one(
             "SELECT phone, properties FROM leads WHERE phone = ?", (phone,))
@@ -940,12 +963,13 @@ def api_sync_leads():
                     properties.append(p)
 
             db.execute("""
-                UPDATE leads SET region = ?, name = ?, category = ?,
-                    email = ?, gmaps_url = ?, online_presence = ?,
-                    domain_gr_available = ?, domain_com_available = ?,
-                    domain_suggestion = ?, enriched_at = ?, properties = ?
+                UPDATE leads SET country = ?, region = ?, name = ?,
+                    category = ?, email = ?, gmaps_url = ?,
+                    online_presence = ?, domain_gr_available = ?,
+                    domain_com_available = ?, domain_suggestion = ?,
+                    enriched_at = ?, properties = ?
                 WHERE phone = ?
-            """, (primary.get("region", ""), primary.get("name", ""),
+            """, (primary_country, primary_region, primary.get("name", ""),
                   primary.get("category", ""), primary.get("email", ""),
                   primary.get("gmaps_url", ""), primary.get("online_presence", ""),
                   primary.get("domain_gr_available", ""),
@@ -955,14 +979,15 @@ def api_sync_leads():
                   json.dumps(properties, ensure_ascii=False), phone))
         else:
             db.execute("""
-                INSERT INTO leads (phone, region, name, category, email,
-                    gmaps_url, online_presence, domain_gr_available,
+                INSERT INTO leads (phone, country, region, name, category,
+                    email, gmaps_url, online_presence, domain_gr_available,
                     domain_com_available, domain_suggestion, enriched_at,
                     properties)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (phone, primary.get("region", ""), primary.get("name", ""),
-                  primary.get("category", ""), primary.get("email", ""),
-                  primary.get("gmaps_url", ""), primary.get("online_presence", ""),
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (phone, primary_country, primary_region,
+                  primary.get("name", ""), primary.get("category", ""),
+                  primary.get("email", ""), primary.get("gmaps_url", ""),
+                  primary.get("online_presence", ""),
                   primary.get("domain_gr_available", ""),
                   primary.get("domain_com_available", ""),
                   primary.get("domain_suggestion", ""),
@@ -1082,12 +1107,27 @@ def api_set_user_regions(uid):
 @app.route("/api/regions/all")
 @auth.login_required
 def api_all_regions():
-    """Distinct regions present in the leads table."""
+    """Distinct regions present in the leads table, with their country."""
     rows = db.query(
-        "SELECT region, COUNT(*) AS lead_count FROM leads "
+        "SELECT region, country, COUNT(*) AS lead_count FROM leads "
         "WHERE region IS NOT NULL AND region <> '' "
-        "GROUP BY region ORDER BY region", ())
+        "GROUP BY region, country ORDER BY country, region", ())
+    # Backfill country for any legacy region row that has it NULL
+    from countries import country_for_region
+    for r in rows:
+        if not r.get("country"):
+            r["country"] = country_for_region(r.get("region", "") or "")
     return jsonify(rows)
+
+
+@app.route("/api/countries")
+@auth.login_required
+def api_countries():
+    """Return the country catalogue used by the admin region picker:
+    {countries: {Greece: {code, flag, groups: {...}}, ...}}.
+    The admin UI groups regions by country/group from this structure."""
+    from countries import COUNTRIES
+    return jsonify({"countries": COUNTRIES})
 
 
 # ---------- Presence (online users) ----------
