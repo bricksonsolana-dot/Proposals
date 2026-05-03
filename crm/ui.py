@@ -5909,10 +5909,58 @@ document.addEventListener('click', (e) => {
 });
 
 // ----------------- Push notifications -----------------
-let pushSupported = ('serviceWorker' in navigator) && ('PushManager' in window)
-                     && ('Notification' in window);
+// Two delivery paths:
+//   1. Web push (browser / TWA fallback): VAPID + service worker.
+//   2. Native (Capacitor APK): @capacitor/local-notifications fired
+//      from the SSE chat_message handler. No FCM round-trip, no Chrome
+//      icon, no "Running in Chrome" banner — feels like a native app.
+const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform &&
+                        window.Capacitor.isNativePlatform());
+let nativeNotificationsReady = false;
+let pushSupported = !isNativeApp && ('serviceWorker' in navigator) &&
+                    ('PushManager' in window) && ('Notification' in window);
 let swRegistration = null;
 let pushSubscription = null;
+
+async function setupNativeNotifications() {
+  if (!isNativeApp) return false;
+  try {
+    const LN = window.Capacitor.Plugins.LocalNotifications;
+    if (!LN) return false;
+    const perm = await LN.checkPermissions();
+    if (perm.display !== 'granted') {
+      const req = await LN.requestPermissions();
+      if (req.display !== 'granted') return false;
+    }
+    nativeNotificationsReady = true;
+    return true;
+  } catch (e) {
+    console.warn('Native notifications setup failed:', e);
+    return false;
+  }
+}
+
+async function fireNativeNotification(title, body, data) {
+  if (!isNativeApp || !nativeNotificationsReady) return;
+  try {
+    const LN = window.Capacitor.Plugins.LocalNotifications;
+    if (!LN) return;
+    await LN.schedule({
+      notifications: [{
+        id: Math.floor(Math.random() * 2147483647),
+        title: title,
+        body: body,
+        smallIcon: 'ic_launcher',
+        iconColor: '#4F7CFF',
+        ongoing: false,
+        autoCancel: true,
+        extra: data || {},
+      }],
+    });
+  } catch (e) {
+    console.warn('schedule failed:', e);
+  }
+}
 
 function urlBase64ToUint8Array(b64) {
   const padding = '='.repeat((4 - b64.length % 4) % 4);
