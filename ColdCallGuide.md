@@ -23,7 +23,7 @@
 - Villa Apex — 6932272665 /didnt answer 
 - L D House Lagonisi — 6949345108 /didnt answer
 - CasaMare Lagonisi Athens Riviera — 6980625707 casamare10a@gmail.com /MALLON YES
-- Nataly Gardens with Pool — 2110154251 
+- Nataly Gardens with Pool — 2110154251 περιμενω τηλεφωνο
 - Sia Mare Suites — 6995763058
 - Bombooo Vacation House — 6944648076
 - Villa Raf — 6944368062
