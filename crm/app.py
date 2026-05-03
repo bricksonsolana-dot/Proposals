@@ -2402,6 +2402,9 @@ RESOURCES_DIR = ROOT / "resources"
 RESOURCES_LIST = [
     {"slug": "cold_call_guide", "title": "📞 Cold Call Guide",
      "subtitle": "Πώς να κάνεις cold calls σε ξενοδοχεία"},
+    {"slug": "hospitality_cold_call_masterclass",
+     "title": "🏨 Hospitality Cold Call Masterclass (EN)",
+     "subtitle": "Hotels, Airbnbs & rental apartments — full-stack guide with tones"},
     {"slug": "email_templates", "title": "✉️ Email Templates",
      "subtitle": "Templates για email outreach"},
     {"slug": "sales_guide", "title": "📚 Sales Guide",
