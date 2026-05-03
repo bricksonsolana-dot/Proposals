@@ -14,12 +14,13 @@
    - [Airbnbs / Short-Term Vacation Rentals](#42-airbnbs--short-term-vacation-rentals)
    - [Long-Term Apartments for Rent](#43-long-term-apartments-for-rent)
 5. [The 7 Tones — When and How to Use Each](#5-the-7-tones)
-6. [Objection Handling (Every Objection You'll Ever Hear)](#6-objection-handling)
-7. [The Close — 6 Closing Plays](#7-the-close)
-8. [The Follow-Up Sequence](#8-the-follow-up)
-9. [Voicemail Scripts](#9-voicemail-scripts)
-10. [Numbers That Sell — Memorize These](#10-numbers-that-sell)
-11. [Daily Discipline of a Top Closer](#11-daily-discipline)
+6. [Technical Knowledge for Closers — What you need to know about websites](#6-technical-knowledge)
+7. [Objection Handling (Every Objection You'll Ever Hear)](#7-objection-handling)
+8. [The Close — 6 Closing Plays](#8-the-close)
+9. [The Follow-Up Sequence](#9-the-follow-up)
+10. [Voicemail Scripts](#10-voicemail-scripts)
+11. [Numbers That Sell — Memorize These](#11-numbers-that-sell)
+12. [Daily Discipline of a Top Closer](#12-daily-discipline)
 
 ---
 
@@ -236,7 +237,338 @@ Most calls start in **Tone 1 (Warm Peer)**, shift to **Tone 5 or 6** during pitc
 
 ---
 
-## 6. OBJECTION HANDLING
+## 6. TECHNICAL KNOWLEDGE
+
+You will lose a sale instantly if a client (or their tech-savvy son, accountant, or hotel manager) asks "do you do responsive design?" or "what about Core Web Vitals?" or "can it sync with my channel manager?" — and you stumble.
+
+You don't need to write code. You **do** need to speak the language fluently. This section is the technical depth that turns a sales call into a peer-to-peer conversation. Read it, re-read it, and quiz yourself until every term is automatic.
+
+### 6.1 The Anatomy of a Website (in plain language)
+
+Three pieces, every site:
+- **Domain** — the address (yourhotel.com)
+- **Hosting** — the building where the files live (a server somewhere on the internet)
+- **The site itself** — the code, images, and content
+
+When a guest types `yourhotel.com`:
+1. Their browser asks **DNS** "where does yourhotel.com live?"
+2. DNS replies with the server's IP address (the building's GPS coordinates)
+3. The browser asks the server for the page
+4. The server sends back HTML, CSS, JavaScript, images
+5. The browser assembles the page on screen
+
+**Why this matters in sales:** When a client says "I already have a domain," that's good — you can point it at the new site. When they say "my hosting is broken / slow," that's a buying signal.
+
+### 6.2 Domains — .com vs .gr vs .eu
+
+- **.com** — international, instantly recognized, best for guests from abroad
+- **.gr** — Greek-specific, requires Greek registration paperwork, signals "local"
+- **.eu / .net / .travel** — niche, rarely worth it
+- **Best practice for hotels and villas:** own both `.com` and `.gr`, and redirect `.gr` → `.com`. About €25–€35/year total.
+
+If a client owns the domain but it's parked at GoDaddy, Pointer, or registered to their nephew — that's normal. You don't need access to their registrar; you only need them (or you on their behalf) to point the DNS records to your hosting.
+
+### 6.3 Hosting — Why Cheap Hosting Costs Bookings
+
+Three tiers:
+- **Shared hosting** (€3–€10/mo) — slow, unreliable, sites take 5–8 seconds to load. Avoid for booking sites.
+- **Managed hosting** (€20–€50/mo) — fast, automatic backups, SSL included, support that actually responds. The right choice for hospitality.
+- **VPS / dedicated** (€80+/mo) — overkill for a single property, justified for multi-property operators.
+
+**The sales line:** *"Cheap hosting can take 6 seconds to load a page. Google penalizes slow sites in search rankings, and 53% of mobile guests leave a site that takes more than 3 seconds. We host on managed infrastructure that loads in under 2 seconds, anywhere in the world."*
+
+### 6.4 SSL / HTTPS — Non-Negotiable in 2026
+
+That little padlock icon next to the URL. Without it:
+- Browsers display a "Not Secure" warning — guests panic and leave
+- Google ranks the site below HTTPS competitors
+- Payment processors refuse transactions
+- Booking forms won't fire
+
+**Free with Let's Encrypt.** If a competitor is charging the property €100/year for SSL, they're scamming.
+
+**The sales line:** *"Every site I build has SSL by default. Your guests see the padlock, Google trusts the site, payments work. It's not optional anymore — it's the floor."*
+
+### 6.5 Mobile-First / Responsive Design
+
+70%+ of hospitality bookings happen on mobile. A site that's not mobile-perfect is a site that's leaking bookings every day.
+
+What "responsive" actually means:
+- Layout adapts to phone, tablet, desktop screens
+- Tap targets (buttons) are big enough for thumbs (minimum 44x44 pixels)
+- Images scale, don't crop awkwardly
+- Forms work without zooming
+- Navigation collapses to a hamburger menu on phones
+
+**The live test you can run on the call:** *"Pull out your phone right now. Type your hotel's URL. Try to make a booking. How long did it take? Could you read everything? My sites pass that test in under 30 seconds, every time."*
+
+### 6.6 Page Speed & Core Web Vitals
+
+Since 2021, Google ranks sites partially based on three speed/quality signals:
+
+- **LCP (Largest Contentful Paint)** — how fast the main image or hero text appears. **Target: under 2.5 seconds.**
+- **CLS (Cumulative Layout Shift)** — does the page jump around as it loads (annoying)? **Target: under 0.1.**
+- **INP (Interaction to Next Paint)** — how fast does the page respond when a guest taps a button? **Target: under 200ms.**
+
+**Why owners should care:** Sites that fail Core Web Vitals rank lower in Google. Lower ranking = fewer bookings.
+
+**Free testing tools:** [pagespeed.web.dev](https://pagespeed.web.dev), GTmetrix, Google Search Console.
+
+**The sales line:** *"I run every site through Google's PageSpeed test before launch. If it doesn't score 90+ on mobile, it doesn't go live. Most agencies skip this — I don't."*
+
+### 6.7 SEO — How Google Actually Ranks Sites
+
+Three categories:
+
+**On-page SEO** — what's on each page:
+- **Title tag** — what shows in Google search results (≤60 characters)
+- **Meta description** — the gray text under the title (≤155 characters)
+- **H1 heading** — the main page heading. One per page. Should contain the keyword.
+- **Image alt text** — description of every image (Google can't "see" images, only read alt text)
+- **Internal linking** — pages that link to other pages on the same site
+
+**Technical SEO** — under the hood:
+- **sitemap.xml** — a list of all pages, submitted to Google so it knows what to crawl
+- **robots.txt** — instructions telling Google's crawler what to skip
+- **Schema markup** — structured data (see 6.12)
+- **Canonical tags** — prevent "duplicate content" penalties when multiple URLs show the same page
+- **Page speed** (see 6.6)
+
+**Off-page SEO** — outside the site:
+- **Backlinks** — other reputable sites linking to yours (the #1 ranking signal)
+- **Google Business Profile** — your Google Maps listing
+- **Reviews** — Google reviews, TripAdvisor, Booking, all feed into local ranking
+
+**The sales line:** *"SEO isn't magic — it's a checklist. Title tags, meta descriptions, schema, fast hosting, mobile design, backlinks. I do all of it on every site. Most freelancers do maybe two of these. That's why my sites rank and theirs don't."*
+
+### 6.8 Local SEO — The Booking Killer
+
+For hospitality, **local SEO matters more than general SEO.** The keys:
+
+- **Google Business Profile** (formerly Google My Business) — fully filled out, hours, photos, weekly posts
+- **NAP consistency** — Name, Address, Phone identical across every directory online
+- **Local keywords** — "boutique hotel Athens Riviera," "villa Lagonisi pool," "monthly apartment Glyfada"
+- **Geo-tagged photos** — coordinates embedded in image metadata
+- **Local backlinks** — Greek tourism sites, travel blogs, local listings (Travel.gr, Discover Greece, Athens Voice, etc.)
+- **Reviews velocity** — fresh reviews every month signal "still active" to Google
+
+### 6.9 Booking Engines & Channel Managers
+
+Where you sound like an expert.
+
+**Booking engine** — the actual system that takes the reservation on YOUR site (calendar, payment processing, confirmation email).
+
+**Channel manager** — software that syncs availability across all platforms (Booking, Airbnb, Expedia, Vrbo, your direct site) so the same room is never sold twice.
+
+The major players in the Greek/European market:
+- **Cloudbeds** — popular for boutique hotels, all-in-one (PMS + channel manager + booking engine)
+- **SiteMinder** — enterprise hotels, deepest channel coverage
+- **Hostaway** — vacation rental focus, strong API
+- **Lodgify** — small-property focus, affordable, all-in-one
+- **Beds24** — flexible, very technical, low cost
+- **Smoobu** — vacation rental, simpler, good for owners with 1–10 properties
+- **Hotelogix** / **eZee Absolute** — alternatives in the mid-market
+
+If they already have one, your site connects to it via API (best) or iCal (cheap). If they don't, you recommend one based on their property type and number of units.
+
+### 6.10 iCal vs API Sync — Know the Difference
+
+**iCal sync:**
+- A calendar feed (the same `.ics` format Google Calendar uses)
+- Updates every 1–4 hours (not real-time)
+- Free, simple, supported by every platform (Booking, Airbnb, Vrbo)
+- Risk: small overlap window where double-bookings can happen if two guests book in the same hour
+
+**API sync:**
+- Real-time, instant
+- Two-way (your site can also push availability and rates back to the OTAs)
+- Requires a channel manager or paid integration (€20–€100/mo)
+- The right choice for high-volume properties (20+ bookings/month)
+
+**The sales line:** *"For a small villa with 5–10 bookings a month, iCal is fine — it's free and works. For a hotel doing 30+ bookings a month, you need API sync via a channel manager — otherwise you'll double-book and lose your Booking Genius status. I set up the right one for your size."*
+
+### 6.11 Payment Processing
+
+Two questions every owner asks: "How do guests pay?" and "When do I get the money?"
+
+The major options for Greek properties:
+- **Stripe** — international, 1.4% (EU cards) to 2.9% (non-EU) per transaction, instant setup, payouts in 2–7 days
+- **Viva Wallet** — Greek, fees as low as 1%, supports Greek bank cards (DIAS) better, instant Greek IBAN payouts
+- **PayPal** — high fees (3.4%+ plus fixed fee), avoid as a primary option
+- **IRIS / Bank transfer** — Greek instant transfer, no fees, but no international guests
+- **Adyen / Mollie** — alternatives for higher-volume properties
+
+**Best practice:** Stripe + Viva Wallet, with bank transfer as backup for direct repeat guests.
+
+**Important concepts:**
+- **Card on file** — guest's card stored, charged on no-show
+- **Deposit vs full prepayment** — most hotels take 30% deposit, balance at check-in; vacation rentals often take 100% upfront
+- **3D Secure (3DS2)** — required in EU since 2021, reduces fraud, costs nothing extra, may add a confirmation step for the guest
+- **Chargebacks** — when a guest disputes a charge with their bank; properly written cancellation policies and 3DS protect against these
+
+### 6.12 Schema Markup — Why Some Hotels Show Stars in Google
+
+When you Google a hotel and see the rich result with stars, price range, photos right in the search result — that's **schema markup**. Specifically, **Hotel schema** (schema.org/Hotel) tells Google:
+- This is a hotel (not a restaurant or shop)
+- Here's the address, phone, geo-coordinates
+- Here's the price range
+- Here's the rating and review count
+- Here are the amenities (pool, parking, breakfast, Wi-Fi)
+
+Without schema, Google sees just plain text. With schema:
+- Your hotel can appear in **Google Hotel Search** (the carousel above regular results)
+- Your hotel can show **rich results** with stars and price
+- Your hotel can appear in **Google Maps rich panels**
+
+**The sales line:** *"You know how some hotels appear in Google with the photo, the price, the stars all visible? That's not luck — that's structured data. Schema markup. I add it to every site. Most don't. That's why some hotels look ten times more legitimate than others in search results."*
+
+### 6.13 Google Hotel Ads & Free Booking Links
+
+Google now shows hotel results with prices from multiple sources — including **direct from your site, FOR FREE**, if you set it up. This is a game-changer that 90% of small hotels don't use.
+
+- **Free Booking Links** (Google's free product) — your direct site appears alongside Booking and Expedia in Google Hotel Search at no cost
+- **Hotel Ads** (paid) — pay-per-click bidding, you pay to outrank OTAs for your own hotel name
+
+To enable Free Booking Links you need:
+1. Google Business Profile verified
+2. Hotel schema markup on your booking page
+3. A Hotel Center account (free) connected to a price feed
+4. Your booking engine outputting prices in the right format
+
+**The sales line:** *"Right now when someone Googles your hotel by name, they see Booking and Expedia offering rooms — and you pay 20% commission on every click. Google has a free product called Free Booking Links that puts YOUR direct site right next to them, same room, no commission. Almost no small hotel uses it. I set it up as part of every project."*
+
+### 6.14 Analytics — If You Can't Measure, You Can't Improve
+
+The basics every site needs:
+- **Google Analytics 4 (GA4)** — free; tracks visitors, sessions, conversions, traffic sources
+- **Google Search Console** — free; shows what people Google to find you, where you rank, what's broken (404 errors, indexing issues)
+- **Conversion tracking** — measures specifically how many bookings came from the site, not just visits
+- **Heatmaps (optional)** — Hotjar (paid) or Microsoft Clarity (free) — shows where visitors click, scroll, and drop off
+
+**The sales line:** *"You'll know exactly how many people visited, where they came from (Google? Facebook? Direct?), which pages they read, and which ones became bookings. Most owners have no idea — they just hope. I show you the dashboard every month."*
+
+### 6.15 GDPR — Required by EU Law
+
+Every site that takes any guest data needs:
+- **Cookie consent banner** — required, real consent (not "by using this site you accept" — that's illegal)
+- **Privacy policy** — what data you collect, how you use it, how guests can request deletion
+- **Terms of service** — the contract with the guest about cancellations, damages, etc.
+- **Data retention rules** — how long you keep guest emails, photos, ID copies (legally must be stated)
+
+Failing to comply: fines up to **4% of annual revenue**. The Hellenic Data Protection Authority issues fines regularly.
+
+**The sales line:** *"Every site I build is GDPR-compliant by default. Cookie banner with real consent, privacy policy, terms of service. The cheap freelancers skip this — and the property owner is the one who gets fined, not the freelancer. I protect you from that."*
+
+### 6.16 CMS Choices — What Powers the Site
+
+- **WordPress** — most popular (~43% of all websites), flexible, requires regular plugin updates, vast ecosystem
+- **Wix / Squarespace** — drag-and-drop, locked into their platform, monthly fee forever, can't migrate out
+- **Webflow** — modern, designer-friendly, scales well, more expensive
+- **Custom HTML / Static** — fastest, cheapest to host, less flexible for the owner to edit
+- **Headless / Next.js** — modern architecture, blazing fast, requires a real developer to maintain
+- **Shopify** — only if there's a real e-commerce angle (selling souvenirs, gift vouchers)
+
+**For most small hotels, villas, and apartments:** WordPress with a quality theme + a booking plugin (HBook, MotoPress, PhotoPress) is the sweet spot. For ultra-fast custom builds, static sites win on speed.
+
+**Red flag to warn the client about:** *If a freelancer pushes Wix or Squarespace, the property owner is locked in forever paying €20–€40/month and can never move the site without rebuilding from scratch. The data isn't theirs.*
+
+### 6.17 Image Optimization — The #1 Speed Killer
+
+Hotel and villa photos are huge. A 4 MB photo takes 8 seconds to load on a 4G connection.
+
+The fix:
+- **WebP format** — 30% smaller than JPEG with the same visual quality
+- **AVIF format** — even smaller (newer; supported by all modern browsers)
+- **Lazy loading** — images below the visible part of the screen load only when scrolled to
+- **Responsive images** (`srcset`) — phone gets a small version, desktop gets the big one
+- **CDN delivery** — image served from the closest server geographically (see 6.18)
+
+**The sales line:** *"Your photos are your #1 sales tool — but they're probably what's making your current site slow. I compress every image to WebP, lazy-load them, serve from a CDN. Same beautiful photos, ten times faster. Guests see the property and decide to book before they get bored."*
+
+### 6.18 CDN — Why Your Site Loads Fast in Berlin
+
+A **CDN (Content Delivery Network)** keeps copies of your site on servers around the world. A guest in Berlin loads from Frankfurt, not Athens. A guest in New York loads from Virginia. **Cloudflare** is free for the basic plan and dramatically speeds up international load times. Major alternatives: Bunny.net, Fastly, AWS CloudFront.
+
+**The sales line:** *"I put Cloudflare in front of every site — free for me, free for you, but your site loads in under a second whether the guest is in London, Munich, or Sydney. International guests are your highest-margin guests. They shouldn't be staring at a loading spinner."*
+
+### 6.19 Email Capture & Marketing Integration
+
+The website's job isn't just to take bookings — it's to **build a list of past and prospective guests** for future direct marketing.
+
+Tools:
+- **Mailchimp** — free up to 500 contacts, easy interface, US-based (GDPR concerns for EU clients)
+- **Brevo (formerly Sendinblue)** — better for SMS + email combined, EU-based, GDPR-friendly, generous free tier
+- **Klaviyo** — best automation, expensive, overkill for small properties
+- **MailerLite** — clean, simple, good free tier, EU-friendly
+
+**The strategy that compounds every year:**
+1. Every guest who books → email captured automatically
+2. Six months later → you email them an exclusive direct-booking offer ("book direct, save 15%")
+3. They book direct, you save the 20% OTA commission
+4. Repeat next year, with their friends, with referrals
+5. After 3 years you have a list of 500+ past guests who book direct
+
+**The sales line:** *"Booking owns your guest list. Airbnb owns your guest list. Once we launch your site, YOU own your guest list. That's not just a website — that's a business asset that compounds every year."*
+
+### 6.20 Vocabulary Cheat Sheet — Speak Like a Pro
+
+| Term | Plain meaning |
+|---|---|
+| **Backend** | The part guests don't see (admin panel, database) |
+| **Frontend** | What the guest sees and clicks |
+| **API** | A way for two systems to talk to each other in real time |
+| **Webhook** | A notification one system sends to another the moment something happens |
+| **DNS** | The phonebook of the internet (translates names to server addresses) |
+| **Caching** | Storing a copy temporarily for speed |
+| **CMS** | Content Management System (e.g., WordPress) |
+| **Plugin / Module** | An add-on that adds features to a CMS |
+| **Theme** | The visual design layer of a CMS |
+| **Bounce rate** | % of visitors who leave without doing anything |
+| **Conversion rate** | % of visitors who book |
+| **Funnel** | The path from "saw the site" to "booked" |
+| **Bot / Crawler** | A program that scans the web (Googlebot crawls your site) |
+| **Indexed** | Google has put a page in its database (so it can show in search) |
+| **Bandwidth** | How much data your site can serve per month |
+| **Uptime** | % of time the site is reachable (industry standard: 99.9%+) |
+| **SSL certificate** | The file that enables HTTPS (the padlock) |
+| **PMS** | Property Management System (the back-office for hotels) |
+| **OTA** | Online Travel Agency (Booking, Expedia, Airbnb) |
+| **ADR** | Average Daily Rate |
+| **RevPAR** | Revenue Per Available Room (the key hotel metric) |
+
+### 6.21 The 5 Technical Questions You Must Be Ready For
+
+**Q: "Will the site be mobile-friendly?"**
+> *"Yes — every site I build is mobile-first. The mobile version is designed before the desktop version because 70%+ of your bookings will come from phones."*
+
+**Q: "How fast will the site be?"**
+> *"Under 2 seconds on mobile, under 1 second on desktop. I test every site through Google's PageSpeed Insights. If it doesn't score 90+ on mobile, I rebuild until it does."*
+
+**Q: "Will it appear on Google?"**
+> *"Yes — but rankings take 2–4 months to settle, that's just how Google works. I do all the on-page SEO at launch, set up Google Search Console, submit the sitemap, add Hotel schema markup. Within 90 days you should be ranking for your hotel name. Within 6 months for local searches like 'boutique hotel [your area].'"*
+
+**Q: "Can I update it myself?"**
+> *"Yes. I build on a CMS so you can add photos, change prices, write news posts without touching any code. I also include a 30-minute training call when we launch, plus a video walkthrough you can revisit anytime."*
+
+**Q: "What happens if it breaks?"**
+> *"Everything's backed up daily. If anything breaks, I restore from the last good backup — usually within an hour. The hosting I use has 99.9% uptime, which is industry-leading. And I monitor it — if the site goes down at 3am, I get an alert before you do."*
+
+### 6.22 Red Flags to Warn Clients About (Other Agencies' Common Scams)
+
+These are common rip-offs in the Greek and European market. Mention them on the call — clients trust you more when you protect them from things they wouldn't have noticed.
+
+- **"Monthly maintenance fees" of €100+ on a static brochure site** — for a site that doesn't change, that's a scam. Reasonable maintenance: €30–€60/mo for hosting + plugin updates + backups + security monitoring.
+- **Locking the domain in the agency's name** — the domain MUST be in the property owner's name, always. Otherwise the agency holds the business hostage.
+- **Hosting that can't be transferred** — proprietary platforms (some Wix, Squarespace, GoDaddy "site builders") trap you. Files cannot be exported.
+- **No analytics installed** — if they can't show you traffic and conversion data, they don't want you to know the site isn't working.
+- **No SSL certificate** — non-negotiable in 2026. If they don't include it, walk away.
+- **Charging for "SEO" with no deliverables and no monthly report** — SEO is a checklist plus ongoing measurement. Anyone charging €500/mo with no concrete reporting is scamming.
+- **No backup policy** — if they don't take daily backups, one bad plugin update wipes the site forever.
+- **"Lifetime hosting" sold for one big upfront fee** — hosting is a recurring service. "Lifetime" means until the agency disappears.
+
+---
+
+## 7. OBJECTION HANDLING
 
 Every objection is one of 5 underlying fears. Identify the fear, address the fear, never argue.
 
@@ -273,7 +605,7 @@ Every objection is one of 5 underlying fears. Identify the fear, address the fea
 
 ---
 
-## 7. THE CLOSE
+## 8. THE CLOSE
 
 Every great salesperson closes the same way: **assume the sale, give a choice between two yeses.** Never end on "do you want to buy?" — that's a yes/no question and yes/no questions get nos.
 
@@ -300,7 +632,7 @@ Every great salesperson closes the same way: **assume the sale, give a choice be
 
 ---
 
-## 8. THE FOLLOW-UP
+## 9. THE FOLLOW-UP
 
 **80% of sales happen on the 3rd to 7th touch.** If you give up after one call, you're leaving 80% of your money on the table.
 
@@ -336,7 +668,7 @@ Every great salesperson closes the same way: **assume the sale, give a choice be
 
 ---
 
-## 9. VOICEMAIL SCRIPTS
+## 10. VOICEMAIL SCRIPTS
 
 If they don't answer, leave **a short, curiosity-driven message**. Most cold-call voicemails are 45+ seconds and get deleted instantly. Yours should be 15 seconds max.
 
@@ -353,7 +685,7 @@ If they don't answer, leave **a short, curiosity-driven message**. Most cold-cal
 
 ---
 
-## 10. NUMBERS THAT SELL
+## 11. NUMBERS THAT SELL
 
 **Memorize these. Quote them in every call. Specific numbers convert; vague pitches don't.**
 
@@ -377,7 +709,7 @@ If they don't answer, leave **a short, curiosity-driven message**. Most cold-cal
 
 ---
 
-## 11. DAILY DISCIPLINE
+## 12. DAILY DISCIPLINE
 
 The difference between rookies and top closers is **not talent — it's volume and consistency.** Here's the daily structure of a top hospitality cold caller.
 
