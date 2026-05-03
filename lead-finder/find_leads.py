@@ -294,6 +294,9 @@ async def run(args):
             r.get("name", "") for r in master.values()
             if r.get("region", "").lower() == name.lower()
         }
+        # Track keys added during THIS region's run so the per-region CRM
+        # push only sends newly-scraped leads, not the entire region.
+        new_keys_this_region = set()
 
         # Incremental save: persist after every query inside the region
         async def on_progress(new_in_query):
@@ -322,6 +325,7 @@ async def run(args):
                         "gmaps_url": lead.get("gmaps_url", ""),
                         "online_presence": lead.get("online_presence", ""),
                     }
+                    new_keys_this_region.add(k)
                     added += 1
                 # Always save both files when there's any progress
                 if added or rej_added:
@@ -367,6 +371,7 @@ async def run(args):
                     "gmaps_url": lead.get("gmaps_url", ""),
                     "online_presence": lead.get("online_presence", ""),
                 }
+                new_keys_this_region.add(k)
                 new_in_region += 1
             new_total += new_in_region
             save_master(master)
@@ -386,24 +391,26 @@ async def run(args):
                   f"(master total: {len(master)}, region total: "
                   f"{region_leads})", flush=True)
 
-            # Push THIS region's leads to the CRM now, so a later Ctrl+C
-            # or crash doesn't leave them stranded in the CSV. The CRM
-            # upserts by phone, so re-pushing existing rows is a no-op.
-            if crm_cfg:
-                region_rows = [r for r in master.values()
-                                if r.get("region", "").lower() == name.lower()
-                                and r.get("phone")]
-                if region_rows:
+            # Push only the leads NEWLY ADDED in this region's run -- not
+            # the entire region, which would re-push thousands of already-
+            # synced rows for no benefit (the CRM upserts are idempotent
+            # but every row still costs a round-trip).
+            if crm_cfg and new_keys_this_region:
+                new_rows = [master[k] for k in new_keys_this_region
+                             if k in master and master[k].get("phone")]
+                if new_rows:
                     try:
                         from crm_sync import push_to_crm
-                        print(f"[{name}] [CRM] pushing {len(region_rows)} "
-                              f"leads...", flush=True)
-                        result = push_to_crm(region_rows, crm_cfg["url"],
+                        print(f"[{name}] [CRM] pushing {len(new_rows)} "
+                              f"new leads...", flush=True)
+                        result = push_to_crm(new_rows, crm_cfg["url"],
                                               crm_cfg["token"])
                         print(f"[{name}] [CRM] done — "
                               f"{result['upserted']} upserted", flush=True)
                     except Exception as e:
                         print(f"[{name}] [CRM] failed: {e}", flush=True)
+            elif crm_cfg:
+                print(f"[{name}] [CRM] no new leads to push.", flush=True)
 
     sem = asyncio.Semaphore(args.concurrency)
 
