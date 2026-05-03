@@ -199,6 +199,24 @@ async def run(args):
     print(f"Loaded rejected cache: {len(rejected)} names")
     new_total = 0
 
+    # Resolve CRM sync config once. Each region will push its own leads as
+    # soon as it finishes, so a Ctrl+C / crash mid-run still leaves all
+    # already-completed regions in the CRM.
+    crm_cfg = None
+    if not args.no_sync:
+        try:
+            from crm_sync import load_config as _crm_load_config
+            cfg = _crm_load_config()
+            if cfg.get("url") and cfg.get("token"):
+                crm_cfg = cfg
+                print(f"[CRM Sync] enabled -> {cfg['url']} "
+                      "(per-region push)")
+            else:
+                print("[CRM Sync] disabled — not configured. Run "
+                      "'python crm_sync.py --setup' to enable.")
+        except Exception as e:
+            print(f"[CRM Sync] disabled — config error: {e}")
+
     # Progress tracker: maps region -> (queries_done, queries_total, last_ts)
     import time as _time
     try:
@@ -368,6 +386,25 @@ async def run(args):
                   f"(master total: {len(master)}, region total: "
                   f"{region_leads})", flush=True)
 
+            # Push THIS region's leads to the CRM now, so a later Ctrl+C
+            # or crash doesn't leave them stranded in the CSV. The CRM
+            # upserts by phone, so re-pushing existing rows is a no-op.
+            if crm_cfg:
+                region_rows = [r for r in master.values()
+                                if r.get("region", "").lower() == name.lower()
+                                and r.get("phone")]
+                if region_rows:
+                    try:
+                        from crm_sync import push_to_crm
+                        print(f"[{name}] [CRM] pushing {len(region_rows)} "
+                              f"leads...", flush=True)
+                        result = push_to_crm(region_rows, crm_cfg["url"],
+                                              crm_cfg["token"])
+                        print(f"[{name}] [CRM] done — "
+                              f"{result['upserted']} upserted", flush=True)
+                    except Exception as e:
+                        print(f"[{name}] [CRM] failed: {e}", flush=True)
+
     sem = asyncio.Semaphore(args.concurrency)
 
     async def bounded(name):
@@ -392,23 +429,11 @@ async def run(args):
     print("\n" + "=" * 60)
     print(f"DONE. master has {len(master)} leads (+{new_total} this run)")
     print(f"  -> {MASTER_CSV}")
-
-    # Auto-sync to CRM if configured
-    if not args.no_sync:
-        try:
-            from crm_sync import load_config, push_to_crm, load_leads
-            cfg = load_config()
-            if cfg.get("url") and cfg.get("token"):
-                all_leads = load_leads()
-                print(f"\n[CRM Sync] Pushing {len(all_leads)} leads "
-                      f"to {cfg['url']}...")
-                result = push_to_crm(all_leads, cfg["url"], cfg["token"])
-                print(f"[CRM Sync] Done — {result['upserted']} upserted")
-            else:
-                print("\n[CRM Sync] Not configured. Run "
-                      "'python crm_sync.py --setup' to enable.")
-        except Exception as e:
-            print(f"\n[CRM Sync] Failed: {e}")
+    if crm_cfg:
+        print("[CRM Sync] all regions pushed during run "
+              "(per-region push, see [<region>] [CRM] lines above).")
+    # If you need to push the full CSV (e.g. after editing it manually),
+    # run `python crm_sync.py` instead.
 
 
 def main():
