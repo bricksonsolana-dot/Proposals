@@ -74,6 +74,118 @@ OTA_DOMAINS = [
     "weebly.com", "blogspot.com",
 ]
 
+# Tier-2 validation: country-aware sanity checks on extracted leads.
+# A lead's phone must start with the country dial prefix, and its address
+# must contain the country name OR a postal-code pattern from that country.
+# Cross-country leakage (e.g. a Greek phone on a Netherlands lead) is the
+# clearest signature of stale-DOM data leaking between cards.
+COUNTRY_PHONE_PREFIX = {
+    "Greece": "+30",
+    "Netherlands": "+31",
+}
+
+COUNTRY_ADDRESS_KEYWORDS = {
+    "Greece": ["greece", "ελλάδα", "ελλάς"],
+    "Netherlands": ["netherlands", "nederland"],
+}
+
+# Postal-code patterns per country (used as fallback when the address string
+# omits the country name — common in localised Google Maps responses).
+COUNTRY_POSTAL_PATTERNS = {
+    "Netherlands": re.compile(r"\b\d{4}\s?[A-Z]{2}\b"),
+    "Greece": re.compile(r"\b\d{3}\s?\d{2}\b"),
+}
+
+# Hotel brand fragments to reject by name. These are large international or
+# regional chains whose properties always have real websites — Google Maps
+# attaches an auto-generated "Official site" link for them in hotel-listing
+# mode, so they slip past the website filter. Substring match, lowercase.
+# Conservative list: only highly distinctive brand phrases to avoid false
+# positives on independent properties that happen to share a generic word.
+HOTEL_CHAIN_BRANDS = [
+    # International majors
+    "nh hotel", "nh collection", "nh city",
+    "hilton", "doubletree by hilton", "hampton by hilton",
+    "conrad ", "waldorf astoria",
+    "marriott", "sheraton", "westin", "courtyard by marriott",
+    "renaissance hotel", "residence inn", "fairfield inn",
+    "moxy hotel", "aloft hotel", "four points",
+    "mercure hotel", "mercure amsterdam", "mercure rotterdam",
+    "novotel", "sofitel", "pullman ", "ibis hotel", "ibis amsterdam",
+    "ibis budget", "ibis styles", "swissôtel", "swissotel",
+    "mövenpick", "movenpick",
+    "holiday inn", "crowne plaza", "intercontinental",
+    "indigo hotel", "staybridge suites", "candlewood suites",
+    "best western", "premier inn", "travelodge",
+    "radisson", "park inn by radisson",
+    "hyatt regency", "hyatt place", "hyatt house", "andaz amsterdam",
+    "motel one", "citizenm", "kimpton",
+    "park plaza", "art'otel",
+    "steigenberger",
+    "leonardo hotel", "leonardo royal",
+    "scandic hotel",
+    "hapimag",
+    "accor",
+    # Dutch chains
+    "van der valk",
+    "fletcher hotel",
+    "bilderberg",
+    "postillion hotel",
+    "westcord",
+    "eden hotel",
+    "amrâth", "amrath",
+    "valk exclusief",
+    # Aparthotel / serviced-apartment chains
+    "the social hub", "student hotel",
+    "yays concierged",
+    "zoku amsterdam", "zoku rotterdam",
+    "adagio aparthotel",
+    "staycity",
+    # Budget chains
+    "oyo ", "a&o hotel",
+]
+
+
+def is_chain_hotel(name: str) -> bool:
+    """True if the name matches a known hotel-chain brand fragment."""
+    if not name:
+        return False
+    n = name.lower()
+    return any(brand in n for brand in HOTEL_CHAIN_BRANDS)
+
+
+def phone_matches_country(phone: str, country: str) -> bool:
+    """True when the phone's country code matches the expected country.
+    Returns True when we have no rule for the country (fail-open) or when
+    the phone is empty (other filters handle that case)."""
+    if not phone or not country:
+        return True
+    expected = COUNTRY_PHONE_PREFIX.get(country)
+    if not expected:
+        return True
+    digits = re.sub(r"[^\d+]", "", phone)
+    if not digits.startswith("+"):
+        # Local number — accept (we can't tell, and empty-prefix is common
+        # when Google formats e.g. "020 555 1234" without country code)
+        return True
+    return digits.startswith(expected)
+
+
+def address_matches_country(address: str, country: str) -> bool:
+    """True when the address contains the country name or a postal-code
+    pattern matching the country. Fail-open if we have no rule."""
+    if not address or not country:
+        return True
+    a = address.lower()
+    keywords = COUNTRY_ADDRESS_KEYWORDS.get(country, [])
+    if any(k in a for k in keywords):
+        return True
+    pat = COUNTRY_POSTAL_PATTERNS.get(country)
+    if pat and pat.search(address):
+        return True
+    return False
+
+
 QUERIES_PER_REGION = [
     # English (works in any country)
     "hotels in {region}",
@@ -165,15 +277,6 @@ async def _get_card_name(card) -> str:
     return ""
 
 
-async def _get_card_gmaps_url(card) -> str:
-    """Extract the Google Maps place URL from a card."""
-    link = await card.query_selector('a.hfpxzc')
-    if link:
-        href = await link.get_attribute("href") or ""
-        return href
-    return ""
-
-
 def _classify_online_presence(website: str) -> str:
     """Categorize the website link to indicate where the lead is online."""
     if not website:
@@ -198,8 +301,19 @@ def _classify_online_presence(website: str) -> str:
     return "other"
 
 
-async def _extract_card_data(page, card):
-    """Click a card and extract data from the side panel."""
+async def _extract_card_data(page, card, *, expected_card_name: str = "",
+                              previous_panel_url: str = ""):
+    """Click a card and extract data from the side panel.
+
+    Returns:
+        dict with extracted fields on success, augmented with `_status`:
+            "ok"          — clean read, all consistency checks passed
+            "drift"       — pre-click card name doesn't match post-click h1
+                            (DOM-recycling has shifted us to a different place)
+            "no_navigate" — panel URL never changed after click; we'd be
+                            reading stale data from the previous lead
+        None on hard failure (no h1, click error, etc.).
+    """
     try:
         link = await card.query_selector('a.hfpxzc')
         if link:
@@ -209,21 +323,52 @@ async def _extract_card_data(page, card):
     except Exception:
         return None
 
+    # Tier-1 sync: wait for the panel URL to land on a NEW /maps/place/ page.
+    # If the URL never changes, the previous panel is still showing — reading
+    # fields now would attribute one place's data to another.
+    try:
+        if previous_panel_url:
+            import json as _json
+            await page.wait_for_function(
+                "(prev) => location.href !== prev && "
+                "location.pathname.includes('/maps/place/')",
+                arg=previous_panel_url,
+                timeout=5000,
+            )
+        else:
+            await page.wait_for_url(re.compile(r"/maps/place/"), timeout=5000)
+    except PWTimeout:
+        return {"_status": "no_navigate",
+                 "expected_name": expected_card_name}
+
     try:
         await page.wait_for_selector('h1.DUwDvf', timeout=4000)
     except PWTimeout:
         return None
-    await asyncio.sleep(0.15)
+    await asyncio.sleep(0.2)
 
     name = ""
     phone = ""
     website = ""
     address = ""
     category = ""
+    panel_url = page.url or ""
 
     name_el = await page.query_selector('h1.DUwDvf')
     if name_el:
         name = (await name_el.inner_text()).strip()
+
+    # Tier-1 drift check: the name shown on the card before clicking should
+    # match the h1 in the panel after clicking. If not, the card handle has
+    # been recycled by virtual scrolling and we'd be saving mismatched data.
+    if expected_card_name and name:
+        e = expected_card_name.lower().strip()
+        n = name.lower().strip()
+        if e != n and e not in n and n not in e:
+            return {"_status": "drift",
+                     "expected_name": expected_card_name,
+                     "name": name,
+                     "gmaps_url": panel_url}
 
     # Try several selectors — Google Maps uses different DOM in different modes:
     # 1. Standard place page: button.DkEaL
@@ -256,10 +401,41 @@ async def _extract_card_data(page, card):
         if m:
             phone = _normalize_phone(m.group(0))
 
+    # Standard place-page website link
     site_btn = await page.query_selector('a[data-item-id="authority"]')
     if site_btn:
         href = await site_btn.get_attribute("href") or ""
         website = href.strip()
+
+    # Hotel-listing mode: Google auto-attaches "Official site" / "Visit hotel
+    # website" links sourced from third-party data even when the owner hasn't
+    # claimed/added a website themselves. These don't expose the standard
+    # data-item-id="authority" selector. Catch them via aria-label / text.
+    if not website:
+        hotel_site_selectors = [
+            'a[aria-label*="website" i]',
+            'a[aria-label*="Official site" i]',
+            'a[aria-label*="Visit hotel" i]',
+            'a[data-tooltip*="website" i]',
+            'a:has-text("Official site")',
+            'a:has-text("Visit hotel website")',
+            'a:has-text("Visit website")',
+        ]
+        for sel in hotel_site_selectors:
+            try:
+                el = await page.query_selector(sel)
+            except Exception:
+                continue
+            if not el:
+                continue
+            href = await el.get_attribute("href") or ""
+            href = href.strip()
+            # Skip internal Google links (directions, share, etc.)
+            if href and not href.startswith("https://www.google.com/maps") \
+                    and not href.startswith("/maps") \
+                    and "google.com/local" not in href:
+                website = href
+                break
 
     addr_btn = await page.query_selector('button[data-item-id="address"]')
     if addr_btn:
@@ -267,11 +443,13 @@ async def _extract_card_data(page, card):
         address = aria.replace("Address: ", "").strip()
 
     return {
+        "_status": "ok",
         "name": name,
         "phone": phone,
         "website": website,
         "address": address,
         "category": category,
+        "gmaps_url": panel_url,
         "online_presence": _classify_online_presence(website),
     }
 
@@ -280,6 +458,7 @@ async def scrape_region(region: str, queries: list[str] = None,
                          headless: bool = True,
                          existing_names: set[str] = None,
                          rejected_names: set[str] = None,
+                         country: str = "",
                          on_progress=None,
                          on_query_done=None) -> list[dict]:
     """Scrape Google Maps for a region. Returns deduplicated leads.
@@ -290,6 +469,9 @@ async def scrape_region(region: str, queries: list[str] = None,
     Args:
         existing_names: names already accepted as leads (skip before click)
         rejected_names: names previously rejected (had website etc) — skip too
+        country: country name (e.g. "Netherlands") — enables phone-prefix /
+                 address-country / chain-blacklist validation. If empty, those
+                 checks fail-open.
         on_progress: optional async callback(new_leads_list) called after
                      each query finishes; lets the caller persist incrementally
     """
@@ -375,25 +557,81 @@ async def scrape_region(region: str, queries: list[str] = None,
 
                 new_count = 0
                 new_in_query = []
+                drift_count = 0
+                no_navigate_count = 0
+                chain_count = 0
+                phone_country_count = 0
+                addr_country_count = 0
+                previous_panel_url = page.url or ""
                 for i, (card, pre_key) in enumerate(cards_to_click):
-                    # Capture gmaps URL from the card BEFORE click (DOM may
-                    # change once the panel opens)
-                    gmaps_url = await _get_card_gmaps_url(card)
                     try:
-                        data = await _extract_card_data(page, card)
+                        data = await _extract_card_data(
+                            page, card,
+                            expected_card_name=pre_key,
+                            previous_panel_url=previous_panel_url,
+                        )
                     except Exception:
                         continue
-                    if not data or not data["name"]:
+                    if not data:
                         continue
-                    data["gmaps_url"] = gmaps_url
-                    key = data["name"].lower().strip()
+                    status = data.get("_status", "ok")
+                    if status == "drift":
+                        drift_count += 1
+                        # Don't update previous_panel_url — the click did
+                        # navigate, but to a different place than the card
+                        # advertised. The new place may still be re-clicked
+                        # later from its own card.
+                        previous_panel_url = data.get("gmaps_url",
+                                                       previous_panel_url)
+                        continue
+                    if status == "no_navigate":
+                        no_navigate_count += 1
+                        continue
+                    if not data.get("name"):
+                        continue
+
+                    # Tier-2 validation: country-aware sanity checks.
+                    # Address is the strongest signal — it tells us where the
+                    # place actually IS. A foreign-owner phone (+44 on a Greek
+                    # listing) is common for vacation rentals and is NOT a bug,
+                    # so we don't reject on phone alone. Phone is checked only
+                    # when address also disagrees, as a corroborating signal.
+                    name = data["name"]
+                    phone = data.get("phone", "")
+                    address = data.get("address", "")
+                    if is_chain_hotel(name):
+                        chain_count += 1
+                        previous_panel_url = data.get("gmaps_url",
+                                                       previous_panel_url)
+                        continue
+                    if country and address and not address_matches_country(
+                            address, country):
+                        addr_country_count += 1
+                        previous_panel_url = data.get("gmaps_url",
+                                                       previous_panel_url)
+                        continue
+                    # Address missing — fall back to phone country code as a
+                    # weaker signal. (When address is present, foreign-owner
+                    # phones on legit vacation rentals would false-positive.)
+                    if (country and phone and not address
+                            and not phone_matches_country(phone, country)):
+                        phone_country_count += 1
+                        previous_panel_url = data.get("gmaps_url",
+                                                       previous_panel_url)
+                        continue
+
+                    previous_panel_url = data.get("gmaps_url",
+                                                   previous_panel_url)
+                    key = name.lower().strip()
                     if key in seen:
-                        if not seen[key]["phone"] and data["phone"]:
-                            seen[key]["phone"] = data["phone"]
-                        if not seen[key].get("gmaps_url") and gmaps_url:
-                            seen[key]["gmaps_url"] = gmaps_url
+                        if not seen[key]["phone"] and phone:
+                            seen[key]["phone"] = phone
+                        if not seen[key].get("gmaps_url") and data.get("gmaps_url"):
+                            seen[key]["gmaps_url"] = data["gmaps_url"]
                         continue
                     data["region"] = region
+                    # Strip internal status field before saving
+                    data.pop("_status", None)
                     seen[key] = data
                     new_in_query.append(data)
                     new_count += 1
@@ -402,6 +640,13 @@ async def scrape_region(region: str, queries: list[str] = None,
                               f"(unique: {len(seen)})", flush=True)
                 print(f"    +{new_count} new from this query "
                       f"(total unique: {len(seen)})", flush=True)
+                if (drift_count or no_navigate_count or chain_count
+                        or phone_country_count or addr_country_count):
+                    print(f"    rejected: drift={drift_count} "
+                          f"no_nav={no_navigate_count} chain={chain_count} "
+                          f"wrong_phone_cc={phone_country_count} "
+                          f"wrong_addr_country={addr_country_count}",
+                          flush=True)
 
                 # Incremental save: let caller persist what we found in this query
                 if on_progress and new_in_query:

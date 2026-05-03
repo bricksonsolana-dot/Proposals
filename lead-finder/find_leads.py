@@ -317,6 +317,7 @@ async def run(args):
             leads = await scrape_region(name, headless=not args.headed,
                                           existing_names=existing_names,
                                           rejected_names=rejected,
+                                          country=country_for_region(name),
                                           on_progress=on_progress,
                                           on_query_done=on_query_done)
         except Exception as e:
