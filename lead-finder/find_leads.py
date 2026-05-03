@@ -294,9 +294,6 @@ async def run(args):
             r.get("name", "") for r in master.values()
             if r.get("region", "").lower() == name.lower()
         }
-        # Track keys added during THIS region's run so the per-region CRM
-        # push only sends newly-scraped leads, not the entire region.
-        new_keys_this_region = set()
 
         # Incremental save: persist after every query inside the region
         async def on_progress(new_in_query):
@@ -325,7 +322,6 @@ async def run(args):
                         "gmaps_url": lead.get("gmaps_url", ""),
                         "online_presence": lead.get("online_presence", ""),
                     }
-                    new_keys_this_region.add(k)
                     added += 1
                 # Always save both files when there's any progress
                 if added or rej_added:
@@ -391,26 +387,32 @@ async def run(args):
                   f"(master total: {len(master)}, region total: "
                   f"{region_leads})", flush=True)
 
-            # Push only the leads NEWLY ADDED in this region's run -- not
-            # the entire region, which would re-push thousands of already-
-            # synced rows for no benefit (the CRM upserts are idempotent
-            # but every row still costs a round-trip).
-            if crm_cfg and new_keys_this_region:
-                new_rows = [master[k] for k in new_keys_this_region
-                             if k in master and master[k].get("phone")]
-                if new_rows:
-                    try:
-                        from crm_sync import push_to_crm
-                        print(f"[{name}] [CRM] pushing {len(new_rows)} "
-                              f"new leads...", flush=True)
-                        result = push_to_crm(new_rows, crm_cfg["url"],
+            # Push only leads in this region whose phone hasn't been
+            # successfully synced before (per output/synced_phones.json).
+            # This catches: (a) leads new this run, (b) leads from earlier
+            # runs whose sync was interrupted -- both flow through the same
+            # filter, so nothing is ever pushed twice, nothing is stranded.
+            if crm_cfg:
+                try:
+                    from crm_sync import push_to_crm, filter_unsynced
+                    region_rows = [r for r in master.values()
+                                    if r.get("region", "").lower()
+                                    == name.lower() and r.get("phone")]
+                    to_push = filter_unsynced(region_rows)
+                    if to_push:
+                        print(f"[{name}] [CRM] pushing {len(to_push)} "
+                              f"unsynced leads "
+                              f"({len(region_rows) - len(to_push)} already "
+                              f"synced)...", flush=True)
+                        result = push_to_crm(to_push, crm_cfg["url"],
                                               crm_cfg["token"])
                         print(f"[{name}] [CRM] done — "
                               f"{result['upserted']} upserted", flush=True)
-                    except Exception as e:
-                        print(f"[{name}] [CRM] failed: {e}", flush=True)
-            elif crm_cfg:
-                print(f"[{name}] [CRM] no new leads to push.", flush=True)
+                    else:
+                        print(f"[{name}] [CRM] no unsynced leads to push.",
+                              flush=True)
+                except Exception as e:
+                    print(f"[{name}] [CRM] failed: {e}", flush=True)
 
     sem = asyncio.Semaphore(args.concurrency)
 
