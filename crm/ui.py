@@ -4521,18 +4521,49 @@ async function loadCountries() {
 async function openRegionPicker(uid) {
   const target = users.find(u => u.id === uid);
   if (!target) return;
-  // Fetch current regions + full region list + country catalogue in parallel
-  const [allRegions, countries, currentResp] = await Promise.all([
+  // Fetch current regions + full region list + country catalogue + the
+  // map of which users already own each region (so we can warn about
+  // overlaps). All in parallel.
+  const [allRegions, countries, currentResp, ownersResp] = await Promise.all([
     loadAllRegions(),
     loadCountries(),
     fetch('/api/users/' + uid + '/regions'),
+    fetch('/api/regions/owners'),
   ]);
   const currentData = currentResp.ok ? await currentResp.json() : { regions: [] };
   const current = new Set(currentData.regions || []);
+  const ownersByRegion = ownersResp.ok ? await ownersResp.json() : {};
 
   // Build a lead-count lookup from the regions-with-counts response
   const leadCount = {};
   for (const r of allRegions) leadCount[r.region] = r.lead_count;
+
+  // Initials + deterministic colour per user, for the small owner badges.
+  function userInitials(name) {
+    return (name || '?').split(/\s+/).filter(Boolean)
+      .slice(0, 2).map(s => s[0].toUpperCase()).join('') || '?';
+  }
+  function userColor(userId) {
+    // 8 distinct hues, deterministic by user id
+    const hues = [200, 30, 280, 140, 0, 50, 320, 180];
+    return `hsl(${hues[userId % hues.length]}, 60%, 45%)`;
+  }
+  function ownerBadgesHtml(region) {
+    const owners = (ownersByRegion[region] || [])
+      .filter(o => o.user_id !== uid);  // not "this user" -- they get the checkbox
+    if (!owners.length) return '';
+    return owners.map(o => {
+      const tip = `Already assigned to ${o.full_name} (@${o.username})`;
+      return `<span title="${escapeHtml(tip)}"
+        style="display:inline-flex;align-items:center;justify-content:center;
+               width:20px;height:20px;border-radius:50%;
+               background:${userColor(o.user_id)};color:#fff;
+               font-size:10px;font-weight:700;margin-left:4px;
+               border:1px solid #1a1d27">
+        ${escapeHtml(userInitials(o.full_name || o.username))}
+      </span>`;
+    }).join('');
+  }
 
   // Build the country -> group -> regions structure to render. Start from
   // the official catalogue (from /api/countries); if some region only
@@ -4620,12 +4651,14 @@ async function openRegionPicker(uid) {
         const itemsHtml = visible.map(r => {
           const checked = current.has(r) ? 'checked' : '';
           const cnt = leadCount[r] || 0;
+          const ownersHtml = ownerBadgesHtml(r);
           return `<label style="display:flex;align-items:center;gap:8px;
                                 padding:6px 10px;background:#1a1d27;
                                 border-radius:6px;cursor:pointer;font-size:13px;
                                 user-select:none">
             <input type="checkbox" class="rp-region" data-region="${escapeHtml(r)}" ${checked}>
             <span style="flex:1">${escapeHtml(r)}</span>
+            ${ownersHtml}
             <span style="color:#6b7280;font-size:11px">${cnt}</span>
           </label>`;
         }).join('');

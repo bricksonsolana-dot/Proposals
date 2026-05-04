@@ -1121,6 +1121,28 @@ def api_set_user_regions(uid):
     })
 
 
+@app.route("/api/regions/owners")
+@auth.admin_required
+def api_region_owners():
+    """Return {region: [{user_id, username, full_name}, ...]} so the admin
+    region picker can warn about overlapping assignments. Inactive users
+    are excluded -- a deactivated user's region claim shouldn't block
+    a live one."""
+    rows = db.query(
+        "SELECT ur.region, u.id AS user_id, u.username, u.full_name "
+        "FROM user_regions ur JOIN users u ON u.id = ur.user_id "
+        "WHERE u.is_active = 1 "
+        "ORDER BY ur.region, u.full_name")
+    by_region = {}
+    for r in rows:
+        by_region.setdefault(r["region"], []).append({
+            "user_id": r["user_id"],
+            "username": r["username"],
+            "full_name": r["full_name"],
+        })
+    return jsonify(by_region)
+
+
 @app.route("/api/regions/reclaim", methods=["POST"])
 @auth.admin_required
 def api_reclaim_unassigned():
