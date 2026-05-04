@@ -3803,7 +3803,6 @@ if (_filterCountryTop) {
 }
 document.getElementById('filter-region-top').onchange = e => {
   activeFilterRegion = e.target.value;
-  if (activeFilterRegion && !activeStatus) activeStatus = 'new';
   refreshLeads();
 };
 document.getElementById('filter-assignee-top').onchange = e => {

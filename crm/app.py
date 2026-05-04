@@ -368,10 +368,12 @@ def api_leads():
     if args.get("favorites") == "1":
         where.append("f.user_id IS NOT NULL")
 
+    # Status filter is applied LATER (in Python) so the by_status summary
+    # below can reflect the full set of statuses in the user's current
+    # scope (mine / country / region / etc.) -- otherwise filtering to
+    # status=interested would zero every other count and break the
+    # count panel as a navigation aid.
     status = args.get("status")
-    if status:
-        where.append("ls.status = ?")
-        params.append(status)
 
     region = args.get("region")
     if region:
@@ -436,7 +438,9 @@ def api_leads():
         if not l.get("country"):
             l["country"] = country_for_region(l.get("region", "") or "")
 
-    # Summaries
+    # Summaries computed from the FULL set in scope (before applying the
+    # status filter) so all status pills show their real counts -- the
+    # user can click between them without the others collapsing to 0.
     by_status = {}
     by_region = {}
     by_country = {}
@@ -447,6 +451,11 @@ def api_leads():
         by_region[r] = by_region.get(r, 0) + 1
         c = l.get("country") or ""
         by_country[c] = by_country.get(c, 0) + 1
+
+    # Now apply the status filter to the leads list returned to the client.
+    if status:
+        leads = [l for l in leads
+                  if (l.get("status") or "new") == status]
 
     return jsonify({
         "total": len(leads),
