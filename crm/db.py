@@ -469,6 +469,32 @@ def init_schema():
     # the column. Cheap to run on every boot — only updates NULL/empty rows.
     _backfill_lead_country()
 
+    # One-shot migration: collapse the retired statuses into the live set.
+    # The activity log keeps the call history; this just updates the lead's
+    # current state field. Idempotent (matches retired statuses only).
+    _collapse_retired_statuses()
+
+
+def _collapse_retired_statuses():
+    """Map called/reached/closed_won/closed_lost to the simplified status set.
+    Mapping:
+        called, reached     -> new
+        closed_won          -> interested  (preserves positive signal)
+        closed_lost         -> not_interested
+    """
+    try:
+        execute(
+            "UPDATE lead_state SET status = 'new' "
+            "WHERE status IN ('called', 'reached')")
+        execute(
+            "UPDATE lead_state SET status = 'interested' "
+            "WHERE status = 'closed_won'")
+        execute(
+            "UPDATE lead_state SET status = 'not_interested' "
+            "WHERE status = 'closed_lost'")
+    except Exception:
+        pass
+
 
 def _backfill_lead_country():
     """Set leads.country = country_for_region(region) for legacy rows where

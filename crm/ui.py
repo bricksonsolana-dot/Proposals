@@ -477,13 +477,9 @@ select {
   background: rgba(255,255,255,0.15); color: white;
 }
 .status-counts .row.dot-new { border-left-color: var(--text-3); }
-.status-counts .row.dot-called { border-left-color: var(--info); }
-.status-counts .row.dot-reached { border-left-color: var(--info); }
 .status-counts .row.dot-interested { border-left-color: var(--success); }
 .status-counts .row.dot-not_interested { border-left-color: var(--danger); }
 .status-counts .row.dot-follow_up { border-left-color: var(--warning); }
-.status-counts .row.dot-closed_won { border-left-color: var(--success); }
-.status-counts .row.dot-closed_lost { border-left-color: var(--danger); }
 .status-counts .row.dot-disqualified { border-left-color: var(--text-4); }
 
 .clear-filter-btn {
@@ -524,13 +520,9 @@ tr.lead-row.selected td { background: var(--brand-soft); }
   white-space: nowrap;
 }
 .s-new { background: var(--surface-3); color: var(--text-2); }
-.s-called { background: var(--info-soft); color: var(--info); }
-.s-reached { background: var(--info-soft); color: var(--info); }
 .s-interested { background: var(--success-soft); color: var(--success); }
 .s-not_interested { background: var(--danger-soft); color: var(--danger); }
 .s-follow_up { background: var(--warning-soft); color: var(--warning); }
-.s-closed_won { background: var(--success-soft); color: var(--success); }
-.s-closed_lost { background: var(--danger-soft); color: var(--danger); }
 .s-disqualified { background: var(--surface-3); color: var(--text-4); }
 
 .op-badge {
@@ -3425,9 +3417,9 @@ function escapeHtml(s) {
 }
 
 const STATUS_LABEL = {
-  new: 'New', called: 'Called', reached: 'Reached',
+  new: 'New',
   interested: 'Interested', not_interested: 'Not Interested',
-  follow_up: 'Follow Up', closed_won: 'Won', closed_lost: 'Lost',
+  follow_up: 'Follow Up',
   disqualified: 'Disqualified',
 };
 
@@ -3456,8 +3448,8 @@ async function refreshLeads() {
   const data = await r.json();
   allLeads = data.leads;
 
-  const allStatuses = ['new','called','reached','interested','follow_up',
-                        'not_interested','closed_won','closed_lost','disqualified'];
+  const allStatuses = ['new','interested','follow_up',
+                        'not_interested','disqualified'];
 
   // Sidebar quick stats (compact list)
   const statusEl = document.getElementById('status-counts');
@@ -3829,8 +3821,8 @@ function rebuildFilterDrawer() {
   const inner = document.querySelector('#filter-drawer .filter-drawer-inner');
   if (!inner) return;
   const STATUS_LABEL_LOCAL = STATUS_LABEL;
-  const STATUS_KEYS = ['new','called','reached','interested','follow_up',
-                        'not_interested','closed_won','closed_lost','disqualified'];
+  const STATUS_KEYS = ['new','interested','follow_up',
+                        'not_interested','disqualified'];
   inner.innerHTML = `
     <button class="filter-drawer-close" id="filter-drawer-close">✕</button>
     <h3 style="display:flex;justify-content:space-between;align-items:center">
@@ -4211,10 +4203,11 @@ async function savePanel() {
   // log a call / write a note. Only applies when the lead was 'new'.
   const userChangedStatus = d._baseline && d.status !== d._baseline.status;
   if (!userChangedStatus && d._baseline && d._baseline.status === 'new') {
-    if (d.call_outcome === 'answered') d.status = 'reached';
-    else if (d.call_outcome === 'no_answer') d.status = 'called';
-    else if (d.call_outcome === 'wrong_number') d.status = 'disqualified';
-    else if (d.note.trim()) d.status = 'called';
+    // Only auto-set the status when the outcome unambiguously implies
+    // it: wrong_number -> disqualified. "answered" / "no_answer" / a
+    // stray note no longer have dedicated statuses, so leave the lead's
+    // status alone and let the user pick interested/follow_up/etc.
+    if (d.call_outcome === 'wrong_number') d.status = 'disqualified';
   }
 
   const tasks = [];

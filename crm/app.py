@@ -516,8 +516,8 @@ def api_set_status(phone):
     norm = re.sub(r"[^\d+]", "", phone)
     data = request.get_json(force=True) or {}
     new_status = (data.get("status") or "").strip()
-    valid = ["new", "called", "reached", "interested", "not_interested",
-              "follow_up", "closed_won", "closed_lost", "disqualified"]
+    valid = ["new", "interested", "not_interested",
+              "follow_up", "disqualified"]
     if new_status not in valid:
         return jsonify({"error": "invalid status"}), 400
 
@@ -688,8 +688,7 @@ def api_daily_plan():
         SELECT l.*, ls.follow_up_date, ls.status
         FROM leads l JOIN lead_state ls ON ls.lead_phone = l.phone
         WHERE ls.assigned_to = ? AND ls.follow_up_date <= ?
-          AND ls.status NOT IN ('closed_won','closed_lost','disqualified',
-                                  'not_interested')
+          AND ls.status NOT IN ('disqualified', 'not_interested')
         ORDER BY ls.follow_up_date ASC
         LIMIT 50
     """, (user["id"], today))
