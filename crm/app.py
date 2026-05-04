@@ -1001,9 +1001,18 @@ def api_sync_leads():
                   primary.get("domain_suggestion", ""),
                   primary.get("enriched_at", ""),
                   json.dumps(properties, ensure_ascii=False)))
+            # Auto-assign the new lead to a user who owns this region in
+            # user_regions, so leads synced after regions were configured
+            # don't land orphaned. If multiple users claim the same region,
+            # pick the lowest user id deterministically (admin can reassign
+            # later). If no user claims the region, lead stays unassigned.
+            owner_row = db.query_one(
+                "SELECT user_id FROM user_regions WHERE region = ? "
+                "ORDER BY user_id LIMIT 1", (primary_region,))
+            owner = owner_row["user_id"] if owner_row else None
             db.execute(
-                "INSERT INTO lead_state (lead_phone, status) VALUES (?, 'new')",
-                (phone,))
+                "INSERT INTO lead_state (lead_phone, status, assigned_to) "
+                "VALUES (?, 'new', ?)", (phone, owner))
         upserted += 1
 
     if upserted:
@@ -1110,6 +1119,54 @@ def api_set_user_regions(uid):
         "bulk_assigned": bulk_assigned,
         "bulk_unassigned": bulk_unassigned,
     })
+
+
+@app.route("/api/regions/reclaim", methods=["POST"])
+@auth.admin_required
+def api_reclaim_unassigned():
+    """Assign every currently-unassigned lead whose region matches any user's
+    user_regions row to the matching user. Idempotent: leads already assigned
+    are left alone. If a region is claimed by multiple users, the lowest
+    user id wins (matches the auto-assign tiebreak in /api/sync/leads).
+    Run this once after the auto-assign feature ships, or any time you
+    suspect a backlog of orphaned leads."""
+    # First make sure every lead has a lead_state row, so the UPDATE below
+    # has something to hit.
+    db.execute("""
+        INSERT INTO lead_state (lead_phone, status)
+        SELECT l.phone, 'new'
+        FROM leads l
+        LEFT JOIN lead_state ls ON ls.lead_phone = l.phone
+        WHERE ls.lead_phone IS NULL
+    """)
+
+    # Region -> owner map (lowest user id per region)
+    owner_rows = db.query(
+        "SELECT region, MIN(user_id) AS user_id FROM user_regions "
+        "GROUP BY region")
+    if not owner_rows:
+        return jsonify({"ok": True, "claimed": 0,
+                         "message": "no user_regions configured"})
+
+    claimed = 0
+    by_user = {}
+    for row in owner_rows:
+        region = row["region"]
+        uid = row["user_id"]
+        # Claim every unassigned lead in this region for uid.
+        leads_to_claim = db.query(
+            "SELECT l.phone FROM leads l "
+            "JOIN lead_state ls ON ls.lead_phone = l.phone "
+            "WHERE l.region = ? AND ls.assigned_to IS NULL",
+            (region,))
+        for r in leads_to_claim:
+            db.execute(
+                "UPDATE lead_state SET assigned_to = ?, "
+                "updated_at = CURRENT_TIMESTAMP WHERE lead_phone = ?",
+                (uid, r["phone"]))
+            claimed += 1
+            by_user[uid] = by_user.get(uid, 0) + 1
+    return jsonify({"ok": True, "claimed": claimed, "by_user": by_user})
 
 
 @app.route("/api/regions/all")
