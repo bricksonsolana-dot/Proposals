@@ -539,6 +539,39 @@ def api_set_status(phone):
     return jsonify({"ok": True})
 
 
+@app.route("/api/lead/<phone>/email", methods=["POST"])
+@auth.login_required
+def api_set_email(phone):
+    """Update the lead's email. Sales person types it in after the lead
+    gives it on a call. Empty string clears the field. Logs an activity
+    entry so the audit log shows who set/changed/cleared it."""
+    import re
+    norm = re.sub(r"[^\d+]", "", phone)
+    data = request.get_json(force=True) or {}
+    email = (data.get("email") or "").strip()
+    # Lightweight validation: empty or looks like an address
+    if email and ("@" not in email or "." not in email.split("@")[-1]):
+        return jsonify({"error": "invalid email"}), 400
+
+    existing = db.query_one(
+        "SELECT email FROM leads WHERE phone = ?", (norm,))
+    if not existing:
+        return jsonify({"error": "lead not found"}), 404
+    old_email = existing.get("email") or ""
+    if old_email == email:
+        return jsonify({"ok": True, "email": email, "unchanged": True})
+
+    db.execute("UPDATE leads SET email = ? WHERE phone = ?", (email, norm))
+    if email and not old_email:
+        log_activity(norm, g.user["id"], "email_set", email)
+    elif email and old_email:
+        log_activity(norm, g.user["id"], "email_change",
+                      f"{old_email} -> {email}")
+    else:
+        log_activity(norm, g.user["id"], "email_clear", old_email)
+    return jsonify({"ok": True, "email": email})
+
+
 @app.route("/api/lead/<phone>/note", methods=["POST"])
 @auth.login_required
 def api_add_note(phone):

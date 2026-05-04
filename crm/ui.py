@@ -4096,8 +4096,18 @@ function renderPanel(l, activity) {
       <span class="value">${escapeHtml(phone)}
         ${phone?`<button class="copy-btn" onclick="copyText('${phone}', this)">copy</button>`:''}</span></div>
     <div class="info-row"><span class="label">Email</span>
-      <span class="value">${escapeHtml(email||'—')}
-        ${email?`<button class="copy-btn" onclick="copyText('${email}', this)">copy</button>`:''}</span></div>
+      <span class="value" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <input id="sp-email-input" type="email" value="${escapeHtml(email)}"
+               placeholder="Add email..."
+               data-original="${escapeHtml(email)}"
+               data-phone="${escapeHtml(l.phone)}"
+               style="flex:1;min-width:140px;padding:4px 8px;
+                      background:#1a1d27;border:1px solid #2a2f3d;
+                      border-radius:4px;color:#e5e7eb;font-size:13px">
+        <span id="sp-email-status" style="font-size:11px;color:#6b7280;
+                                            min-width:auto"></span>
+        ${email?`<button class="copy-btn" onclick="copyText('${email}', this)">copy</button>`:''}
+      </span></div>
     ${l.gmaps_url?`<div class="info-row"><span class="label">Maps</span>
       <span class="value"><a href="${escapeHtml(l.gmaps_url)}" target="_blank" style="color:#60a5fa">Open in Google Maps →</a></span></div>`:''}
 
@@ -4140,6 +4150,51 @@ function renderPanel(l, activity) {
     };
   }
   wireActivityActions();
+
+  // Inline email editing -- save on blur or Enter, ignore unchanged.
+  const emailInput = document.getElementById('sp-email-input');
+  const emailStatus = document.getElementById('sp-email-status');
+  if (emailInput) {
+    const saveEmail = async () => {
+      const val = emailInput.value.trim();
+      const original = emailInput.dataset.original || '';
+      if (val === original) return;
+      emailStatus.textContent = 'saving...';
+      emailStatus.style.color = '#6b7280';
+      try {
+        const r = await fetch('/api/lead/' +
+            encodeURIComponent(emailInput.dataset.phone) + '/email', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email: val}),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          emailStatus.textContent = data.error || 'save failed';
+          emailStatus.style.color = '#f87171';
+          return;
+        }
+        emailInput.dataset.original = val;
+        emailStatus.textContent = '✓ saved';
+        emailStatus.style.color = '#34d399';
+        setTimeout(() => { emailStatus.textContent = ''; }, 1500);
+        const lead = allLeads.find(x =>
+            x.phone === emailInput.dataset.phone);
+        if (lead) lead.email = val;
+      } catch (e) {
+        emailStatus.textContent = 'save failed';
+        emailStatus.style.color = '#f87171';
+      }
+    };
+    emailInput.addEventListener('blur', saveEmail);
+    emailInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); emailInput.blur(); }
+      else if (e.key === 'Escape') {
+        emailInput.value = emailInput.dataset.original || '';
+        emailInput.blur();
+      }
+    });
+  }
 
   // Quick action buttons — only mark in pendingDraft, no API call
   for (const btn of document.querySelectorAll('#sp-call-row button')) {
